@@ -3,20 +3,29 @@
 namespace App\Models;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 use Illuminate\Database\Eloquent\Builder;
 =======
 >>>>>>> origin/arena/01a0e931-drawing-gm
+=======
+>>>>>>> 27cfaac023287e7a99e8201f7b3a9bca742bf4a3
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
+>>>>>>> 27cfaac023287e7a99e8201f7b3a9bca742bf4a3
 
 class MenuItem extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
+<<<<<<< HEAD
     public const TARGETS = ['_self', '_blank'];
 =======
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -26,6 +35,8 @@ class MenuItem extends Model
 {
     use HasFactory, SoftDeletes;
 
+=======
+>>>>>>> 27cfaac023287e7a99e8201f7b3a9bca742bf4a3
     protected $table = 'menu_items';
 
     /**
@@ -44,7 +55,10 @@ class MenuItem extends Model
         '_self',
         '_blank',
     ];
+<<<<<<< HEAD
 >>>>>>> origin/arena/01a0e931-drawing-gm
+=======
+>>>>>>> 27cfaac023287e7a99e8201f7b3a9bca742bf4a3
 
     protected $fillable = [
         'menu_id',
@@ -61,15 +75,35 @@ class MenuItem extends Model
         'is_active',
     ];
 
+    /**
+     * Attribute defaults mirroring the database column defaults.
+     */
+    protected $attributes = [
+        'link_type' => 'url',
+        'target' => '_self',
+        'sort_order' => 0,
+        'is_active' => true,
+    ];
+
     protected function casts(): array
     {
         return [
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+            'menu_id' => 'integer',
+            'parent_id' => 'integer',
+            'linkable_id' => 'integer',
+>>>>>>> 27cfaac023287e7a99e8201f7b3a9bca742bf4a3
             'sort_order' => 'integer',
             'is_active' => 'boolean',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+            'deleted_at' => 'datetime',
         ];
     }
 
+<<<<<<< HEAD
 =======
             'menu_id' => 'integer',
             'parent_id' => 'integer',
@@ -82,6 +116,8 @@ class MenuItem extends Model
         ];
     }
 
+=======
+>>>>>>> 27cfaac023287e7a99e8201f7b3a9bca742bf4a3
     /*
     |--------------------------------------------------------------------------
     | Model events (tree cascade rules from docs/database-erd.md)
@@ -139,7 +175,10 @@ class MenuItem extends Model
     |--------------------------------------------------------------------------
     */
 
+<<<<<<< HEAD
 >>>>>>> origin/arena/01a0e931-drawing-gm
+=======
+>>>>>>> 27cfaac023287e7a99e8201f7b3a9bca742bf4a3
     public function menu(): BelongsTo
     {
         return $this->belongsTo(Menu::class);
@@ -153,10 +192,14 @@ class MenuItem extends Model
     public function children(): HasMany
     {
 <<<<<<< HEAD
+<<<<<<< HEAD
         return $this->hasMany(self::class, 'parent_id')->orderBy('sort_order');
 =======
         return $this->hasMany(self::class, 'parent_id')->orderBy('sort_order')->orderBy('id');
 >>>>>>> origin/arena/01a0e931-drawing-gm
+=======
+        return $this->hasMany(self::class, 'parent_id')->orderBy('sort_order')->orderBy('id');
+>>>>>>> 27cfaac023287e7a99e8201f7b3a9bca742bf4a3
     }
 
     public function linkable(): MorphTo
@@ -164,6 +207,7 @@ class MenuItem extends Model
         return $this->morphTo();
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     public function scopeActive(Builder $query): Builder
     {
@@ -185,6 +229,24 @@ class MenuItem extends Model
      */
     public static function linkableModels(): array
     {
+=======
+    /*
+    |--------------------------------------------------------------------------
+    | Helpers
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Allowlist of models that menu items may link to.
+     *
+     * Extend this map when the Page, Service, Location and Post models
+     * are implemented, e.g. 'Page' => 'Page', keyed by morph alias.
+     *
+     * @return array<class-string, string>
+     */
+    public static function linkableModels(): array
+    {
+>>>>>>> 27cfaac023287e7a99e8201f7b3a9bca742bf4a3
         return [
             // \App\Models\Page::class => 'Page',
             // \App\Models\Service::class => 'Service',
@@ -221,6 +283,9 @@ class MenuItem extends Model
                 : 'Internal',
             default => '—',
         };
+<<<<<<< HEAD
 >>>>>>> origin/arena/01a0e931-drawing-gm
+=======
+>>>>>>> 27cfaac023287e7a99e8201f7b3a9bca742bf4a3
     }
 }

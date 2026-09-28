@@ -5,28 +5,42 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
 >>>>>>> origin/arena/01a0e931-drawing-gm
+=======
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Str;
+>>>>>>> 27cfaac023287e7a99e8201f7b3a9bca742bf4a3
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 class SiteSetting extends Model implements HasMedia
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
     use HasFactory, InteractsWithMedia;
 
 =======
     use HasFactory, InteractsWithMedia, SoftDeletes;
 
+=======
+    use HasFactory, InteractsWithMedia, SoftDeletes;
+
+>>>>>>> 27cfaac023287e7a99e8201f7b3a9bca742bf4a3
     protected $table = 'site_settings';
 
     /**
      * Supported setting value types.
      */
+<<<<<<< HEAD
 >>>>>>> origin/arena/01a0e931-drawing-gm
+=======
+>>>>>>> 27cfaac023287e7a99e8201f7b3a9bca742bf4a3
     public const VALUE_TYPES = [
         'string',
         'boolean',
@@ -36,7 +50,10 @@ class SiteSetting extends Model implements HasMedia
     ];
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 27cfaac023287e7a99e8201f7b3a9bca742bf4a3
     /**
      * Media collections owned by the site settings module.
      */
@@ -46,7 +63,10 @@ class SiteSetting extends Model implements HasMedia
         'default_hero',
     ];
 
+<<<<<<< HEAD
 >>>>>>> origin/arena/01a0e931-drawing-gm
+=======
+>>>>>>> 27cfaac023287e7a99e8201f7b3a9bca742bf4a3
     protected $fillable = [
         'group_name',
         'setting_key',
@@ -55,10 +75,19 @@ class SiteSetting extends Model implements HasMedia
         'is_public',
     ];
 
+    /**
+     * Attribute defaults mirroring the database column defaults.
+     */
+    protected $attributes = [
+        'value_type' => 'string',
+        'is_public' => false,
+    ];
+
     protected function casts(): array
     {
         return [
             'is_public' => 'boolean',
+<<<<<<< HEAD
 <<<<<<< HEAD
         ];
     }
@@ -70,6 +99,14 @@ class SiteSetting extends Model implements HasMedia
         ];
     }
 
+=======
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+            'deleted_at' => 'datetime',
+        ];
+    }
+
+>>>>>>> 27cfaac023287e7a99e8201f7b3a9bca742bf4a3
     /*
     |--------------------------------------------------------------------------
     | Scopes
@@ -92,7 +129,10 @@ class SiteSetting extends Model implements HasMedia
     |--------------------------------------------------------------------------
     */
 
+<<<<<<< HEAD
 >>>>>>> origin/arena/01a0e931-drawing-gm
+=======
+>>>>>>> 27cfaac023287e7a99e8201f7b3a9bca742bf4a3
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('site_logo')
@@ -108,7 +148,10 @@ class SiteSetting extends Model implements HasMedia
             ->singleFile();
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 27cfaac023287e7a99e8201f7b3a9bca742bf4a3
 
     public function collectionUrl(string $collection): string
     {
@@ -206,5 +249,8 @@ class SiteSetting extends Model implements HasMedia
             return null;
         }
     }
+<<<<<<< HEAD
 >>>>>>> origin/arena/01a0e931-drawing-gm
+=======
+>>>>>>> 27cfaac023287e7a99e8201f7b3a9bca742bf4a3
 }
