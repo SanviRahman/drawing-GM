@@ -10,14 +10,13 @@ return new class extends Migration
     {
         Schema::create('site_settings', function (Blueprint $table) {
             $table->id();
-            $table->string('group_name', 80);
+            $table->string('group_name', 80)->index();
             $table->string('setting_key', 150)->unique();
             $table->longText('setting_value')->nullable();
             $table->string('value_type', 30)->default('string');
-            $table->boolean('is_public')->default(false);
+            $table->boolean('is_public')->default(false)->index();
             $table->timestamps();
-
-            $table->index(['group_name', 'is_public']);
+            $table->softDeletes();
         });
     }
 
