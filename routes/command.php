@@ -4,9 +4,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
 $redirectWithToast = function (string $type, string $message) {
-    $source = trim((string) request()->query('source', ''));
     $returnTo = trim((string) request()->query('return_to', ''));
-
     $fallbackUrl = url()->previous() ?: route('admin.dashboard');
     $targetUrl = $fallbackUrl;
 
@@ -18,18 +16,29 @@ $redirectWithToast = function (string $type, string $message) {
         $targetUrl = url($returnTo);
     }
 
-    $separator = str_contains($targetUrl, '?') ? '&' : '?';
+    // URL থেকে আগের জমে থাকা toast_type ও toast_message রিমুভ করে ক্লিন করা
+    $parsedUrl = parse_url($targetUrl);
+    $cleanPath = ($parsedUrl['path'] ?? '/');
+    $cleanUrl = url($cleanPath);
 
-    return redirect()->to($targetUrl . $separator . http_build_query([
-        'toast_type'    => $type,
-        'toast_message' => $message,
-    ]));
+    if (isset($parsedUrl['query'])) {
+        parse_str($parsedUrl['query'], $queryParams);
+        unset($queryParams['toast_type'], $queryParams['toast_message']);
+        if (! empty($queryParams)) {
+            $cleanUrl .= '?' . http_build_query($queryParams);
+        }
+    }
+
+    $flashKey = $type === 'error' ? 'error' : 'success';
+
+    return redirect()->to($cleanUrl)->with($flashKey, $message);
 };
 
-Route::prefix('command')
+Route::prefix('admin/command')
     ->name('command.')
-    ->middleware(['auth', 'role:admin', 'lte_context:admin'])
+    ->middleware(['auth:admin', 'can:system_tools_manage'])
     ->group(function () use ($redirectWithToast) {
+
         Route::get('/clear-cache', function () use ($redirectWithToast) {
             Artisan::call('cache:clear');
 
@@ -97,13 +106,6 @@ Route::prefix('command')
             return $redirectWithToast('success', 'Database seeded successfully.');
         })->name('seed');
 
-       
-
-    
-
-
-       
-
         Route::get('/media-storage-doctor', function () use ($redirectWithToast) {
             try {
                 Artisan::call('media:storage-doctor', [
@@ -141,7 +143,7 @@ Route::prefix('command')
                 '--force' => true,
             ]);
 
-            return $redirectWithToast('success', 'Database fresh migrated successfully.');
+            return $redirectWithToast('success', 'Database fresh migrated successfully. Please log in again.');
         })->name('migrate-fresh');
 
         Route::get('/migrate-fresh-seed', function () use ($redirectWithToast) {
@@ -159,7 +161,7 @@ Route::prefix('command')
 
             return $redirectWithToast(
                 'success',
-                'Database fresh migrated and seeded successfully.'
+                'Database fresh migrated and seeded successfully. Please log in again.'
             );
         })->name('migrate-fresh-seed');
     });

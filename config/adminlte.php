@@ -329,6 +329,31 @@ return [
             'active' => ['admin', 'admin/dashboard'],
         ],
 
+          /*
+        |--------------------------------------------------------------------------
+        | Site Configuration
+        |--------------------------------------------------------------------------
+        */
+
+        [
+            'header' => 'SITE CONFIGURATION',
+        ],
+
+        [
+            'text'   => 'Site Settings',
+            'route'  => 'admin.settings.index',
+            'icon'   => 'fas fa-fw fa-cogs',
+            'can'    => 'site_setting_view',
+            'active' => ['admin/settings*'],
+        ],
+
+        [
+            'text'   => 'Menus',
+            'route'  => 'admin.menus.index',
+            'icon'   => 'fas fa-fw fa-sitemap',
+            'can'    => 'menu_list',
+            'active' => ['admin/menus*'],
+        ],
 
         /*
         |--------------------------------------------------------------------------
@@ -388,31 +413,7 @@ return [
             'active' => ['admin/permissions*'],
         ],
 
-        /*
-        |--------------------------------------------------------------------------
-        | Site Configuration
-        |--------------------------------------------------------------------------
-        */
-
-        [
-            'header' => 'SITE CONFIGURATION',
-        ],
-
-        [
-            'text'   => 'Site Settings',
-            'route'  => 'admin.settings.index',
-            'icon'   => 'fas fa-fw fa-cogs',
-            'can'    => 'site_setting_view',
-            'active' => ['admin/settings*'],
-        ],
-
-        [
-            'text'   => 'Menus',
-            'route'  => 'admin.menus.index',
-            'icon'   => 'fas fa-fw fa-sitemap',
-            'can'    => 'menu_list',
-            'active' => ['admin/menus*'],
-        ],
+      
 
         /*
         |--------------------------------------------------------------------------

@@ -94,15 +94,8 @@
 
                 window.tinymce.init({
                     target: textarea,
-
-                    /*
-                     * TinyMCE 7-এর self-hosted/GPL distribution।
-                     * Commercial project হলে licence requirement যাচাই করুন।
-                     */
                     license_key: 'gpl',
-
                     height: Number(textarea.dataset.editorHeight || 450),
-
                     menubar: true,
                     branding: false,
                     promotion: false,
@@ -153,13 +146,8 @@
                         }
                     `,
 
-                    /*
-                     * Base64 image database-এ save হওয়া বন্ধ থাকবে।
-                     * Image upload Spatie Media Library দিয়ে handle করতে হবে।
-                     */
                     paste_data_images: false,
                     automatic_uploads: false,
-
                     relative_urls: false,
                     remove_script_host: false,
                     convert_urls: true,
@@ -198,6 +186,22 @@
         };
 
         document.addEventListener('DOMContentLoaded', () => {
+            // ১. URL প্যারামিটারে টোস্ট মেসেজ থাকলে SweetAlert দিয়ে দেখানো এবং URL ক্লিন করা
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlToastMsg = urlParams.get('toast_message');
+            const urlToastType = urlParams.get('toast_type') || 'success';
+
+            if (urlToastMsg && urlToastMsg.trim() !== '') {
+                window.showAlert(urlToastMsg, urlToastType);
+
+                // URL বার থেকে toast_message এবং toast_type মুছে ক্লিন করা
+                urlParams.delete('toast_message');
+                urlParams.delete('toast_type');
+                const remainingQuery = urlParams.toString() ? '?' + urlParams.toString() : '';
+                window.history.replaceState({}, document.title, window.location.pathname + remainingQuery);
+            }
+
+            // ২. লারাভেল সেশন ফ্ল্যাশ মেসেজ রিড করে দেখানো
             const flashMessages = [
                 {
                     message: @json(session('success')),
@@ -238,11 +242,6 @@
             initializeGlobalAdminFeatures();
         });
 
-        /*
-         * AJAX/modal দিয়ে নতুন textarea যোগ করার পর:
-         *
-         * document.dispatchEvent(new CustomEvent('admin:content-updated'));
-         */
         document.addEventListener('admin:content-updated', () => {
             initializeGlobalAdminFeatures();
         });

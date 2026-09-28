@@ -1,14 +1,19 @@
 <script>
-    $(document).ready(function () {
-        $.ajaxSetup({
+    $(document).ready(function () {$.ajaxSetup({
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
         });
 
-        const $page = $('#page-manager');
-        const $wrapper = $('#content-wrapper');
+        const $page =$('#page-manager');
+        const $wrapper =$('#content-wrapper');
 
-        function loadData(url = $page.data('index-url')) {
-            $wrapper.addClass('loading');
+        // TinyMCE ডায়ালগের জন্য বুটস্ট্র্যাপ মডালের ফোকাস সমস্যা প্রতিরোধ
+        $(document).on('focusin', function (e) {
+            if ($(e.target).closest('.tox-tinymce, .tox-tinymce-aux, .moxman-window').length) {
+                e.stopImmediatePropagation();
+            }
+        });
+
+        function loadData(url = $page.data('index-url')) {$wrapper.addClass('loading');
 
             let params = {
                 search: $('#table_search').val(),
@@ -16,8 +21,7 @@
             };
 
             $.get(url, params, function(res) {
-                $wrapper.html(res.html).removeClass('loading');
-                $('#checkAll').prop('checked', false);
+                $wrapper.html(res.html).removeClass('loading');$('#checkAll').prop('checked', false);
             }).fail(function() {
                 $wrapper.removeClass('loading');
                 Swal.fire('Error', 'Failed to load data.', 'error');
@@ -50,10 +54,27 @@
 
             $.get(url, function(res) {
                 $('#modal-body').html(res.html);
+
+                // মডাল কন্টেন্ট লোড হওয়ার সাথে সাথে TinyMCE ইনিশিয়ালাইজ করা
+                document.dispatchEvent(new CustomEvent('admin:content-updated'));
             }).fail(function() {
                 $('#modal-body').html('<div class="alert alert-danger m-3">Failed to load content!</div>');
             });
         }
+
+        // মডাল বন্ধ হলে TinyMCE এর ইনস্ট্যান্স ক্লিনআপ করা
+        $('#ajaxModal').on('hidden.bs.modal', function () {
+            if (window.tinymce) {
+                const editors = this.querySelectorAll('.tinymce-editor');
+                editors.forEach((editor) => {
+                    if (window.tinymce.get(editor.id)) {
+                        window.tinymce.get(editor.id).destroy();
+                    }
+                    delete editor.dataset.tinymceInitialized;
+                });
+            }
+            $('#modal-body').empty();
+        });
 
         $('#btnAddRecord').on('click', function() { openModal($page.data('create-url'), 'Create New Setting'); });
         $(document).on('click', '.btn-edit', function() { openModal($(this).data('url'), 'Edit Setting'); });
@@ -62,8 +83,13 @@
         $(document).on('submit', '#ajax-form', function(e) {
             e.preventDefault();
 
-            let $form = $(this);
-            let $btn = $form.find('button[type="submit"]');
+            // FormData তৈরি করার পূর্বে TinyMCE কনটেন্ট টেক্সটএরিয়াতে সিঙ্ক করা
+            if (window.tinymce) {
+                window.tinymce.triggerSave();
+            }
+
+            let $form =$(this);
+            let $btn =$form.find('button[type="submit"]');
             let formData = new FormData(this);
 
             $btn.prop('disabled', true).append(' <i class="fas fa-spinner fa-spin ml-1"></i>');
@@ -136,7 +162,7 @@
 
         $('#btnApplyBulk').on('click', function() {
             let action = $('#bulk_action').val();
-            let ids = $('.row-checkbox:checked').map(function() { return $(this).val(); }).get();
+            let ids = $('.row-checkbox:checked').map(function() { return$(this).val(); }).get();
 
             if (! action) return Swal.fire('Notice', 'Please select a bulk action.', 'info');
             if (ids.length === 0) return Swal.fire('Notice', 'Please select at least one row.', 'info');

@@ -7,6 +7,7 @@
     <p class="text-muted mb-2"><i class="fas fa-folder mr-2 text-primary"></i>{{ $setting->group_name }}</p>
 
     <span class="badge badge-{{ match($setting->value_type) {
+        'html' => 'primary',
         'boolean' => 'info',
         'integer' => 'success',
         'json' => 'warning',
@@ -21,13 +22,17 @@
 
 <div class="card bg-light border-0 p-4 shadow-sm mb-4">
     <h6 class="font-weight-bold text-dark mb-3 border-bottom pb-2">
-        <i class="fas fa-align-left mr-2 text-info"></i> Stored Value
+        <i class="fas fa-align-left mr-2 text-info"></i> Stored Value (Longtext)
     </h6>
     <div class="text-break" style="word-wrap: anywhere;">
         @if($setting->value_type === 'encrypted')
             <span class="text-muted font-italic"><i class="fas fa-lock mr-1"></i>{{ $setting->presentValue() }}</span>
+        @elseif($setting->value_type === 'html')
+            <div class="p-3 bg-white border rounded shadow-sm">
+                {!! $setting->setting_value !!}
+            </div>
         @else
-            <code class="text-dark">{{ $setting->presentValue(10000) }}</code>
+            <code class="text-dark bg-white p-2 d-block rounded border">{{ $setting->presentValue(10000) }}</code>
         @endif
     </div>
 </div>
