@@ -34,6 +34,11 @@ class RolePermissionSeeder extends Seeder
         'Site Settings' => [
             'site_setting_view',
             'site_setting_update',
+            'site_setting_create',
+            'site_setting_delete',
+            'site_setting_trash',
+            'site_setting_restore',
+            'site_setting_force_delete',
         ],
 
         'Header Settings' => [
@@ -64,6 +69,17 @@ class RolePermissionSeeder extends Seeder
             'footer_link_delete',
             'footer_link_toggle',
             'footer_link_reorder',
+        ],
+
+        'Menus' => [
+            'menu_list',
+            'menu_view',
+            'menu_create',
+            'menu_update',
+            'menu_delete',
+            'menu_trash',
+            'menu_restore',
+            'menu_force_delete',
         ],
 
         'Pages' => [
