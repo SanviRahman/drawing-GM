@@ -12,6 +12,17 @@ class SiteConfigurationTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Run the migrate:fresh command explicitly instead of relying on
+     * PendingCommand::__destruct firing when the object is discarded.
+     * Both paths are semantically identical; the explicit call simply
+     * avoids a quirk of the wasm PHP runtime used for local verification.
+     */
+    protected function migrateDatabases(): void
+    {
+        $this->artisan('migrate:fresh', $this->migrateFreshUsing())->run();
+    }
+
     public function test_site_configuration_tables_can_store_records(): void
     {
         $setting = SiteSetting::create([

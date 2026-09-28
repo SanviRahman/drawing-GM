@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\Backoffice\Admin\AdminController;
 use App\Http\Controllers\Backoffice\Admin\DashboardController;
+use App\Http\Controllers\Backoffice\Admin\MenuController;
 use App\Http\Controllers\Backoffice\Admin\PermissionController;
 use App\Http\Controllers\Backoffice\Admin\ProfileController;
 use App\Http\Controllers\Backoffice\Admin\RoleController;
+use App\Http\Controllers\Backoffice\Admin\SettingController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:admin')->group(function () {
@@ -52,6 +54,36 @@ Route::middleware('auth:admin')->group(function () {
         Route::resource('/', PermissionController::class)->parameters(['' => 'permission']);
     });
 
-    
+    // Site Settings
+    Route::group(['prefix' => 'settings', 'as' => 'settings.'], function () {
+        Route::post('multiple-action', [SettingController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [SettingController::class, 'trash'])->name('trashed');
+        Route::post('restore/{setting}', [SettingController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{setting}', [SettingController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [SettingController::class, 'list'])->name('list');
+        Route::get('ajax-search', [SettingController::class, 'list'])->name('ajax_search');
+        Route::resource('/', SettingController::class)->parameters(['' => 'setting']);
+    });
+
+    // Menus
+    Route::group(['prefix' => 'menus', 'as' => 'menus.'], function () {
+        Route::post('multiple-action', [MenuController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [MenuController::class, 'trash'])->name('trashed');
+        Route::post('restore/{menu}', [MenuController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{menu}', [MenuController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [MenuController::class, 'list'])->name('list');
+        Route::get('ajax-search', [MenuController::class, 'list'])->name('ajax_search');
+
+        // Menu items (nested, scoped to their parent menu)
+        Route::scopeBindings()->group(function () {
+            Route::get('{menu}/items/create', [MenuController::class, 'itemCreate'])->name('item_create');
+            Route::post('{menu}/items', [MenuController::class, 'itemStore'])->name('item_store');
+            Route::get('{menu}/items/{item}/edit', [MenuController::class, 'itemEdit'])->name('item_edit');
+            Route::put('{menu}/items/{item}', [MenuController::class, 'itemUpdate'])->name('item_update');
+            Route::delete('{menu}/items/{item}', [MenuController::class, 'itemDestroy'])->name('item_destroy');
+        });
+
+        Route::resource('/', MenuController::class)->parameters(['' => 'menu']);
+    });
 
 });
