@@ -74,3 +74,15 @@ When implementing any feature:
 3. **Model & Relation Implementation**: Match the foreign keys and cascade rules defined in `docs/database-erd.md`[cite: 10].
 4. **Validation & Action**: Write Form Request and Action class following `docs/folder-structure.md`[cite: 8].
 5. **Quality Verification**: Execute migrations and verify that imports, traits, and namespace declarations are accurate.
+
+
+### Strict Coding Standard & Architecture (Follow Admin Module Pattern)
+1. **Namespace & Paths:** All admin controllers must be in `App\Http\Controllers\Backoffice\Admin\`. All admin views must be in `resources/views/backoffice/admin/`.
+2. **NO Form Requests:** DO NOT create external Form Request classes. Handle validation inside the controller using a private method (e.g., `private function validateMenu(Request $request, ?Menu $menu = null): array`).
+3. **Controller Pattern:** Every admin controller must strictly follow the `AdminController` blueprint. It must include methods for: `index` (with search/filters & AJAX pagination), `list` (for select2/ajax search), `create`, `store`, `show`, `edit`, `update`, `destroy` (soft delete), `multipleAction` (bulk active/inactive/delete/restore/force_delete), `trash`, `restore`, and `forceDelete`.
+4. **View Pattern:** Every module must have:
+   - `index.blade.php` & `trash.blade.php` (Using `#page-manager` with `data-urls` for AJAX).
+   - `partials/table.blade.php` (Responsive table with `.row-checkbox` and action buttons).
+   - `partials/form.blade.php` (Using `#ajax-form` for modal submissions).
+   - `partials/show.blade.php` (Read-only modal view).
+   - `partials/script.blade.php` (Containing the standard jQuery/AJAX CRUD and SweetAlert2 logic).
