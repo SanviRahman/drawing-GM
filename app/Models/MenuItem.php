@@ -164,7 +164,7 @@ class MenuItem extends Model
     {
         return [
             \App\Models\Page::class => 'Page',
-            // \App\Models\Service::class => 'Service',
+            \App\Models\Service::class => 'Service',
             // \App\Models\Location::class => 'Location',
             // \App\Models\Post::class => 'Post',
         ];

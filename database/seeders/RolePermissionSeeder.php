@@ -143,7 +143,7 @@ class RolePermissionSeeder extends Seeder
             'service_force_delete',
             'service_publish',
             'service_unpublish',
-            'service_preview',
+            'service_duplicate',
         ],
 
         'Service Features'    => [

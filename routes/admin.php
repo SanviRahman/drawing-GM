@@ -11,6 +11,7 @@ use App\Http\Controllers\Backoffice\Admin\ProfileController;
 use App\Http\Controllers\Backoffice\Admin\RoleController;
 use App\Http\Controllers\Backoffice\Admin\SectionDefinitionController;
 use App\Http\Controllers\Backoffice\Admin\SectionMediaController;
+use App\Http\Controllers\Backoffice\Admin\ServiceController;
 use App\Http\Controllers\Backoffice\Admin\SettingController;
 use Illuminate\Support\Facades\Route;
 
@@ -163,6 +164,25 @@ Route::middleware('auth:admin')->group(function () {
         Route::get('{sectionMedia}/edit', [SectionMediaController::class, 'edit'])->name('edit');
         Route::put('{sectionMedia}', [SectionMediaController::class, 'update'])->name('update');
         Route::delete('{sectionMedia}', [SectionMediaController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::group(['prefix' => 'services', 'as' => 'services.'], function () {
+        Route::post('multiple-action', [ServiceController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [ServiceController::class, 'trash'])->name('trashed');
+        Route::get('list', [ServiceController::class, 'list'])->name('list');
+        Route::post('restore/{service}', [ServiceController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{service}', [ServiceController::class, 'forceDelete'])->name('force_delete');
+        Route::post('{service}/publish', [ServiceController::class, 'publish'])->name('publish');
+        Route::post('{service}/unpublish', [ServiceController::class, 'unpublish'])->name('unpublish');
+        Route::post('{service}/duplicate', [ServiceController::class, 'duplicate'])->name('duplicate');
+
+        Route::get('/', [ServiceController::class, 'index'])->name('index');
+        Route::get('create', [ServiceController::class, 'create'])->name('create');
+        Route::post('/', [ServiceController::class, 'store'])->name('store');
+        Route::get('{service}', [ServiceController::class, 'show'])->name('show');
+        Route::get('{service}/edit', [ServiceController::class, 'edit'])->name('edit');
+        Route::put('{service}', [ServiceController::class, 'update'])->name('update');
+        Route::delete('{service}', [ServiceController::class, 'destroy'])->name('destroy');
     });
 
 });
