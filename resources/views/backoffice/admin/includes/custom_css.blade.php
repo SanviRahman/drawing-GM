@@ -23,4 +23,12 @@
     textarea.tinymce-editor.is-invalid + .tox-tinymce {
         border-color: #dc3545 !important;
     }
+
+    .navbar-nav .user-menu .user-image {
+        width: 30px !important;
+        height: 30px !important;
+        margin-top: -4px !important;
+        object-fit: cover;
+        border-radius: 50%;
+    }
 </style>
