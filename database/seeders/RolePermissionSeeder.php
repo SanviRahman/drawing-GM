@@ -105,6 +105,9 @@ class RolePermissionSeeder extends Seeder
             'page_section_toggle',
             'page_section_reorder',
             'page_section_duplicate',
+            'page_section_trash',
+            'page_section_restore',
+            'page_section_force_delete',
         ],
 
         'Section Definitions' => [

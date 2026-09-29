@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Backoffice\Admin;
 
 use App\Http\Controllers\Controller;
@@ -12,7 +11,8 @@ use Illuminate\Validation\Rule;
 
 class PageController extends Controller
 {
-    public function __construct(private readonly PageMediaService $pageMediaService) {}
+    public function __construct(private readonly PageMediaService $pageMediaService)
+    {}
 
     public function index(Request $request)
     {
@@ -21,14 +21,14 @@ class PageController extends Controller
         $query = Page::query()->with(['createdBy:id,name', 'updatedBy:id,name']);
         $this->applyFilters($query, $request);
 
-        $pages = $query->latest('id')->paginate(15)->withQueryString();
+        $pages     = $query->latest('id')->paginate(15)->withQueryString();
         $templates = Page::query()->select('template')->whereNotNull('template')->distinct()->orderBy('template')->pluck('template');
 
         if ($request->ajax()) {
             return response()->json(['html' => view('backoffice.admin.pages.partials.table', compact('pages'))->render()]);
         }
 
-        $title = 'Pages Management';
+        $title      = 'Pages Management';
         $breadcrumb = [['text' => 'Pages', 'url' => route('admin.pages.index')]];
 
         return view('backoffice.admin.pages.index', compact('pages', 'templates', 'title', 'breadcrumb'));
@@ -42,7 +42,7 @@ class PageController extends Controller
 
         if ($request->filled('search')) {
             $search = trim((string) $request->search);
-            $query->where(fn ($q) => $q->where('title', 'like', "%{$search}%")->orWhere('slug', 'like', "%{$search}%"));
+            $query->where(fn($q) => $q->where('title', 'like', "%{$search}%")->orWhere('slug', 'like', "%{$search}%"));
         }
 
         return response()->json(['success' => true, 'data' => $query->orderBy('title')->limit(50)->get()]);
@@ -60,10 +60,10 @@ class PageController extends Controller
     {
         $this->ensurePermission('page_create');
         $validated = $this->validatePage($request);
-        $adminId = (int) auth('admin')->id();
+        $adminId   = (int) auth('admin')->id();
 
         $page = DB::transaction(function () use ($request, $validated, $adminId): Page {
-            $attributes = $this->pageAttributes($validated, null);
+            $attributes               = $this->pageAttributes($validated, null);
             $attributes['created_by'] = $adminId;
             $attributes['updated_by'] = $adminId;
 
@@ -104,10 +104,10 @@ class PageController extends Controller
     {
         $this->ensurePermission('page_update');
         $validated = $this->validatePage($request, $page);
-        $adminId = (int) auth('admin')->id();
+        $adminId   = (int) auth('admin')->id();
 
         DB::transaction(function () use ($request, $validated, $page, $adminId): void {
-            $attributes = $this->pageAttributes($validated, $page);
+            $attributes               = $this->pageAttributes($validated, $page);
             $attributes['updated_by'] = $adminId;
 
             if ($attributes['is_homepage']) {
@@ -133,28 +133,28 @@ class PageController extends Controller
     {
         $validated = $request->validate([
             'action' => ['required', Rule::in(['publish', 'unpublish', 'archive', 'delete', 'restore', 'force_delete'])],
-            'ids' => ['required', 'array', 'min:1'],
-            'ids.*' => ['required', 'integer', 'distinct'],
+            'ids'    => ['required', 'array', 'min:1'],
+            'ids.*'  => ['required', 'integer', 'distinct'],
         ]);
 
         $permission = match ($validated['action']) {
-            'publish' => 'page_publish',
-            'unpublish' => 'page_unpublish',
-            'archive' => 'page_update',
-            'delete' => 'page_delete',
-            'restore' => 'page_restore',
+            'publish'      => 'page_publish',
+            'unpublish'    => 'page_unpublish',
+            'archive'      => 'page_update',
+            'delete'       => 'page_delete',
+            'restore'      => 'page_restore',
             'force_delete' => 'page_force_delete',
         };
 
         $this->ensurePermission($permission);
-        $ids = collect($validated['ids'])->map(fn ($id) => (int) $id)->unique()->values()->all();
+        $ids = collect($validated['ids'])->map(fn($id) => (int) $id)->unique()->values()->all();
 
         $message = match ($validated['action']) {
-            'publish' => $this->bulkPublish($ids),
-            'unpublish' => $this->bulkUnpublish($ids),
-            'archive' => $this->bulkArchive($ids),
-            'delete' => $this->bulkDelete($ids),
-            'restore' => $this->bulkRestore($ids),
+            'publish'      => $this->bulkPublish($ids),
+            'unpublish'    => $this->bulkUnpublish($ids),
+            'archive'      => $this->bulkArchive($ids),
+            'delete'       => $this->bulkDelete($ids),
+            'restore'      => $this->bulkRestore($ids),
             'force_delete' => $this->bulkForceDelete($ids),
         };
 
@@ -168,14 +168,14 @@ class PageController extends Controller
         $query = Page::onlyTrashed()->with(['createdBy:id,name', 'updatedBy:id,name']);
         $this->applyFilters($query, $request);
 
-        $pages = $query->latest('deleted_at')->paginate(15)->withQueryString();
+        $pages     = $query->latest('deleted_at')->paginate(15)->withQueryString();
         $templates = Page::onlyTrashed()->select('template')->whereNotNull('template')->distinct()->orderBy('template')->pluck('template');
 
         if ($request->ajax()) {
             return response()->json(['html' => view('backoffice.admin.pages.partials.table', ['pages' => $pages, 'isTrash' => true])->render()]);
         }
 
-        $title = 'Trashed Pages';
+        $title      = 'Trashed Pages';
         $breadcrumb = [['text' => 'Pages', 'url' => route('admin.pages.index')], ['text' => 'Trash', 'url' => null]];
 
         return view('backoffice.admin.pages.trash', compact('pages', 'templates', 'title', 'breadcrumb'));
@@ -204,6 +204,13 @@ class PageController extends Controller
 
         DB::transaction(function () use ($page): void {
             $record = Page::onlyTrashed()->findOrFail($page);
+
+            if (Schema::hasTable('page_sections') && DB::table('page_sections')->where('page_id', $record->id)->exists()) {
+                throw ValidationException::withMessages([
+                    'page' => 'This page still contains page sections. Permanently delete its page sections first.',
+                ]);
+            }
+
             $this->pageMediaService->purgeAll($record);
             $record->forceDelete();
         });
@@ -234,23 +241,40 @@ class PageController extends Controller
 
         $copy = DB::transaction(function () use ($page, $adminId): Page {
             $copy = Page::create([
-                'title' => Str::limit($page->title . ' Copy', 190, ''),
-                'slug' => $this->uniqueCopySlug($page->slug),
-                'excerpt' => $page->excerpt,
-                'template' => $page->template,
-                'hero_config' => $page->hero_config ?? [],
-                'status' => 'draft',
+                'title'        => Str::limit($page->title . ' Copy', 190, ''),
+                'slug'         => $this->uniqueCopySlug($page->slug),
+                'excerpt'      => $page->excerpt,
+                'template'     => $page->template,
+                'hero_config'  => $page->hero_config ?? [],
+                'status'       => 'draft',
                 'published_at' => null,
-                'is_homepage' => false,
-                'show_header' => $page->show_header,
-                'show_footer' => $page->show_footer,
-                'created_by' => $adminId,
-                'updated_by' => $adminId,
+                'is_homepage'  => false,
+                'show_header'  => $page->show_header,
+                'show_footer'  => $page->show_footer,
+                'created_by'   => $adminId,
+                'updated_by'   => $adminId,
             ]);
 
             $this->pageMediaService->duplicateHeroMedia($page, $copy);
 
+            if (Schema::hasTable('page_sections')) {
+                $page->sections()->get()->each(function (PageSection $section) use ($copy): void {
+                    $copy->sections()->create([
+                        'section_definition_id' => $section->section_definition_id,
+                        'heading'               => $section->heading,
+                        'subheading'            => $section->subheading,
+                        'payload'               => $section->payload ?? [],
+                        'theme'                 => $section->theme,
+                        'sort_order'            => $section->sort_order,
+                        'is_active'             => $section->is_active,
+                        'starts_at'             => $section->starts_at,
+                        'ends_at'               => $section->ends_at,
+                    ]);
+                });
+            }
+
             return $copy;
+
         });
 
         return response()->json(['success' => true, 'message' => 'Page duplicated as draft.', 'data' => ['id' => $copy->id]]);
@@ -259,40 +283,40 @@ class PageController extends Controller
     private function validatePage(Request $request, ?Page $page = null): array
     {
         return $request->validate([
-            'title' => ['required', 'string', 'max:190'],
-            'slug' => ['required', 'string', 'max:190', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('pages', 'slug')->ignore($page?->id)],
-            'excerpt' => ['nullable', 'string', 'max:60000'],
-            'template' => ['required', 'string', 'max:100', 'regex:/^[A-Za-z0-9_-]+$/'],
-            'status' => ['required', Rule::in(array_keys(Page::STATUSES))],
-            'published_at' => ['nullable', 'date'],
-            'is_homepage' => ['required', 'boolean'],
-            'show_header' => ['required', 'boolean'],
-            'show_footer' => ['required', 'boolean'],
-            'hero_heading' => ['nullable', 'string', 'max:190'],
-            'hero_overlay' => ['nullable', 'numeric', 'min:0', 'max:1'],
-            'hero_focal_position' => ['nullable', 'string', 'max:50'],
-            'hero_cta_label' => ['nullable', 'string', 'max:100'],
-            'hero_cta_url' => ['nullable', 'string', 'max:500', function (string $attribute, mixed $value, \Closure $fail): void {
+            'title'                  => ['required', 'string', 'max:190'],
+            'slug'                   => ['required', 'string', 'max:190', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('pages', 'slug')->ignore($page?->id)],
+            'excerpt'                => ['nullable', 'string', 'max:60000'],
+            'template'               => ['required', 'string', 'max:100', 'regex:/^[A-Za-z0-9_-]+$/'],
+            'status'                 => ['required', Rule::in(array_keys(Page::STATUSES))],
+            'published_at'           => ['nullable', 'date'],
+            'is_homepage'            => ['required', 'boolean'],
+            'show_header'            => ['required', 'boolean'],
+            'show_footer'            => ['required', 'boolean'],
+            'hero_heading'           => ['nullable', 'string', 'max:190'],
+            'hero_overlay'           => ['nullable', 'numeric', 'min:0', 'max:1'],
+            'hero_focal_position'    => ['nullable', 'string', 'max:50'],
+            'hero_cta_label'         => ['nullable', 'string', 'max:100'],
+            'hero_cta_url'           => ['nullable', 'string', 'max:500', function (string $attribute, mixed $value, \Closure $fail): void {
                 $value = strtolower(trim((string) $value));
                 if (Str::startsWith($value, ['javascript:', 'data:', 'vbscript:'])) {
                     $fail('The hero CTA URL contains a disallowed scheme.');
                 }
             }],
-            'hero_slider_mode' => ['required', 'boolean'],
-            'hero_desktop' => ['nullable', 'array', 'max:10'],
-            'hero_desktop.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:10240'],
-            'hero_mobile' => ['nullable', 'array', 'max:10'],
-            'hero_mobile.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:10240'],
+            'hero_slider_mode'       => ['required', 'boolean'],
+            'hero_desktop'           => ['nullable', 'array', 'max:10'],
+            'hero_desktop.*'         => ['file', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:10240'],
+            'hero_mobile'            => ['nullable', 'array', 'max:10'],
+            'hero_mobile.*'          => ['file', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:10240'],
             'hero_desktop_media_ids' => ['nullable', 'string', 'max:500'],
-            'hero_mobile_media_ids' => ['nullable', 'string', 'max:500'],
-            'hero_desktop_clear' => ['nullable', 'boolean'],
-            'hero_mobile_clear' => ['nullable', 'boolean'],
+            'hero_mobile_media_ids'  => ['nullable', 'string', 'max:500'],
+            'hero_desktop_clear'     => ['nullable', 'boolean'],
+            'hero_mobile_clear'      => ['nullable', 'boolean'],
         ]);
     }
 
     private function pageAttributes(array $validated, ?Page $page): array
     {
-        $status = $validated['status'];
+        $status      = $validated['status'];
         $publishedAt = $validated['published_at'] ?? null;
 
         if ($status === 'published' && ! $publishedAt) {
@@ -304,16 +328,16 @@ class PageController extends Controller
         }
 
         return [
-            'title' => trim($validated['title']),
-            'slug' => strtolower(trim($validated['slug'])),
-            'excerpt' => $this->sanitizeRichText($validated['excerpt'] ?? null),
-            'template' => trim($validated['template']),
-            'hero_config' => $this->heroConfig($validated),
-            'status' => $status,
+            'title'        => trim($validated['title']),
+            'slug'         => strtolower(trim($validated['slug'])),
+            'excerpt'      => $this->sanitizeRichText($validated['excerpt'] ?? null),
+            'template'     => trim($validated['template']),
+            'hero_config'  => $this->heroConfig($validated),
+            'status'       => $status,
             'published_at' => $publishedAt,
-            'is_homepage' => (bool) $validated['is_homepage'],
-            'show_header' => (bool) $validated['show_header'],
-            'show_footer' => (bool) $validated['show_footer'],
+            'is_homepage'  => (bool) $validated['is_homepage'],
+            'show_header'  => (bool) $validated['show_header'],
+            'show_footer'  => (bool) $validated['show_footer'],
         ];
     }
 
@@ -326,10 +350,10 @@ class PageController extends Controller
         }
 
         $allowedTags = '<p><br><strong><b><em><i><u><s><ul><ol><li><blockquote><h1><h2><h3><h4><h5><h6><a><hr><pre><code><span><table><thead><tbody><tfoot><tr><th><td><img>';
-        $html = strip_tags($html, $allowedTags);
-        $html = preg_replace('/\s(?:on\w+|style|srcdoc|formaction)\s*=\s*(["\']).*?\1/isu', '', $html) ?? $html;
-        $html = preg_replace('/\s(?:on\w+|style|srcdoc|formaction)\s*=\s*[^\s>]+/iu', '', $html) ?? $html;
-        $html = preg_replace_callback('/\s(href|src)\s*=\s*(["\'])(.*?)\2/isu', function (array $matches): string {
+        $html        = strip_tags($html, $allowedTags);
+        $html        = preg_replace('/\s(?:on\w+|style|srcdoc|formaction)\s*=\s*(["\']).*?\1/isu', '', $html) ?? $html;
+        $html        = preg_replace('/\s(?:on\w+|style|srcdoc|formaction)\s*=\s*[^\s>]+/iu', '', $html) ?? $html;
+        $html        = preg_replace_callback('/\s(href|src)\s*=\s*(["\'])(.*?)\2/isu', function (array $matches): string {
             $url = trim(html_entity_decode($matches[3], ENT_QUOTES | ENT_HTML5, 'UTF-8'));
 
             if ($url === '' || Str::startsWith(strtolower($url), ['javascript:', 'data:', 'vbscript:'])) {
@@ -345,14 +369,14 @@ class PageController extends Controller
     private function heroConfig(array $validated): array
     {
         return [
-            'heading' => filled($validated['hero_heading'] ?? null) ? trim((string) $validated['hero_heading']) : null,
-            'overlay' => isset($validated['hero_overlay']) && $validated['hero_overlay'] !== '' ? (float) $validated['hero_overlay'] : null,
+            'heading'        => filled($validated['hero_heading'] ?? null) ? trim((string) $validated['hero_heading']) : null,
+            'overlay'        => isset($validated['hero_overlay']) && $validated['hero_overlay'] !== '' ? (float) $validated['hero_overlay'] : null,
             'focal_position' => filled($validated['hero_focal_position'] ?? null) ? trim((string) $validated['hero_focal_position']) : null,
-            'cta' => [
+            'cta'            => [
                 'label' => filled($validated['hero_cta_label'] ?? null) ? trim((string) $validated['hero_cta_label']) : null,
-                'url' => filled($validated['hero_cta_url'] ?? null) ? trim((string) $validated['hero_cta_url']) : null,
+                'url'   => filled($validated['hero_cta_url'] ?? null) ? trim((string) $validated['hero_cta_url']) : null,
             ],
-            'slider_mode' => (bool) $validated['hero_slider_mode'],
+            'slider_mode'    => (bool) $validated['hero_slider_mode'],
         ];
     }
 
@@ -360,7 +384,7 @@ class PageController extends Controller
     {
         if ($request->filled('search')) {
             $search = trim((string) $request->search);
-            $query->where(fn ($q) => $q->where('title', 'like', "%{$search}%")->orWhere('slug', 'like', "%{$search}%")->orWhere('excerpt', 'like', "%{$search}%"));
+            $query->where(fn($q) => $q->where('title', 'like', "%{$search}%")->orWhere('slug', 'like', "%{$search}%")->orWhere('excerpt', 'like', "%{$search}%"));
         }
 
         if ($request->filled('status')) {
@@ -378,13 +402,13 @@ class PageController extends Controller
 
     private function uniqueCopySlug(string $baseSlug): string
     {
-        $base = Str::limit(Str::slug($baseSlug . '-copy'), 170, '');
-        $slug = $base;
+        $base    = Str::limit(Str::slug($baseSlug . '-copy'), 170, '');
+        $slug    = $base;
         $counter = 2;
 
         while (Page::withTrashed()->where('slug', $slug)->exists()) {
             $suffix = '-' . $counter++;
-            $slug = Str::limit($base, 190 - strlen($suffix), '') . $suffix;
+            $slug   = Str::limit($base, 190 - strlen($suffix), '') . $suffix;
         }
 
         return $slug;
@@ -410,7 +434,7 @@ class PageController extends Controller
 
     private function bulkDelete(array $ids): string
     {
-        Page::query()->whereIn('id', $ids)->get()->each(fn (Page $page) => $page->delete());
+        Page::query()->whereIn('id', $ids)->get()->each(fn(Page $page) => $page->delete());
         return 'Selected pages moved to trash.';
     }
 
@@ -431,7 +455,19 @@ class PageController extends Controller
     private function bulkForceDelete(array $ids): string
     {
         DB::transaction(function () use ($ids): void {
-            Page::onlyTrashed()->whereIn('id', $ids)->get()->each(function (Page $page): void {
+            $pages = Page::onlyTrashed()->whereIn('id', $ids)->get();
+
+            if (Schema::hasTable('page_sections')) {
+                $blockedPageIds = DB::table('page_sections')->whereIn('page_id', $pages->pluck('id')->all())->pluck('page_id')->unique()->values();
+
+                if ($blockedPageIds->isNotEmpty()) {
+                    throw ValidationException::withMessages([
+                        'pages' => 'One or more selected pages still contain page sections. Permanently delete those page sections first.',
+                    ]);
+                }
+            }
+
+            $pages->each(function (Page $page): void {
                 $this->pageMediaService->purgeAll($page);
                 $page->forceDelete();
             });

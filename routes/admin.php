@@ -5,6 +5,7 @@ use App\Http\Controllers\Backoffice\Admin\DashboardController;
 use App\Http\Controllers\Backoffice\Admin\MediaController;
 use App\Http\Controllers\Backoffice\Admin\MenuController;
 use App\Http\Controllers\Backoffice\Admin\PageController;
+use App\Http\Controllers\Backoffice\Admin\PageSectionController;
 use App\Http\Controllers\Backoffice\Admin\PermissionController;
 use App\Http\Controllers\Backoffice\Admin\ProfileController;
 use App\Http\Controllers\Backoffice\Admin\RoleController;
@@ -120,7 +121,6 @@ Route::middleware('auth:admin')->group(function () {
         Route::resource('/', PageController::class)->parameters(['' => 'page']);
     });
 
-
     // Section Definitions
     Route::group(['prefix' => 'section-definitions', 'as' => 'section_definitions.'], function () {
         Route::post('multiple-action', [SectionDefinitionController::class, 'multipleAction'])->name('multiple_action');
@@ -132,4 +132,21 @@ Route::middleware('auth:admin')->group(function () {
         Route::post('{sectionDefinition}/toggle', [SectionDefinitionController::class, 'toggle'])->name('toggle');
         Route::resource('/', SectionDefinitionController::class)->parameters(['' => 'sectionDefinition']);
     });
+
+    // Page Sections
+    Route::group(['prefix' => 'page-sections', 'as' => 'page_sections.'], function () {
+        Route::post('multiple-action', [PageSectionController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [PageSectionController::class, 'trash'])->name('trashed');
+        Route::post('restore/{pageSection}', [PageSectionController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{pageSection}', [PageSectionController::class, 'forceDelete'])->name('force_delete');
+        Route::post('{pageSection}/toggle', [PageSectionController::class, 'toggle'])->name('toggle');
+        Route::get('/', [PageSectionController::class, 'index'])->name('index');
+        Route::get('create', [PageSectionController::class, 'create'])->name('create');
+        Route::post('/', [PageSectionController::class, 'store'])->name('store');
+        Route::get('{pageSection}', [PageSectionController::class, 'show'])->name('show');
+        Route::get('{pageSection}/edit', [PageSectionController::class, 'edit'])->name('edit');
+        Route::put('{pageSection}', [PageSectionController::class, 'update'])->name('update');
+        Route::delete('{pageSection}', [PageSectionController::class, 'destroy'])->name('destroy');
+    });
+
 });

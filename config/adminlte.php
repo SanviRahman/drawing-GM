@@ -343,14 +343,19 @@ return [
                     'can'   => 'page_list',
                 ],
                 [
-                    'text'  => 'Sections',
+                    'text'  => 'Section Definitions',
                     'route' => 'admin.section_definitions.index',
-                    'icon'  => 'fas fa-fw fa-th-large',
+                    'icon'  => 'fas fa-fw fa-layer-group',
                     'can'   => 'section_definition_list',
+                ],
+                [
+                    'text'  => 'Page Sections',
+                    'route' => 'admin.page_sections.index',
+                    'icon'  => 'fas fa-fw fa-th-large',
+                    'can'   => 'page_section_list',
                 ],
             ],
         ],
-
         /*
         |--------------------------------------------------------------------------
         | Site Configuration

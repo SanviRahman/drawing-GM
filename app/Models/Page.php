@@ -1,10 +1,10 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -14,9 +14,9 @@ class Page extends Model implements HasMedia
     use HasFactory, InteractsWithMedia, SoftDeletes;
 
     public const STATUSES = [
-        'draft' => 'Draft',
+        'draft'     => 'Draft',
         'published' => 'Published',
-        'archived' => 'Archived',
+        'archived'  => 'Archived',
     ];
 
     public const HERO_COLLECTIONS = [
@@ -40,7 +40,7 @@ class Page extends Model implements HasMedia
     ];
 
     protected $attributes = [
-        'status' => 'draft',
+        'status'      => 'draft',
         'is_homepage' => false,
         'show_header' => true,
         'show_footer' => true,
@@ -49,14 +49,14 @@ class Page extends Model implements HasMedia
     protected function casts(): array
     {
         return [
-            'hero_config' => 'array',
+            'hero_config'  => 'array',
             'published_at' => 'datetime',
-            'is_homepage' => 'boolean',
-            'show_header' => 'boolean',
-            'show_footer' => 'boolean',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-            'deleted_at' => 'datetime',
+            'is_homepage'  => 'boolean',
+            'show_header'  => 'boolean',
+            'show_footer'  => 'boolean',
+            'created_at'   => 'datetime',
+            'updated_at'   => 'datetime',
+            'deleted_at'   => 'datetime',
         ];
     }
 
@@ -64,6 +64,11 @@ class Page extends Model implements HasMedia
     {
         $this->addMediaCollection('hero_desktop')->useDisk('public')->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
         $this->addMediaCollection('hero_mobile')->useDisk('public')->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+    }
+
+    public function sections(): HasMany
+    {
+        return $this->hasMany(PageSection::class)->ordered();
     }
 
     public function createdBy(): BelongsTo
@@ -100,8 +105,8 @@ class Page extends Model implements HasMedia
     {
         return match ($this->status) {
             'published' => 'success',
-            'archived' => 'secondary',
-            default => 'warning',
+            'archived'  => 'secondary',
+            default     => 'warning',
         };
     }
 
