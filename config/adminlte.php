@@ -343,9 +343,10 @@ return [
                     'can'   => 'page_list',
                 ],
                 [
-                    'text' => 'Sections',
-                    'url'  => '#',
-                    'icon' => 'fas fa-fw fa-th-large',
+                    'text'  => 'Sections',
+                    'route' => 'admin.section_definitions.index',
+                    'icon'  => 'fas fa-fw fa-th-large',
+                    'can'   => 'section_definition_list',
                 ],
             ],
         ],

@@ -8,6 +8,7 @@ use App\Http\Controllers\Backoffice\Admin\PageController;
 use App\Http\Controllers\Backoffice\Admin\PermissionController;
 use App\Http\Controllers\Backoffice\Admin\ProfileController;
 use App\Http\Controllers\Backoffice\Admin\RoleController;
+use App\Http\Controllers\Backoffice\Admin\SectionDefinitionController;
 use App\Http\Controllers\Backoffice\Admin\SettingController;
 use Illuminate\Support\Facades\Route;
 
@@ -119,4 +120,16 @@ Route::middleware('auth:admin')->group(function () {
         Route::resource('/', PageController::class)->parameters(['' => 'page']);
     });
 
+
+    // Section Definitions
+    Route::group(['prefix' => 'section-definitions', 'as' => 'section_definitions.'], function () {
+        Route::post('multiple-action', [SectionDefinitionController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [SectionDefinitionController::class, 'trash'])->name('trashed');
+        Route::post('restore/{sectionDefinition}', [SectionDefinitionController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{sectionDefinition}', [SectionDefinitionController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [SectionDefinitionController::class, 'list'])->name('list');
+        Route::get('ajax-search', [SectionDefinitionController::class, 'list'])->name('ajax_search');
+        Route::post('{sectionDefinition}/toggle', [SectionDefinitionController::class, 'toggle'])->name('toggle');
+        Route::resource('/', SectionDefinitionController::class)->parameters(['' => 'sectionDefinition']);
+    });
 });

@@ -1,5 +1,4 @@
 <?php
-
 namespace Database\Seeders;
 
 use App\Models\Admin;
@@ -20,18 +19,18 @@ class RolePermissionSeeder extends Seeder
      * @var array<string, array<int, string>>
      */
     private const ADMIN_PERMISSION_GROUPS = [
-        'Dashboard' => [
+        'Dashboard'           => [
             'dashboard_view',
         ],
 
-        'System Tools' => [
+        'System Tools'        => [
             'system_tools_manage',
             'cache_clear',
             'queue_manage',
             'backup_manage',
         ],
 
-        'Site Settings' => [
+        'Site Settings'       => [
             'site_setting_view',
             'site_setting_update',
             'site_setting_create',
@@ -41,12 +40,12 @@ class RolePermissionSeeder extends Seeder
             'site_setting_force_delete',
         ],
 
-        'Header Settings' => [
+        'Header Settings'     => [
             'header_setting_view',
             'header_setting_update',
         ],
 
-        'Header Menu' => [
+        'Header Menu'         => [
             'header_menu_list',
             'header_menu_view',
             'header_menu_create',
@@ -56,12 +55,12 @@ class RolePermissionSeeder extends Seeder
             'header_menu_reorder',
         ],
 
-        'Footer Settings' => [
+        'Footer Settings'     => [
             'footer_setting_view',
             'footer_setting_update',
         ],
 
-        'Footer Links' => [
+        'Footer Links'        => [
             'footer_link_list',
             'footer_link_view',
             'footer_link_create',
@@ -71,7 +70,7 @@ class RolePermissionSeeder extends Seeder
             'footer_link_reorder',
         ],
 
-        'Menus' => [
+        'Menus'               => [
             'menu_list',
             'menu_view',
             'menu_create',
@@ -82,7 +81,7 @@ class RolePermissionSeeder extends Seeder
             'menu_force_delete',
         ],
 
-        'Pages' => [
+        'Pages'               => [
             'page_list',
             'page_view',
             'page_create',
@@ -97,7 +96,7 @@ class RolePermissionSeeder extends Seeder
             'page_duplicate',
         ],
 
-        'Page Sections' => [
+        'Page Sections'       => [
             'page_section_list',
             'page_section_view',
             'page_section_create',
@@ -108,7 +107,19 @@ class RolePermissionSeeder extends Seeder
             'page_section_duplicate',
         ],
 
-        'Services' => [
+        'Section Definitions' => [
+            'section_definition_list',
+            'section_definition_view',
+            'section_definition_create',
+            'section_definition_update',
+            'section_definition_delete',
+            'section_definition_trash',
+            'section_definition_restore',
+            'section_definition_force_delete',
+            'section_definition_toggle',
+        ],
+
+        'Services'            => [
             'service_list',
             'service_view',
             'service_create',
@@ -122,7 +133,7 @@ class RolePermissionSeeder extends Seeder
             'service_preview',
         ],
 
-        'Service Features' => [
+        'Service Features'    => [
             'service_feature_list',
             'service_feature_view',
             'service_feature_create',
@@ -132,7 +143,7 @@ class RolePermissionSeeder extends Seeder
             'service_feature_reorder',
         ],
 
-        'Locations' => [
+        'Locations'           => [
             'location_list',
             'location_view',
             'location_create',
@@ -146,7 +157,7 @@ class RolePermissionSeeder extends Seeder
             'location_preview',
         ],
 
-        'Pricing Packages' => [
+        'Pricing Packages'    => [
             'pricing_package_list',
             'pricing_package_view',
             'pricing_package_create',
@@ -157,7 +168,7 @@ class RolePermissionSeeder extends Seeder
             'pricing_package_set_featured',
         ],
 
-        'Pricing Items' => [
+        'Pricing Items'       => [
             'pricing_item_list',
             'pricing_item_view',
             'pricing_item_create',
@@ -167,7 +178,7 @@ class RolePermissionSeeder extends Seeder
             'pricing_item_reorder',
         ],
 
-        'Pricing Add-ons' => [
+        'Pricing Add-ons'     => [
             'pricing_addon_list',
             'pricing_addon_view',
             'pricing_addon_create',
@@ -177,7 +188,7 @@ class RolePermissionSeeder extends Seeder
             'pricing_addon_reorder',
         ],
 
-        'Campaigns' => [
+        'Campaigns'           => [
             'campaign_list',
             'campaign_view',
             'campaign_create',
@@ -193,7 +204,7 @@ class RolePermissionSeeder extends Seeder
             'campaign_set_default',
         ],
 
-        'Campaign Sections' => [
+        'Campaign Sections'   => [
             'campaign_section_list',
             'campaign_section_view',
             'campaign_section_create',
@@ -204,7 +215,7 @@ class RolePermissionSeeder extends Seeder
             'campaign_section_duplicate',
         ],
 
-        'Media' => [
+        'Media'               => [
             'media_list',
             'media_view',
             'media_upload',
@@ -218,7 +229,7 @@ class RolePermissionSeeder extends Seeder
             'media_regenerate_conversion',
         ],
 
-        'Galleries' => [
+        'Galleries'           => [
             'gallery_list',
             'gallery_view',
             'gallery_create',
@@ -228,7 +239,7 @@ class RolePermissionSeeder extends Seeder
             'gallery_reorder',
         ],
 
-        'Gallery Items' => [
+        'Gallery Items'       => [
             'gallery_item_list',
             'gallery_item_view',
             'gallery_item_create',
@@ -238,7 +249,7 @@ class RolePermissionSeeder extends Seeder
             'gallery_item_reorder',
         ],
 
-        'Videos' => [
+        'Videos'              => [
             'video_list',
             'video_view',
             'video_create',
@@ -251,7 +262,7 @@ class RolePermissionSeeder extends Seeder
             'video_reorder',
         ],
 
-        'Testimonials' => [
+        'Testimonials'        => [
             'testimonial_list',
             'testimonial_view',
             'testimonial_create',
@@ -262,7 +273,7 @@ class RolePermissionSeeder extends Seeder
             'testimonial_set_featured',
         ],
 
-        'Reviews' => [
+        'Reviews'             => [
             'review_list',
             'review_view',
             'review_create',
@@ -273,7 +284,7 @@ class RolePermissionSeeder extends Seeder
             'review_set_featured',
         ],
 
-        'FAQs' => [
+        'FAQs'                => [
             'faq_list',
             'faq_view',
             'faq_create',
@@ -283,7 +294,7 @@ class RolePermissionSeeder extends Seeder
             'faq_reorder',
         ],
 
-        'Blog Categories' => [
+        'Blog Categories'     => [
             'blog_category_list',
             'blog_category_view',
             'blog_category_create',
@@ -293,7 +304,7 @@ class RolePermissionSeeder extends Seeder
             'blog_category_reorder',
         ],
 
-        'Blog Posts' => [
+        'Blog Posts'          => [
             'blog_post_list',
             'blog_post_view',
             'blog_post_create',
@@ -308,7 +319,7 @@ class RolePermissionSeeder extends Seeder
             'blog_post_duplicate',
         ],
 
-        'Contact Channels' => [
+        'Contact Channels'    => [
             'contact_channel_list',
             'contact_channel_view',
             'contact_channel_create',
@@ -319,7 +330,7 @@ class RolePermissionSeeder extends Seeder
             'contact_channel_set_default',
         ],
 
-        'Contact Messages' => [
+        'Contact Messages'    => [
             'contact_message_list',
             'contact_message_view',
             'contact_message_delete',
@@ -328,7 +339,7 @@ class RolePermissionSeeder extends Seeder
             'contact_message_reply',
         ],
 
-        'Leads' => [
+        'Leads'               => [
             'lead_list',
             'lead_view',
             'lead_create',
@@ -345,7 +356,7 @@ class RolePermissionSeeder extends Seeder
             'lead_attachment_download',
         ],
 
-        'SEO Settings' => [
+        'SEO Settings'        => [
             'seo_setting_view',
             'seo_setting_update',
             'seo_sitemap_manage',
@@ -353,7 +364,7 @@ class RolePermissionSeeder extends Seeder
             'seo_social_manage',
         ],
 
-        'Redirects' => [
+        'Redirects'           => [
             'redirect_list',
             'redirect_view',
             'redirect_create',
@@ -364,7 +375,7 @@ class RolePermissionSeeder extends Seeder
             'redirect_export',
         ],
 
-        'Tracking Settings' => [
+        'Tracking Settings'   => [
             'tracking_setting_view',
             'tracking_setting_update',
             'tracking_event_manage',
@@ -372,7 +383,7 @@ class RolePermissionSeeder extends Seeder
             'tracking_consent_manage',
         ],
 
-        'Meta Pixel' => [
+        'Meta Pixel'          => [
             'meta_pixel_view',
             'meta_pixel_update',
             'meta_pixel_toggle',
@@ -380,7 +391,7 @@ class RolePermissionSeeder extends Seeder
             'meta_capi_manage',
         ],
 
-        'Admins' => [
+        'Admins'              => [
             'admin_list',
             'admin_view',
             'admin_create',
@@ -394,7 +405,7 @@ class RolePermissionSeeder extends Seeder
             'admin_reset_password',
         ],
 
-        'Users' => [
+        'Users'               => [
             'user_list',
             'user_view',
             'user_create',
@@ -405,7 +416,7 @@ class RolePermissionSeeder extends Seeder
             'user_reset_password',
         ],
 
-        'Roles' => [
+        'Roles'               => [
             'role_list',
             'role_view',
             'role_create',
@@ -417,7 +428,7 @@ class RolePermissionSeeder extends Seeder
             'role_assign_permission',
         ],
 
-        'Permissions' => [
+        'Permissions'         => [
             'permission_list',
             'permission_view',
             'permission_create',
@@ -428,7 +439,7 @@ class RolePermissionSeeder extends Seeder
             'permission_force_delete',
         ],
 
-        'Audit Logs' => [
+        'Audit Logs'          => [
             'audit_log_list',
             'audit_log_view',
             'audit_log_export',
@@ -465,12 +476,12 @@ class RolePermissionSeeder extends Seeder
 
         DB::transaction(function (): void {
             $adminRole = Role::query()->firstOrCreate([
-                'name' => 'admin',
+                'name'       => 'admin',
                 'guard_name' => 'admin',
             ]);
 
             $userRole = Role::query()->firstOrCreate([
-                'name' => 'user',
+                'name'       => 'user',
                 'guard_name' => 'web',
             ]);
 
@@ -512,7 +523,7 @@ class RolePermissionSeeder extends Seeder
             foreach ($permissionNames as $permissionName) {
                 $permissions[] = Permission::query()->updateOrCreate(
                     [
-                        'name' => $permissionName,
+                        'name'       => $permissionName,
                         'guard_name' => $guardName,
                     ],
                     [
@@ -540,10 +551,10 @@ class RolePermissionSeeder extends Seeder
         $isNewAdmin = ! $admin->exists;
 
         $admin->forceFill([
-            'name' => 'Super Admin',
+            'name'     => 'Super Admin',
             'username' => 'admin',
-            'phone' => '01700000000',
-            'status' => true,
+            'phone'    => '01700000000',
+            'status'   => true,
         ]);
 
         if ($isNewAdmin) {

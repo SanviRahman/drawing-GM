@@ -28,11 +28,11 @@
                             <div class="btn-group btn-group-sm" role="group">
                                 @if(!$isTrash)
                                     @if($canView)<button type="button" class="btn btn-outline-info btn-show" data-url="{{ route('admin.pages.show', $page->id) }}" title="View"><i class="fas fa-eye"></i></button>@endif
-                                    @if($canUpdate)<button type="button" class="btn btn-outline-primary btn-edit" data-url="{{ route('admin.pages.edit', $page->id) }}" title="Edit"><i class="fas fa-edit"></i></button>@endif
+                                    @if($canUpdate)<button type="button" class="btn btn-outline-primary btn-edit" data-url="{{ route('admin.pages.edit', $page->id) }}" title="Edit"><i class="fas fa-pen"></i></button>@endif
                                     @if($page->status !== 'published' && $canPublish)<button type="button" class="btn btn-outline-success btn-status-action" data-url="{{ route('admin.pages.publish', $page->id) }}" data-label="Publish" title="Publish"><i class="fas fa-paper-plane"></i></button>@endif
                                     @if($page->status === 'published' && $canUnpublish)<button type="button" class="btn btn-outline-warning btn-status-action" data-url="{{ route('admin.pages.unpublish', $page->id) }}" data-label="Move to Draft" title="Move to Draft"><i class="fas fa-pause"></i></button>@endif
                                     @if($canDuplicate)<button type="button" class="btn btn-outline-secondary btn-duplicate" data-url="{{ route('admin.pages.duplicate', $page->id) }}" title="Duplicate"><i class="fas fa-copy"></i></button>@endif
-                                    @if($canDelete)<button type="button" class="btn btn-outline-danger btn-delete" data-url="{{ route('admin.pages.destroy', $page->id) }}" title="Trash"><i class="fas fa-trash-alt"></i></button>@endif
+                                    @if($canDelete)<button type="button" class="btn btn-outline-danger btn-delete" data-url="{{ route('admin.pages.destroy', $page->id) }}" title="Trash"><i class="fas fa-trash"></i></button>@endif
                                 @else
                                     @if($canRestore)<button type="button" class="btn btn-outline-success btn-restore" data-url="{{ route('admin.pages.restore', $page->id) }}" title="Restore"><i class="fas fa-undo-alt"></i></button>@endif
                                     @if($canForceDelete)<button type="button" class="btn btn-outline-danger btn-force-delete" data-url="{{ route('admin.pages.force_delete', $page->id) }}" title="Force Delete"><i class="fas fa-fire-alt"></i></button>@endif
