@@ -3,11 +3,14 @@ namespace App\Http\Controllers\Backoffice\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Page;
+use App\Models\PageSection;
 use App\Services\PageMediaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class PageController extends Controller
 {
@@ -29,7 +32,7 @@ class PageController extends Controller
         }
 
         $title      = 'Pages Management';
-        $breadcrumb = [['text' => 'CMS', 'url' => null],['text' => 'Pages', 'url' => route('admin.pages.index')]];
+        $breadcrumb = [['text' => 'CMS', 'url' => null], ['text' => 'Pages', 'url' => route('admin.pages.index')]];
 
         return view('backoffice.admin.pages.index', compact('pages', 'templates', 'title', 'breadcrumb'));
     }
@@ -176,7 +179,7 @@ class PageController extends Controller
         }
 
         $title      = 'Trashed Pages';
-        $breadcrumb = [['text' => 'CMS', 'url' => null],['text' => 'Pages', 'url' => route('admin.pages.index')], ['text' => 'Trash', 'url' => null]];
+        $breadcrumb = [['text' => 'CMS', 'url' => null], ['text' => 'Pages', 'url' => route('admin.pages.index')], ['text' => 'Trash', 'url' => null]];
 
         return view('backoffice.admin.pages.trash', compact('pages', 'templates', 'title', 'breadcrumb'));
     }

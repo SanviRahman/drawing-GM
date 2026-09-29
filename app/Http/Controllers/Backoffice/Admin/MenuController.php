@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Backoffice\Admin;
 
 use App\Http\Controllers\Controller;
@@ -37,8 +36,9 @@ class MenuController extends Controller
             ]);
         }
 
-        $title = 'Menus Management';
+        $title      = 'Menus Management';
         $breadcrumb = [
+            ['text' => 'Site Configuration', 'url' => null],
             ['text' => 'Menus', 'url' => route('admin.menus.index')],
         ];
 
@@ -60,7 +60,7 @@ class MenuController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $query->ordered()->limit(100)->get(),
+            'data'    => $query->ordered()->limit(100)->get(),
         ]);
     }
 
@@ -78,8 +78,8 @@ class MenuController extends Controller
         $validated = $this->validateModel($request);
 
         Menu::create([
-            'name' => $validated['name'],
-            'location' => $validated['location'],
+            'name'      => $validated['name'],
+            'location'  => $validated['location'],
             'is_active' => $validated['is_active'],
         ]);
 
@@ -97,7 +97,7 @@ class MenuController extends Controller
 
         return response()->json([
             'html' => view('backoffice.admin.menus.partials.show', [
-                'menu' => $menu,
+                'menu'          => $menu,
                 'parentOptions' => $menu->itemOptions(),
             ])->render(),
         ]);
@@ -117,8 +117,8 @@ class MenuController extends Controller
         $validated = $this->validateModel($request, $menu);
 
         $menu->update([
-            'name' => $validated['name'],
-            'location' => $validated['location'],
+            'name'      => $validated['name'],
+            'location'  => $validated['location'],
             'is_active' => $validated['is_active'],
         ]);
 
@@ -144,21 +144,21 @@ class MenuController extends Controller
     {
         $validated = $request->validate([
             'action' => ['required', Rule::in(['active', 'inactive', 'delete', 'restore', 'force_delete'])],
-            'ids' => ['required', 'array', 'min:1'],
-            'ids.*' => ['required', 'integer', 'distinct'],
+            'ids'    => ['required', 'array', 'min:1'],
+            'ids.*'  => ['required', 'integer', 'distinct'],
         ]);
 
         $ids = collect($validated['ids'])
-            ->map(fn ($id) => (int) $id)
+            ->map(fn($id) => (int) $id)
             ->unique()
             ->values()
             ->all();
 
         $message = match ($validated['action']) {
-            'active' => $this->bulkStatus($ids, true),
-            'inactive' => $this->bulkStatus($ids, false),
-            'delete' => $this->bulkDelete($ids),
-            'restore' => $this->bulkRestore($ids),
+            'active'       => $this->bulkStatus($ids, true),
+            'inactive'     => $this->bulkStatus($ids, false),
+            'delete'       => $this->bulkDelete($ids),
+            'restore'      => $this->bulkRestore($ids),
             'force_delete' => $this->bulkForceDelete($ids),
         };
 
@@ -186,14 +186,15 @@ class MenuController extends Controller
         if ($request->ajax()) {
             return response()->json([
                 'html' => view('backoffice.admin.menus.partials.table', [
-                    'menus' => $menus,
+                    'menus'   => $menus,
                     'isTrash' => true,
                 ])->render(),
             ]);
         }
 
-        $title = 'Trashed Menus';
+        $title      = 'Trashed Menus';
         $breadcrumb = [
+            ['text' => 'Site Configuration', 'url' => null],
             ['text' => 'Menus', 'url' => route('admin.menus.index')],
             ['text' => 'Trash', 'url' => null],
         ];
@@ -237,8 +238,8 @@ class MenuController extends Controller
 
         return response()->json([
             'html' => view('backoffice.admin.menus.partials.item_form', [
-                'menu' => $menu,
-                'item' => null,
+                'menu'          => $menu,
+                'item'          => null,
                 'parentOptions' => $menu->itemOptions(),
                 'nextSortOrder' => $this->nextSortOrder($menu),
             ])->render(),
@@ -263,8 +264,8 @@ class MenuController extends Controller
 
         return response()->json([
             'html' => view('backoffice.admin.menus.partials.item_form', [
-                'menu' => $menu,
-                'item' => $item,
+                'menu'          => $menu,
+                'item'          => $item,
                 'parentOptions' => $menu->itemOptions($item),
                 'nextSortOrder' => $this->nextSortOrder($menu),
             ])->render(),
@@ -304,8 +305,8 @@ class MenuController extends Controller
     private function validateModel(Request $request, ?Menu $menu = null): array
     {
         return $request->validate([
-            'name' => ['required', 'string', 'max:150'],
-            'location' => [
+            'name'      => ['required', 'string', 'max:150'],
+            'location'  => [
                 'required',
                 'string',
                 Rule::in(Menu::LOCATIONS),
@@ -318,23 +319,23 @@ class MenuController extends Controller
     private function validateItem(Request $request, Menu $menu, ?MenuItem $item = null): array
     {
         $validated = $request->validate([
-            'parent_id' => [
+            'parent_id'     => [
                 'nullable',
                 'integer',
                 Rule::exists('menu_items', 'id')
                     ->where('menu_id', $menu->id)
                     ->whereNull('deleted_at'),
             ],
-            'label' => ['required', 'string', 'max:150'],
-            'link_type' => ['required', 'string', Rule::in(array_keys(MenuItem::LINK_TYPES))],
-            'url' => ['required_if:link_type,url', 'nullable', 'string', 'max:500'],
+            'label'         => ['required', 'string', 'max:150'],
+            'link_type'     => ['required', 'string', Rule::in(array_keys(MenuItem::LINK_TYPES))],
+            'url'           => ['required_if:link_type,url', 'nullable', 'string', 'max:500'],
             'linkable_type' => ['required_if:link_type,linkable', 'nullable', 'string', Rule::in(array_keys(MenuItem::linkableModels()))],
-            'linkable_id' => ['required_if:link_type,linkable', 'nullable', 'integer'],
-            'icon' => ['nullable', 'string', 'max:100'],
-            'target' => ['required', 'string', Rule::in(MenuItem::TARGETS)],
-            'css_class' => ['nullable', 'string', 'max:150'],
-            'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
-            'is_active' => ['required', 'boolean'],
+            'linkable_id'   => ['required_if:link_type,linkable', 'nullable', 'integer'],
+            'icon'          => ['nullable', 'string', 'max:100'],
+            'target'        => ['required', 'string', Rule::in(MenuItem::TARGETS)],
+            'css_class'     => ['nullable', 'string', 'max:150'],
+            'sort_order'    => ['nullable', 'integer', 'min:0', 'max:9999'],
+            'is_active'     => ['required', 'boolean'],
         ]);
 
         if ($item instanceof MenuItem) {
@@ -376,17 +377,17 @@ class MenuController extends Controller
         $isLinkable = $validated['link_type'] === 'linkable';
 
         return [
-            'parent_id' => $validated['parent_id'] ?? null,
-            'label' => $validated['label'],
-            'link_type' => $validated['link_type'],
+            'parent_id'     => $validated['parent_id'] ?? null,
+            'label'         => $validated['label'],
+            'link_type'     => $validated['link_type'],
             'linkable_type' => $isLinkable ? ($validated['linkable_type'] ?? null) : null,
-            'linkable_id' => $isLinkable ? ($validated['linkable_id'] ?? null) : null,
-            'url' => $validated['link_type'] === 'url' ? ($validated['url'] ?? null) : null,
-            'icon' => $validated['icon'] ?? null,
-            'target' => $validated['target'],
-            'css_class' => $validated['css_class'] ?? null,
-            'sort_order' => $validated['sort_order'] ?? $item?->sort_order ?? 0,
-            'is_active' => $validated['is_active'],
+            'linkable_id'   => $isLinkable ? ($validated['linkable_id'] ?? null) : null,
+            'url'           => $validated['link_type'] === 'url' ? ($validated['url'] ?? null) : null,
+            'icon'          => $validated['icon'] ?? null,
+            'target'        => $validated['target'],
+            'css_class'     => $validated['css_class'] ?? null,
+            'sort_order'    => $validated['sort_order'] ?? $item?->sort_order ?? 0,
+            'is_active'     => $validated['is_active'],
         ];
     }
 
@@ -405,7 +406,7 @@ class MenuController extends Controller
     private function bulkDelete(array $ids): string
     {
         DB::transaction(function () use ($ids): void {
-            Menu::whereIn('id', $ids)->get()->each(fn (Menu $menu) => $menu->delete());
+            Menu::whereIn('id', $ids)->get()->each(fn(Menu $menu) => $menu->delete());
         });
 
         return 'Selected menus moved to trash.';
@@ -414,7 +415,7 @@ class MenuController extends Controller
     private function bulkRestore(array $ids): string
     {
         DB::transaction(function () use ($ids): void {
-            Menu::onlyTrashed()->whereIn('id', $ids)->get()->each(fn (Menu $menu) => $menu->restore());
+            Menu::onlyTrashed()->whereIn('id', $ids)->get()->each(fn(Menu $menu) => $menu->restore());
         });
 
         return 'Selected menus restored.';
@@ -423,7 +424,7 @@ class MenuController extends Controller
     private function bulkForceDelete(array $ids): string
     {
         DB::transaction(function () use ($ids): void {
-            Menu::onlyTrashed()->whereIn('id', $ids)->get()->each(fn (Menu $menu) => $menu->forceDelete());
+            Menu::onlyTrashed()->whereIn('id', $ids)->get()->each(fn(Menu $menu) => $menu->forceDelete());
         });
 
         return 'Selected menus permanently deleted.';

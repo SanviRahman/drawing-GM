@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Backoffice\Admin;
 
 use App\Http\Controllers\Controller;
@@ -40,14 +39,15 @@ class RoleController extends Controller
         if ($request->ajax()) {
             return response()->json([
                 'html' => view('backoffice.admin.roles.partials.table', [
-                    'roles' => $roles,
+                    'roles'   => $roles,
                     'isTrash' => false,
                 ])->render(),
             ]);
         }
 
-        $title = 'Roles & Permissions Management';
+        $title      = 'Roles & Permissions Management';
         $breadcrumb = [
+            ['text' => 'Access Control', 'url' => null],
             ['text' => 'Roles List', 'url' => route('admin.roles.index')],
         ];
 
@@ -68,19 +68,19 @@ class RoleController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $query->orderBy('name')->limit(100)->get(['id', 'name', 'guard_name']),
+            'data'    => $query->orderBy('name')->limit(100)->get(['id', 'name', 'guard_name']),
         ]);
     }
 
     public function getPermissions(Request $request)
     {
         $guardName = (string) $request->input('guard_name', 'admin');
-        $search = trim((string) $request->input('search', ''));
-        $roleId = $request->integer('role_id');
+        $search    = trim((string) $request->input('search', ''));
+        $roleId    = $request->integer('role_id');
 
         if ($request->has('selected_permissions')) {
             $selectedPermissions = collect((array) $request->input('selected_permissions', []))
-                ->filter(fn ($name) => is_string($name) && $name !== '')
+                ->filter(fn($name) => is_string($name) && $name !== '')
                 ->unique()
                 ->values()
                 ->all();
@@ -98,16 +98,16 @@ class RoleController extends Controller
 
         $permissions = Permission::query()
             ->where('guard_name', $guardName)
-            ->when($search !== '', fn ($query) => $query->where('name', 'like', "%{$search}%"))
+            ->when($search !== '', fn($query) => $query->where('name', 'like', "%{$search}%"))
             ->orderBy('group_name')
             ->orderBy('name')
             ->get()
-            ->groupBy(fn (Permission $permission) => $permission->group_name ?: 'General');
+            ->groupBy(fn(Permission $permission) => $permission->group_name ?: 'General');
 
         return response()->json([
             'success' => true,
-            'html' => view('backoffice.admin.roles.partials.permissions_list', [
-                'permissions' => $permissions,
+            'html'    => view('backoffice.admin.roles.partials.permissions_list', [
+                'permissions'         => $permissions,
                 'selectedPermissions' => $selectedPermissions,
             ])->render(),
         ]);
@@ -133,7 +133,7 @@ class RoleController extends Controller
             ->orderBy('group_name')
             ->orderBy('name')
             ->get()
-            ->groupBy(fn (Permission $permission) => $permission->group_name ?: 'General');
+            ->groupBy(fn(Permission $permission) => $permission->group_name ?: 'General');
 
         return response()->json([
             'html' => view('backoffice.admin.roles.partials.form', compact('guards', 'permissions', 'defaultGuard'))->render(),
@@ -145,7 +145,7 @@ class RoleController extends Controller
         $validated = $this->validateRole($request);
 
         $role = Role::create([
-            'name' => $validated['name'],
+            'name'       => $validated['name'],
             'guard_name' => $validated['guard_name'],
         ]);
 
@@ -169,7 +169,7 @@ class RoleController extends Controller
         abort_unless($request->ajax(), 404);
 
         $role->load('permissions');
-        $groupedPermissions = $role->permissions->groupBy(fn ($permission) => $permission->group_name ?: 'General');
+        $groupedPermissions = $role->permissions->groupBy(fn($permission) => $permission->group_name ?: 'General');
 
         return response()->json([
             'html' => view('backoffice.admin.roles.partials.show', compact('role', 'groupedPermissions'))->render(),
@@ -197,7 +197,7 @@ class RoleController extends Controller
             ->orderBy('group_name')
             ->orderBy('name')
             ->get()
-            ->groupBy(fn (Permission $permission) => $permission->group_name ?: 'General');
+            ->groupBy(fn(Permission $permission) => $permission->group_name ?: 'General');
 
         return response()->json([
             'html' => view('backoffice.admin.roles.partials.form', compact('role', 'guards', 'permissions', 'rolePermissions'))->render(),
@@ -216,7 +216,7 @@ class RoleController extends Controller
         }
 
         $role->update([
-            'name' => $validated['name'],
+            'name'       => $validated['name'],
             'guard_name' => $validated['guard_name'],
         ]);
 
@@ -257,19 +257,19 @@ class RoleController extends Controller
     {
         $validated = $request->validate([
             'action' => ['required', Rule::in(['delete', 'restore', 'force_delete'])],
-            'ids' => ['required', 'array', 'min:1'],
-            'ids.*' => ['required', 'integer', 'distinct'],
+            'ids'    => ['required', 'array', 'min:1'],
+            'ids.*'  => ['required', 'integer', 'distinct'],
         ]);
 
         $ids = collect($validated['ids'])
-            ->map(fn ($id) => (int) $id)
+            ->map(fn($id) => (int) $id)
             ->unique()
             ->values()
             ->all();
 
         $message = match ($validated['action']) {
-            'delete' => $this->bulkDelete($ids),
-            'restore' => $this->bulkRestore($ids),
+            'delete'       => $this->bulkDelete($ids),
+            'restore'      => $this->bulkRestore($ids),
             'force_delete' => $this->bulkForceDelete($ids),
         };
 
@@ -296,14 +296,15 @@ class RoleController extends Controller
         if ($request->ajax()) {
             return response()->json([
                 'html' => view('backoffice.admin.roles.partials.table', [
-                    'roles' => $roles,
+                    'roles'   => $roles,
                     'isTrash' => true,
                 ])->render(),
             ]);
         }
 
-        $title = 'Trash Roles & Permissions';
+        $title      = 'Trash Roles & Permissions';
         $breadcrumb = [
+            ['text' => 'Access Control', 'url' => null],
             ['text' => 'Roles List', 'url' => route('admin.roles.index')],
             ['text' => 'Trash', 'url' => null],
         ];
@@ -349,16 +350,16 @@ class RoleController extends Controller
         $guardName = (string) $request->input('guard_name', 'admin');
 
         return $request->validate([
-            'name' => [
+            'name'          => [
                 'required',
                 'string',
                 'max:255',
                 Rule::unique('roles', 'name')
-                    ->where(fn ($query) => $query->where('guard_name', $guardName))
+                    ->where(fn($query) => $query->where('guard_name', $guardName))
                     ->ignore($role?->id),
             ],
-            'guard_name' => ['required', 'string', 'max:255'],
-            'permissions' => ['nullable', 'array'],
+            'guard_name'    => ['required', 'string', 'max:255'],
+            'permissions'   => ['nullable', 'array'],
             'permissions.*' => ['required', 'string', 'distinct'],
         ]);
     }
@@ -367,7 +368,7 @@ class RoleController extends Controller
     {
         $requested = collect($permissionNames)
             ->filter()
-            ->map(fn ($name) => (string) $name)
+            ->map(fn($name) => (string) $name)
             ->unique()
             ->values();
 

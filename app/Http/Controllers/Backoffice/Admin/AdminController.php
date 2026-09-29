@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Backoffice\Admin;
 
 use App\Http\Controllers\Controller;
@@ -51,8 +50,9 @@ class AdminController extends Controller
             ]);
         }
 
-        $title = 'Admin Users Management';
+        $title      = 'Admin Users Management';
         $breadcrumb = [
+            ['text' => 'Access Control', 'url' => null],
             ['text' => 'Admin Users', 'url' => route('admin.admins.index')],
         ];
 
@@ -75,7 +75,7 @@ class AdminController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $query->latest('id')->limit(50)->get(),
+            'data'    => $query->latest('id')->limit(50)->get(),
         ]);
     }
 
@@ -95,12 +95,12 @@ class AdminController extends Controller
         $validated = $this->validateAdmin($request);
 
         $admin = Admin::create([
-            'name' => $validated['name'],
+            'name'     => $validated['name'],
             'username' => $validated['username'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'] ?? null,
+            'email'    => $validated['email'],
+            'phone'    => $validated['phone'] ?? null,
             'password' => $validated['password'],
-            'status' => $validated['status'],
+            'status'   => $validated['status'],
         ]);
 
         $admin->syncRoles($validated['roles'] ?? []);
@@ -140,11 +140,11 @@ class AdminController extends Controller
         $validated = $this->validateAdmin($request, $admin);
 
         $data = [
-            'name' => $validated['name'],
+            'name'     => $validated['name'],
             'username' => $validated['username'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'] ?? null,
-            'status' => $validated['status'],
+            'email'    => $validated['email'],
+            'phone'    => $validated['phone'] ?? null,
+            'status'   => $validated['status'],
         ];
 
         if (! empty($validated['password'])) {
@@ -182,13 +182,13 @@ class AdminController extends Controller
     {
         $validated = $request->validate([
             'action' => ['required', Rule::in(['active', 'inactive', 'delete', 'restore', 'force_delete'])],
-            'ids' => ['required', 'array', 'min:1'],
-            'ids.*' => ['required', 'integer', 'distinct'],
+            'ids'    => ['required', 'array', 'min:1'],
+            'ids.*'  => ['required', 'integer', 'distinct'],
         ]);
 
         $ids = collect($validated['ids'])
-            ->map(fn ($id) => (int) $id)
-            ->reject(fn ($id) => $id === (int) auth('admin')->id())
+            ->map(fn($id) => (int) $id)
+            ->reject(fn($id) => $id === (int) auth('admin')->id())
             ->unique()
             ->values()
             ->all();
@@ -201,10 +201,10 @@ class AdminController extends Controller
         }
 
         $message = match ($validated['action']) {
-            'active' => $this->bulkStatus($ids, true),
-            'inactive' => $this->bulkStatus($ids, false),
-            'delete' => $this->bulkDelete($ids),
-            'restore' => $this->bulkRestore($ids),
+            'active'       => $this->bulkStatus($ids, true),
+            'inactive'     => $this->bulkStatus($ids, false),
+            'delete'       => $this->bulkDelete($ids),
+            'restore'      => $this->bulkRestore($ids),
             'force_delete' => $this->bulkForceDelete($ids),
         };
 
@@ -233,14 +233,15 @@ class AdminController extends Controller
         if ($request->ajax()) {
             return response()->json([
                 'html' => view('backoffice.admin.admins.partials.table', [
-                    'admins' => $admins,
+                    'admins'  => $admins,
                     'isTrash' => true,
                 ])->render(),
             ]);
         }
 
-        $title = 'Trashed Admin Users';
+        $title      = 'Trashed Admin Users';
         $breadcrumb = [
+            ['text' => 'Access Control', 'url' => null],
             ['text' => 'Admin Users', 'url' => route('admin.admins.index')],
             ['text' => 'Trash', 'url' => null],
         ];
@@ -274,18 +275,18 @@ class AdminController extends Controller
     private function validateAdmin(Request $request, ?Admin $admin = null): array
     {
         return $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'username' => ['required', 'string', 'max:255', Rule::unique('admins', 'username')->ignore($admin?->id)],
-            'email' => ['required', 'email', 'max:255', Rule::unique('admins', 'email')->ignore($admin?->id)],
-            'phone' => ['nullable', 'string', 'max:20', Rule::unique('admins', 'phone')->ignore($admin?->id)],
-            'password' => [$admin ? 'nullable' : 'required', 'string', 'min:8', 'confirmed'],
-            'status' => ['required', 'boolean'],
-            'roles' => ['nullable', 'array'],
-            'roles.*' => [
+            'name'           => ['required', 'string', 'max:255'],
+            'username'       => ['required', 'string', 'max:255', Rule::unique('admins', 'username')->ignore($admin?->id)],
+            'email'          => ['required', 'email', 'max:255', Rule::unique('admins', 'email')->ignore($admin?->id)],
+            'phone'          => ['nullable', 'string', 'max:20', Rule::unique('admins', 'phone')->ignore($admin?->id)],
+            'password'       => [$admin ? 'nullable' : 'required', 'string', 'min:8', 'confirmed'],
+            'status'         => ['required', 'boolean'],
+            'roles'          => ['nullable', 'array'],
+            'roles.*'        => [
                 'string',
-                Rule::exists('roles', 'name')->where(fn ($query) => $query->where('guard_name', 'admin')->whereNull('deleted_at')),
+                Rule::exists('roles', 'name')->where(fn($query) => $query->where('guard_name', 'admin')->whereNull('deleted_at')),
             ],
-            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'photo'          => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
             'photo_media_id' => ['nullable', 'integer', Rule::exists('media', 'id')->whereNull('deleted_at'), $this->reusableImageRule()],
         ]);
     }

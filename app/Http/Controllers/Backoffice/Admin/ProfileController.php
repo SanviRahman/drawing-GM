@@ -20,6 +20,7 @@ class ProfileController extends Controller
         $admin = $this->admin($request);
 
         $breadcrumb = [
+            ['text' => 'Account', 'url' => null],
             ['text' => 'Profile', 'url' => null],
         ];
 
@@ -60,6 +61,7 @@ class ProfileController extends Controller
     public function password()
     {
         $breadcrumb = [
+            ['text' => 'Account', 'url' => null],
             ['text' => 'Change Password', 'url' => null],
         ];
 

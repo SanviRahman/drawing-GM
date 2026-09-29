@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Backoffice\Admin;
 
 use App\Http\Controllers\Controller;
@@ -10,14 +9,15 @@ use Illuminate\Validation\Rule;
 
 class MediaController extends Controller
 {
-    public function __construct(private readonly MediaLibraryService $mediaService) {}
+    public function __construct(private readonly MediaLibraryService $mediaService)
+    {}
 
     public function index(Request $request)
     {
         $this->ensurePermission('media_list');
 
-        $media = $this->mediaService->paginate($request->all(), false, false);
-        $stats = $this->mediaService->stats();
+        $media   = $this->mediaService->paginate($request->all(), false, false);
+        $stats   = $this->mediaService->stats();
         $filters = $this->mediaService->filters(false);
 
         if ($request->ajax()) {
@@ -26,8 +26,9 @@ class MediaController extends Controller
             ]);
         }
 
-        $title = 'Media Management';
+        $title      = 'Media Management';
         $breadcrumb = [
+            ['text' => 'Site Configuration', 'url' => null],
             ['text' => 'Media Management', 'url' => route('admin.media.index')],
         ];
 
@@ -39,20 +40,20 @@ class MediaController extends Controller
         $this->ensurePermission('media_list');
 
         $trashed = $request->boolean('trash');
-        $picker = $request->boolean('picker', true);
-        $media = $this->mediaService->paginate($request->all(), $trashed, $picker);
+        $picker  = $request->boolean('picker', true);
+        $media   = $this->mediaService->paginate($request->all(), $trashed, $picker);
         $filters = $this->mediaService->filters($picker);
 
         return response()->json([
             'success' => true,
-            'data' => collect($media->items())->map(fn (Media $item) => $this->mediaService->serialize($item))->values(),
-            'meta' => [
+            'data'    => collect($media->items())->map(fn(Media $item) => $this->mediaService->serialize($item))->values(),
+            'meta'    => [
                 'current_page' => $media->currentPage(),
-                'last_page' => $media->lastPage(),
-                'per_page' => $media->perPage(),
-                'total' => $media->total(),
-                'from' => $media->firstItem(),
-                'to' => $media->lastItem(),
+                'last_page'    => $media->lastPage(),
+                'per_page'     => $media->perPage(),
+                'total'        => $media->total(),
+                'from'         => $media->firstItem(),
+                'to'           => $media->lastItem(),
             ],
             'filters' => $filters,
         ]);
@@ -73,7 +74,7 @@ class MediaController extends Controller
         $this->ensurePermission('media_upload');
 
         $validated = $request->validate([
-            'files' => ['required', 'array', 'min:1', 'max:10'],
+            'files'   => ['required', 'array', 'min:1', 'max:10'],
             'files.*' => [
                 'required',
                 'file',
@@ -87,7 +88,7 @@ class MediaController extends Controller
         return response()->json([
             'success' => true,
             'message' => $uploaded->count() . ' media file(s) uploaded successfully.',
-            'data' => $uploaded->map(fn (Media $media) => $this->mediaService->serialize($media))->values(),
+            'data'    => $uploaded->map(fn(Media $media) => $this->mediaService->serialize($media))->values(),
         ]);
     }
 
@@ -120,9 +121,9 @@ class MediaController extends Controller
         $this->ensurePermission('media_update');
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:190'],
+            'name'     => ['required', 'string', 'max:190'],
             'alt_text' => ['nullable', 'string', 'max:255'],
-            'caption' => ['nullable', 'string', 'max:1000'],
+            'caption'  => ['nullable', 'string', 'max:1000'],
         ]);
 
         $this->mediaService->updateMetadata($media, $validated);
@@ -148,13 +149,13 @@ class MediaController extends Controller
     {
         $validated = $request->validate([
             'action' => ['required', Rule::in(['delete', 'restore', 'force_delete'])],
-            'ids' => ['required', 'array', 'min:1'],
-            'ids.*' => ['required', 'integer', 'distinct'],
+            'ids'    => ['required', 'array', 'min:1'],
+            'ids.*'  => ['required', 'integer', 'distinct'],
         ]);
 
         $permission = match ($validated['action']) {
-            'delete' => 'media_delete',
-            'restore' => 'media_restore',
+            'delete'       => 'media_delete',
+            'restore'      => 'media_restore',
             'force_delete' => 'media_force_delete',
         };
 
@@ -172,20 +173,21 @@ class MediaController extends Controller
     {
         $this->ensurePermission('media_trash');
 
-        $media = $this->mediaService->paginate($request->all(), true, false);
+        $media   = $this->mediaService->paginate($request->all(), true, false);
         $filters = $this->mediaService->filters(false);
 
         if ($request->ajax()) {
             return response()->json([
                 'html' => view('backoffice.admin.media.partials.table', [
-                    'media' => $media,
+                    'media'   => $media,
                     'isTrash' => true,
                 ])->render(),
             ]);
         }
 
-        $title = 'Media Trash Bin';
+        $title      = 'Media Trash Bin';
         $breadcrumb = [
+            ['text' => 'Site Configuration', 'url' => null],
             ['text' => 'Media Management', 'url' => route('admin.media.index')],
             ['text' => 'Trash Bin', 'url' => null],
         ];

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Backoffice\Admin;
 
 use App\Http\Controllers\Controller;
@@ -18,11 +17,11 @@ class PermissionController extends Controller
             ->search($request->input('search'))
             ->when(
                 $request->filled('guard_name'),
-                fn ($query) => $query->byGuard((string) $request->input('guard_name'))
+                fn($query) => $query->byGuard((string) $request->input('guard_name'))
             )
             ->when(
                 $request->filled('group_name'),
-                fn ($query) => $query->byGroup((string) $request->input('group_name'))
+                fn($query) => $query->byGroup((string) $request->input('group_name'))
             )
             ->latest('id')
             ->paginate(15)
@@ -45,7 +44,7 @@ class PermissionController extends Controller
             return response()->json([
                 'html' => view('backoffice.admin.permissions.partials.table', [
                     'permissions' => $permissions,
-                    'isTrash' => false,
+                    'isTrash'     => false,
                 ])->render(),
             ]);
         }
@@ -53,6 +52,7 @@ class PermissionController extends Controller
         $title = 'Permissions Management';
 
         $breadcrumb = [
+            ['text' => 'Access Control', 'url' => null],
             ['text' => 'Permissions List', 'url' => route('admin.permissions.index')],
         ];
 
@@ -71,7 +71,7 @@ class PermissionController extends Controller
             ->search($request->input('search'))
             ->when(
                 $request->filled('guard_name'),
-                fn ($query) => $query->byGuard((string) $request->input('guard_name'))
+                fn($query) => $query->byGuard((string) $request->input('guard_name'))
             )
             ->orderBy('group_name')
             ->orderBy('name')
@@ -85,7 +85,7 @@ class PermissionController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $permissions,
+            'data'    => $permissions,
         ]);
     }
 
@@ -110,7 +110,7 @@ class PermissionController extends Controller
         $validated = $this->validatePermission($request);
 
         $permission = Permission::create([
-            'name' => $validated['name'],
+            'name'       => $validated['name'],
             'guard_name' => $validated['guard_name'],
             'group_name' => $validated['group_name'],
         ]);
@@ -120,7 +120,7 @@ class PermissionController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Permission created successfully.',
-            'data' => [
+            'data'    => [
                 'id' => $permission->id,
             ],
         ]);
@@ -161,7 +161,7 @@ class PermissionController extends Controller
         $this->guardAgainstAssignedGuardChange($permission, $validated['guard_name']);
 
         $permission->update([
-            'name' => $validated['name'],
+            'name'       => $validated['name'],
             'guard_name' => $validated['guard_name'],
             'group_name' => $validated['group_name'],
         ]);
@@ -197,13 +197,13 @@ class PermissionController extends Controller
                     'force_delete',
                 ]),
             ],
-            'ids' => ['required', 'array', 'min:1'],
-            'ids.*' => ['required', 'integer', 'distinct'],
+            'ids'    => ['required', 'array', 'min:1'],
+            'ids.*'  => ['required', 'integer', 'distinct'],
         ]);
 
         $ids = collect($validated['ids'])
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0)
+            ->map(fn($id) => (int) $id)
+            ->filter(fn($id) => $id > 0)
             ->unique()
             ->values()
             ->all();
@@ -216,8 +216,8 @@ class PermissionController extends Controller
         }
 
         $message = match ($validated['action']) {
-            'delete' => $this->bulkDelete($ids),
-            'restore' => $this->bulkRestore($ids),
+            'delete'       => $this->bulkDelete($ids),
+            'restore'      => $this->bulkRestore($ids),
             'force_delete' => $this->bulkForceDelete($ids),
         };
 
@@ -241,7 +241,7 @@ class PermissionController extends Controller
             return response()->json([
                 'html' => view('backoffice.admin.permissions.partials.table', [
                     'permissions' => $permissions,
-                    'isTrash' => true,
+                    'isTrash'     => true,
                 ])->render(),
             ]);
         }
@@ -249,6 +249,7 @@ class PermissionController extends Controller
         $title = 'Trashed Permissions';
 
         $breadcrumb = [
+            ['text' => 'Access Control', 'url' => null],
             ['text' => 'Permissions', 'url' => route('admin.permissions.index')],
             ['text' => 'Trash', 'url' => null],
         ];
@@ -293,7 +294,7 @@ class PermissionController extends Controller
         ?Permission $permission = null
     ): array {
         $request->merge([
-            'name' => trim((string) $request->input('name')),
+            'name'       => trim((string) $request->input('name')),
             'guard_name' => trim((string) $request->input('guard_name', 'admin')),
             'group_name' => trim((string) $request->input('group_name', '')),
         ]);
@@ -301,12 +302,12 @@ class PermissionController extends Controller
         $guardName = (string) $request->input('guard_name');
 
         $validated = $request->validate([
-            'name' => [
+            'name'       => [
                 'required',
                 'string',
                 'max:255',
                 Rule::unique('permissions', 'name')
-                    ->where(fn ($query) => $query->where('guard_name', $guardName))
+                    ->where(fn($query) => $query->where('guard_name', $guardName))
                     ->ignore($permission?->id),
             ],
             'guard_name' => [

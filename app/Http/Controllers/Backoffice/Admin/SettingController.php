@@ -1,10 +1,9 @@
 <?php
-
 namespace App\Http\Controllers\Backoffice\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\SiteSetting;
 use App\Models\Media;
+use App\Models\SiteSetting;
 use App\Services\SiteSettingMediaService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -12,7 +11,8 @@ use Illuminate\Validation\ValidationException;
 
 class SettingController extends Controller
 {
-    public function __construct(private readonly SiteSettingMediaService $mediaService) {}
+    public function __construct(private readonly SiteSettingMediaService $mediaService)
+    {}
 
     public function index(Request $request)
     {
@@ -42,8 +42,9 @@ class SettingController extends Controller
             ]);
         }
 
-        $title = 'Site Settings Management';
+        $title      = 'Site Settings Management';
         $breadcrumb = [
+            ['text' => 'Site Configuration', 'url' => null],
             ['text' => 'Site Settings', 'url' => route('admin.settings.index')],
         ];
 
@@ -65,7 +66,7 @@ class SettingController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $query->ordered()->limit(100)->get(),
+            'data'    => $query->ordered()->limit(100)->get(),
         ]);
     }
 
@@ -83,11 +84,11 @@ class SettingController extends Controller
         $validated = $this->validateModel($request);
 
         $setting = SiteSetting::create([
-            'group_name' => $validated['group_name'],
-            'setting_key' => $validated['setting_key'],
+            'group_name'    => $validated['group_name'],
+            'setting_key'   => $validated['setting_key'],
             'setting_value' => SiteSetting::prepareValue($validated['setting_value'] ?? null, $validated['value_type']),
-            'value_type' => $validated['value_type'],
-            'is_public' => $validated['is_public'],
+            'value_type'    => $validated['value_type'],
+            'is_public'     => $validated['is_public'],
         ]);
 
         $this->mediaService->syncFromRequest($request, $setting);
@@ -123,15 +124,15 @@ class SettingController extends Controller
         $validated = $this->validateModel($request, $setting);
 
         $data = [
-            'group_name' => $validated['group_name'],
+            'group_name'  => $validated['group_name'],
             'setting_key' => $validated['setting_key'],
-            'value_type' => $validated['value_type'],
-            'is_public' => $validated['is_public'],
+            'value_type'  => $validated['value_type'],
+            'is_public'   => $validated['is_public'],
         ];
 
         $keepEncryptedValue = $validated['value_type'] === 'encrypted'
-            && ($validated['setting_value'] ?? '') === ''
-            && $setting->value_type === 'encrypted';
+        && ($validated['setting_value'] ?? '') === ''
+        && $setting->value_type === 'encrypted';
 
         if (! $keepEncryptedValue) {
             $data['setting_value'] = SiteSetting::prepareValue($validated['setting_value'] ?? null, $validated['value_type']);
@@ -161,21 +162,21 @@ class SettingController extends Controller
     {
         $validated = $request->validate([
             'action' => ['required', Rule::in(['public', 'private', 'delete', 'restore', 'force_delete'])],
-            'ids' => ['required', 'array', 'min:1'],
-            'ids.*' => ['required', 'integer', 'distinct'],
+            'ids'    => ['required', 'array', 'min:1'],
+            'ids.*'  => ['required', 'integer', 'distinct'],
         ]);
 
         $ids = collect($validated['ids'])
-            ->map(fn ($id) => (int) $id)
+            ->map(fn($id) => (int) $id)
             ->unique()
             ->values()
             ->all();
 
         $message = match ($validated['action']) {
-            'public' => $this->bulkPublic($ids, true),
-            'private' => $this->bulkPublic($ids, false),
-            'delete' => $this->bulkDelete($ids),
-            'restore' => $this->bulkRestore($ids),
+            'public'       => $this->bulkPublic($ids, true),
+            'private'      => $this->bulkPublic($ids, false),
+            'delete'       => $this->bulkDelete($ids),
+            'restore'      => $this->bulkRestore($ids),
             'force_delete' => $this->bulkForceDelete($ids),
         };
 
@@ -204,13 +205,14 @@ class SettingController extends Controller
             return response()->json([
                 'html' => view('backoffice.admin.settings.partials.table', [
                     'settings' => $settings,
-                    'isTrash' => true,
+                    'isTrash'  => true,
                 ])->render(),
             ]);
         }
 
-        $title = 'Trashed Site Settings';
+        $title      = 'Trashed Site Settings';
         $breadcrumb = [
+            ['text' => 'Site Configuration', 'url' => null],
             ['text' => 'Site Settings', 'url' => route('admin.settings.index')],
             ['text' => 'Trash', 'url' => null],
         ];
@@ -244,22 +246,22 @@ class SettingController extends Controller
     private function validateModel(Request $request, ?SiteSetting $setting = null): array
     {
         $validated = $request->validate([
-            'group_name' => ['required', 'string', 'max:80'],
-            'setting_key' => [
+            'group_name'            => ['required', 'string', 'max:80'],
+            'setting_key'           => [
                 'required',
                 'string',
                 'max:150',
                 'regex:/^[a-z0-9]+(?:[._][a-z0-9_]+)*$/',
                 Rule::unique('site_settings', 'setting_key')->ignore($setting?->id),
             ],
-            'setting_value' => ['nullable', 'string'],
-            'value_type' => ['required', 'string', Rule::in(SiteSetting::VALUE_TYPES)],
-            'is_public' => ['required', 'boolean'],
-            'site_logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp,svg', 'max:2048'],
-            'site_logo_media_id' => ['nullable', 'integer', Rule::exists('media', 'id')->whereNull('deleted_at'), $this->reusableImageRule()],
-            'site_favicon' => ['nullable', 'file', 'mimes:ico,png,jpg,jpeg,webp,svg', 'max:1024'],
+            'setting_value'         => ['nullable', 'string'],
+            'value_type'            => ['required', 'string', Rule::in(SiteSetting::VALUE_TYPES)],
+            'is_public'             => ['required', 'boolean'],
+            'site_logo'             => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp,svg', 'max:2048'],
+            'site_logo_media_id'    => ['nullable', 'integer', Rule::exists('media', 'id')->whereNull('deleted_at'), $this->reusableImageRule()],
+            'site_favicon'          => ['nullable', 'file', 'mimes:ico,png,jpg,jpeg,webp,svg', 'max:1024'],
             'site_favicon_media_id' => ['nullable', 'integer', Rule::exists('media', 'id')->whereNull('deleted_at'), $this->reusableImageRule()],
-            'default_hero' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
+            'default_hero'          => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
             'default_hero_media_id' => ['nullable', 'integer', Rule::exists('media', 'id')->whereNull('deleted_at'), $this->reusableImageRule()],
         ]);
 
