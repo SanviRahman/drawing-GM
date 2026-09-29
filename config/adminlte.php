@@ -312,9 +312,6 @@ return [
 
     'menu'                                    => [
 
-
-
-    
         /*
     |--------------------------------------------------------------------------
     | Dashboard
@@ -329,7 +326,31 @@ return [
             'active' => ['admin', 'admin/dashboard'],
         ],
 
-          /*
+        /*
+        |--------------------------------------------------------------------------
+        | CMS
+        |--------------------------------------------------------------------------
+        */
+        ['header' => 'CMS MANAGEMENT'],
+        [
+            'text'    => 'CMS',
+            'icon'    => 'fas fa-fw fa-layer-group',
+            'submenu' => [
+                [
+                    'text'  => 'Pages',
+                    'route' => 'admin.pages.index',
+                    'icon'  => 'far fa-fw fa-file-alt',
+                    'can'   => 'page_list',
+                ],
+                [
+                    'text' => 'Sections',
+                    'url'  => '#',
+                    'icon' => 'fas fa-fw fa-th-large',
+                ],
+            ],
+        ],
+
+        /*
         |--------------------------------------------------------------------------
         | Site Configuration
         |--------------------------------------------------------------------------
@@ -354,7 +375,6 @@ return [
             'can'    => 'menu_list',
             'active' => ['admin/menus*'],
         ],
-
 
         [
             'text'   => 'Media Management',
@@ -421,8 +441,6 @@ return [
             'can'    => 'permission_list',
             'active' => ['admin/permissions*'],
         ],
-
-      
 
         /*
         |--------------------------------------------------------------------------

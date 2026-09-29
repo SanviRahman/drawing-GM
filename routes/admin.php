@@ -2,8 +2,9 @@
 
 use App\Http\Controllers\Backoffice\Admin\AdminController;
 use App\Http\Controllers\Backoffice\Admin\DashboardController;
-use App\Http\Controllers\Backoffice\Admin\MenuController;
 use App\Http\Controllers\Backoffice\Admin\MediaController;
+use App\Http\Controllers\Backoffice\Admin\MenuController;
+use App\Http\Controllers\Backoffice\Admin\PageController;
 use App\Http\Controllers\Backoffice\Admin\PermissionController;
 use App\Http\Controllers\Backoffice\Admin\ProfileController;
 use App\Http\Controllers\Backoffice\Admin\RoleController;
@@ -66,7 +67,6 @@ Route::middleware('auth:admin')->group(function () {
         Route::resource('/', SettingController::class)->parameters(['' => 'setting']);
     });
 
-
     // Global Media Management / Picker
     Route::group(['prefix' => 'media-management', 'as' => 'media.'], function () {
         Route::get('list', [MediaController::class, 'list'])->name('list');
@@ -103,6 +103,20 @@ Route::middleware('auth:admin')->group(function () {
         });
 
         Route::resource('/', MenuController::class)->parameters(['' => 'menu']);
+    });
+
+    // Pages
+    Route::group(['prefix' => 'pages', 'as' => 'pages.'], function () {
+        Route::post('multiple-action', [PageController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [PageController::class, 'trash'])->name('trashed');
+        Route::post('restore/{page}', [PageController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{page}', [PageController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [PageController::class, 'list'])->name('list');
+        Route::get('ajax-search', [PageController::class, 'list'])->name('ajax_search');
+        Route::post('{page}/publish', [PageController::class, 'publish'])->name('publish');
+        Route::post('{page}/unpublish', [PageController::class, 'unpublish'])->name('unpublish');
+        Route::post('{page}/duplicate', [PageController::class, 'duplicate'])->name('duplicate');
+        Route::resource('/', PageController::class)->parameters(['' => 'page']);
     });
 
 });
