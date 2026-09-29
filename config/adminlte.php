@@ -355,6 +355,15 @@ return [
             'active' => ['admin/menus*'],
         ],
 
+
+        [
+            'text'   => 'Media Management',
+            'route'  => 'admin.media.index',
+            'icon'   => 'fas fa-fw fa-photo-video',
+            'can'    => 'media_list',
+            'active' => ['admin/media-management*'],
+        ],
+
         /*
         |--------------------------------------------------------------------------
         | Account

@@ -41,9 +41,11 @@
                 <img id="admin-photo-preview" src="{{ $currentPhotoUrl }}" class="rounded-circle border" width="48" height="48" style="object-fit: cover;" alt="Profile Photo">
                 <div class="flex-grow-1">
                     <input type="file" name="photo" id="admin_photo" class="form-control-file" accept="image/jpeg,image/png,image/jpg,image/webp">
-                    <button type="button" class="btn btn-outline-primary btn-sm mt-1 btn-choose-media" data-target="admin_photo">
-                        <i class="fas fa-photo-video mr-1"></i> Choose from Media
-                    </button>
+                    @can('media_list')
+                        <button type="button" class="btn btn-outline-primary btn-sm mt-1 btn-choose-media" data-target="admin_photo">
+                            <i class="fas fa-photo-video mr-1"></i> Choose from Media
+                        </button>
+                    @endcan
                 </div>
             </div>
             <input type="hidden" name="photo_media_id" id="photo_media_id" value="">
@@ -128,6 +130,6 @@
             $('#admin_photo').val('');
             $('#photo_media_id').val(media.id);
             $('#admin-photo-preview').attr('src', media.url);
-        }, { type: 'image' });
+        }, { type: 'image', multiple: false, title: 'Choose Admin Avatar' });
     });
 </script>

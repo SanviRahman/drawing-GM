@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backoffice\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\SiteSetting;
+use App\Models\Media;
 use App\Services\SiteSettingMediaService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -255,11 +256,11 @@ class SettingController extends Controller
             'value_type' => ['required', 'string', Rule::in(SiteSetting::VALUE_TYPES)],
             'is_public' => ['required', 'boolean'],
             'site_logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp,svg', 'max:2048'],
-            'site_logo_media_id' => ['nullable', 'integer', 'exists:media,id'],
+            'site_logo_media_id' => ['nullable', 'integer', Rule::exists('media', 'id')->whereNull('deleted_at'), $this->reusableImageRule()],
             'site_favicon' => ['nullable', 'file', 'mimes:ico,png,jpg,jpeg,webp,svg', 'max:1024'],
-            'site_favicon_media_id' => ['nullable', 'integer', 'exists:media,id'],
+            'site_favicon_media_id' => ['nullable', 'integer', Rule::exists('media', 'id')->whereNull('deleted_at'), $this->reusableImageRule()],
             'default_hero' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
-            'default_hero_media_id' => ['nullable', 'integer', 'exists:media,id'],
+            'default_hero_media_id' => ['nullable', 'integer', Rule::exists('media', 'id')->whereNull('deleted_at'), $this->reusableImageRule()],
         ]);
 
         if (($validated['value_type'] ?? '') === 'json' && ! empty($validated['setting_value'])) {
@@ -305,4 +306,19 @@ class SettingController extends Controller
 
         return 'Selected settings permanently deleted.';
     }
+    private function reusableImageRule(): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail): void {
+            if ($value === null || $value === '') {
+                return;
+            }
+
+            $media = Media::query()->find((int) $value);
+
+            if (! $media || ! $media->isPickerSafe() || ! $media->isImage()) {
+                $fail('The selected media must be an active reusable image.');
+            }
+        };
+    }
+
 }

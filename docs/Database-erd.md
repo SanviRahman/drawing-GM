@@ -4,7 +4,7 @@
 
 - Primary keys use `BIGINT UNSIGNED` unless UUID/ULID is selected before implementation.
 - All content tables use timestamps; selected tables also use soft deletes.
-- Roles and permissions use tables published by `spatie/laravel-permission`; no custom `users.role` or `role_user` design is used.
+- Authentication is intentionally split: `admins` uses the `admin` guard for backoffice access, while `users` uses the `web` guard for customers. Spatie roles/permissions are guard-specific and may attach polymorphically to either model.
 - Media ownership uses the polymorphic `media` table from `spatie/laravel-medialibrary`.
 - Page, Service and Location own independent `hero_desktop` and `hero_mobile` collections.
 - Uploaded file bytes are stored outside MySQL.
@@ -13,15 +13,18 @@
 
 ```mermaid
 erDiagram
-    USERS ||--o{ MODEL_HAS_ROLES : has
+    ADMINS ||--o{ MODEL_HAS_ROLES : has_admin_roles
+    USERS ||--o{ MODEL_HAS_ROLES : has_web_roles
     ROLES ||--o{ MODEL_HAS_ROLES : assigned
-    USERS ||--o{ MODEL_HAS_PERMISSIONS : direct_permission
+    ADMINS ||--o{ MODEL_HAS_PERMISSIONS : admin_direct_permission
+    USERS ||--o{ MODEL_HAS_PERMISSIONS : web_direct_permission
     PERMISSIONS ||--o{ MODEL_HAS_PERMISSIONS : assigned
     ROLES ||--o{ ROLE_HAS_PERMISSIONS : grants
     PERMISSIONS ||--o{ ROLE_HAS_PERMISSIONS : included
     USERS ||--o{ LEADS : submits
-    USERS ||--o{ AUDIT_LOGS : performs
-    USERS ||--o{ POSTS : authors
+    ADMINS ||--o{ AUDIT_LOGS : performs_admin_actions
+    USERS ||--o{ AUDIT_LOGS : performs_user_actions
+    ADMINS ||--o{ POSTS : authors
 
     MENUS ||--o{ MENU_ITEMS : contains
     MENU_ITEMS ||--o{ MENU_ITEMS : parent_of
@@ -41,13 +44,9 @@ erDiagram
     PRICING_ADDONS ||--o{ PRICING_PACKAGE_ADDON : attached
 
     GALLERIES ||--o{ GALLERY_ITEMS : contains
-    MEDIA ||--o{ GALLERY_ITEMS : image
-    MEDIA ||--o{ GALLERY_ITEMS : before_image
-    MEDIA ||--o{ GALLERY_ITEMS : after_image
-
-    MEDIA ||--o{ VIDEOS : poster
-
-    TESTIMONIALS }o--|| MEDIA : photo
+    GALLERY_ITEMS ||--o{ MEDIA : owns_named_collections
+    VIDEOS ||--o{ MEDIA : owns_video_file_and_poster
+    TESTIMONIALS ||--o{ MEDIA : owns_photo_or_screenshot
 
     FAQS ||--o{ FAQABLES : reused_on
     PAGES ||--o{ FAQABLES : page
@@ -55,17 +54,15 @@ erDiagram
     LOCATIONS ||--o{ FAQABLES : location
 
     CATEGORIES ||--o{ POSTS : classifies
-    POSTS }o--|| MEDIA : featured_image
-    POSTS ||--o{ POST_MEDIA : uses
-    MEDIA ||--o{ POST_MEDIA : attached
+    POSTS ||--o{ MEDIA : owns_featured_and_content_images
 
     LEADS ||--o{ LEAD_SERVICES : requests
     SERVICES ||--o{ LEAD_SERVICES : selected
-    LEADS ||--o{ LEAD_ATTACHMENTS : includes
-    MEDIA ||--o{ LEAD_ATTACHMENTS : file
+    LEADS ||--o{ MEDIA : owns_private_attachments
     LEADS ||--o{ LEAD_STATUS_HISTORIES : changes
     LEADS ||--o{ LEAD_NOTES : has
-    USERS ||--o{ LEAD_NOTES : writes
+    ADMINS ||--o{ LEAD_NOTES : writes_admin_notes
+    USERS ||--o{ LEAD_NOTES : writes_user_notes
 
     CONTACT_CHANNELS ||--o{ CONTACT_TARGETS : targeted
 
@@ -73,12 +70,21 @@ erDiagram
 
     SEO_METAS ||--o{ REDIRECTS : informs
 
+    ADMINS {
+      bigint id PK
+      string name
+      string username UK
+      string email UK
+      string phone UK
+      string password
+      boolean status
+      string photo legacy
+    }
     USERS {
       bigint id PK
       string name
       string email UK
       string password
-      boolean is_active
     }
     ROLES {
       bigint id PK
@@ -238,10 +244,8 @@ erDiagram
       bigint id PK
       bigint gallery_id FK
       string item_type
-      bigint media_id FK
-      bigint before_media_id FK
-      bigint after_media_id FK
       int sort_order
+      boolean is_active
     }
     VIDEOS {
       bigint id PK
@@ -250,19 +254,19 @@ erDiagram
       string source_type
       string provider
       string source_url
-      string disk
-      string path
-      bigint poster_media_id FK
       string processing_status
+      int sort_order
+      boolean is_active
     }
     TESTIMONIALS {
       bigint id PK
+      string type
       string customer_name
       tinyint rating
       text review
       string source
-      bigint photo_media_id FK
       boolean is_active
+      int sort_order
     }
     FAQS {
       bigint id PK
@@ -285,18 +289,11 @@ erDiagram
       bigint id PK
       bigint author_id FK
       bigint category_id FK
-      bigint featured_media_id FK
       string title
       string slug UK
       longtext body
       string status
       datetime published_at
-    }
-    POST_MEDIA {
-      bigint post_id FK
-      bigint media_id FK
-      string role
-      int sort_order
     }
     CONTACT_CHANNELS {
       bigint id PK
@@ -329,22 +326,19 @@ erDiagram
       bigint lead_id FK
       bigint service_id FK
     }
-    LEAD_ATTACHMENTS {
-      bigint id PK
-      bigint lead_id FK
-      bigint media_id FK
-    }
     LEAD_STATUS_HISTORIES {
       bigint id PK
       bigint lead_id FK
-      bigint changed_by FK
+      string changed_by_type
+      bigint changed_by_id
       string from_status
       string to_status
     }
     LEAD_NOTES {
       bigint id PK
       bigint lead_id FK
-      bigint user_id FK
+      string author_type
+      bigint author_id
       text note
       boolean visible_to_user
     }
@@ -381,7 +375,8 @@ erDiagram
     }
     AUDIT_LOGS {
       bigint id PK
-      bigint user_id FK
+      string actor_type
+      bigint actor_id
       string action
       string auditable_type
       bigint auditable_id
@@ -391,6 +386,14 @@ erDiagram
 ```
 
 ## 3. Relationship notes
+
+### Authentication domains
+
+`Admin` and `User` are separate authenticatable models. `model_has_roles`/`model_has_permissions` remain polymorphic; `guard_name` prevents admin-guard roles from being used in the web guard. Admin-created content should reference `admins` where a direct FK is appropriate; shared actor histories/audit rows should use constrained polymorphic actor fields when both Admin and User can act.
+
+### Media Picker
+
+Media Picker v1 does not add an entity/table to the ERD. It queries authorized Spatie `media` rows and returns a source media ID to an Admin form. The target service copies the source file into the target owner's named collection, preserving the original owner's media record. Private Lead attachments are excluded from generic picker results.
 
 ### Dynamic pages and hero media
 
@@ -412,7 +415,7 @@ Page, Service and Location implement Spatie `HasMedia`. Their `hero_desktop` and
 
 ### Leads
 
-A lead can be submitted by a guest or user. Guest identity is stored on `leads`; `user_id` is nullable. Attachments reference `media`, but use a private disk and signed download authorization.
+A lead can be submitted by a guest or user. Guest identity is stored on `leads`; `user_id` is nullable. Lead owns private Spatie `attachments` media directly; access is enforced through the Lead policy/signed download route.
 
 ## 4. Delete behaviour
 
@@ -422,19 +425,20 @@ A lead can be submitted by a guest or user. Guest identity is stored on `leads`;
 - `pricing_items`: cascade with package.
 - `lead_status_histories` and `lead_notes`: restrict or retain for audit.
 - `media`: restrict deletion while referenced; allow soft deletion and scheduled cleanup.
-- `users`: prefer deactivation; null the author/actor only where legally acceptable.
+- `admins`: prefer deactivation/status disable for operational accounts; soft delete only when appropriate.
+- `users`: preserve customer history as required; use deactivation before destructive removal where possible.
 - `tracking` and `audit_logs`: retain according to the data-retention policy.
 
 
 ## 5. Spatie ownership rule
 
-The `MEDIA` relation is polymorphic through `model_type` and `model_id`; collection names distinguish logo, hero, gallery, video, poster, avatar and attachment usage. Remove legacy duplicate media pivots when direct Spatie ownership represents the same relationship. Domain records such as `GalleryItem` or `Video` may own named collections when they carry ordering or playback configuration.
+The `MEDIA` relation is polymorphic through `model_type` and `model_id`. Implemented direct owners currently include `Admin` (`avatars`) and `SiteSetting` (`site_logo`, `site_favicon`, `default_hero`). Planned direct owners include Page, Service, Location, Post, GalleryItem, Video, Testimonial, Lead, Campaign and eligible CampaignSection assets. Keep a separate pivot such as `section_media` only when intentional reuse/role ordering is required.
 
 ## 6. Campaign ERD extension
 
 ```mermaid
 erDiagram
-    USERS ||--o{ CAMPAIGNS : creates
+    ADMINS ||--o{ CAMPAIGNS : creates
     CAMPAIGNS ||--o{ CAMPAIGN_SECTIONS : contains
     CAMPAIGNS ||--o{ CAMPAIGNABLES : features
     CAMPAIGN_SETTINGS }o--|| CAMPAIGNS : default_campaign
@@ -486,4 +490,4 @@ Campaign uses Spatie collections `hero_images`, `hero_video`, `hero_video_poster
 
 ### Section visibility
 
-Public queries use `campaign_sections.is_enabled = true` and `sort_order`. Inactive section rows and media remain available in admin editing but are omitted from frontend HTML and structured data.
+Public queries use `campaign_sections.is_enabled = true` and `sort_order`. Inactive section rows and media remain available in admin editing but are omitted from frontend HTML and structured data. Allowlisted keys are `hero`, `hero_benefits`, `service_grid`, `category_brand`, `pricing`, `gallery`, `video_gallery`, `testimonials`, `whatsapp_reviews`, `faq`, `cta`, and `lead_form`; every key must map to a validated Blade component.

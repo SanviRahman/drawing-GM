@@ -90,9 +90,11 @@
                          style="width: 44px; height: 44px; object-fit: contain;" alt="{{ $mf['label'] }}">
                     <div class="flex-grow-1">
                         <input type="file" name="{{ $mf['field'] }}" id="{{ $mf['field'] }}" class="form-control-file" accept="{{ $mf['accept'] }}">
-                        <button type="button" class="btn btn-outline-primary btn-sm mt-1 btn-choose-media" data-target="{{ $mf['field'] }}">
-                            <i class="fas fa-photo-video mr-1"></i> Media Picker
-                        </button>
+                        @can('media_list')
+                            <button type="button" class="btn btn-outline-primary btn-sm mt-1 btn-choose-media" data-target="{{ $mf['field'] }}" data-label="{{ $mf['label'] }}">
+                                <i class="fas fa-photo-video mr-1"></i> Media Picker
+                            </button>
+                        @endcan
                     </div>
                 </div>
                 <input type="hidden" name="{{ $mf['field'] }}_media_id" id="{{ $mf['field'] }}_media_id" value="">
@@ -179,7 +181,7 @@
                     $('#{{ $mf['field'] }}').val('');
                     $('#{{ $mf['field'] }}_media_id').val(media.id);
                     $('#{{ $mf['field'] }}-preview').attr('src', media.url);
-                }, { type: 'image' });
+                }, { type: 'image', multiple: false, title: 'Choose {{ $mf['label'] }}' });
             });
         @endforeach
     })();

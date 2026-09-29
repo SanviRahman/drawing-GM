@@ -51,6 +51,9 @@ class Admin extends Authenticatable implements HasMedia
         $this->addMediaCollection('avatars')
             ->useDisk('public')
             ->singleFile();
+
+        $this->addMediaCollection('media_library')
+            ->useDisk('public');
     }
 
     public function adminlte_profile_url(): string

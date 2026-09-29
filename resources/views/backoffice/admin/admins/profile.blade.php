@@ -1,6 +1,7 @@
 @extends('backoffice.admin.layouts.app')
 
 @section('meta_title', 'Admin Profile')
+@section('plugins.Sweetalert2', true)
 
 @section('content')
     @if (session('success'))
@@ -202,9 +203,11 @@
                                 </div>
 
                                 <input type="hidden" name="photo_media_id" id="photo_media_id" value="">
-                                <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="btnChoosePhotoMedia">
-                                    <i class="fas fa-photo-video mr-1"></i> Choose from Media
-                                </button>
+                                @can('media_list')
+                                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="btnChoosePhotoMedia">
+                                        <i class="fas fa-photo-video mr-1"></i> Choose from Media
+                                    </button>
+                                @endcan
 
                                 <small class="text-muted d-block mt-1">
                                     Recommended: JPG, PNG, WEBP. Use square image for best preview.
@@ -306,7 +309,7 @@
                     $('.custom-file-label').html('Select profile photo');
                     $('#photo_media_id').val(media.id);
                     $('#profile-photo-preview').attr('src', media.url);
-                }, { type: 'image' });
+                }, { type: 'image', multiple: false, title: 'Choose Profile Photo' });
             });
         });
     </script>

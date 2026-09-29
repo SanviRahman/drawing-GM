@@ -4,14 +4,19 @@ namespace App\Http\Controllers\Backoffice\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
+use App\Models\Media;
 use App\Models\Role;
 use App\Services\AdminAvatarService;
+use App\Services\Media\MediaLibraryService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
 {
-    public function __construct(private readonly AdminAvatarService $avatarService) {}
+    public function __construct(
+        private readonly AdminAvatarService $avatarService,
+        private readonly MediaLibraryService $mediaLibraryService,
+    ) {}
 
     public function index(Request $request)
     {
@@ -256,8 +261,8 @@ class AdminController extends Controller
     public function forceDelete(int $admin)
     {
         $model = Admin::onlyTrashed()->findOrFail($admin);
-        $model->clearMediaCollection('avatars');
-        $this->deleteLegacyPhoto($model);
+        $this->mediaLibraryService->reassignLibraryMedia($model, auth('admin')->user());
+        $this->avatarService->purgeAll($model);
         $model->forceDelete();
 
         return response()->json([
@@ -281,22 +286,8 @@ class AdminController extends Controller
                 Rule::exists('roles', 'name')->where(fn ($query) => $query->where('guard_name', 'admin')->whereNull('deleted_at')),
             ],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
-            'photo_media_id' => ['nullable', 'integer', 'exists:media,id'],
+            'photo_media_id' => ['nullable', 'integer', Rule::exists('media', 'id')->whereNull('deleted_at'), $this->reusableImageRule()],
         ]);
-    }
-
-    private function deleteLegacyPhoto(Admin $admin): void
-    {
-        if (! empty($admin->photo)) {
-            $photo = ltrim((string) $admin->photo, '/');
-
-            if (! str_starts_with($photo, 'http://')
-                && ! str_starts_with($photo, 'https://')
-                && ! str_starts_with($photo, 'uploads/')
-                && \Illuminate\Support\Facades\Storage::disk('public')->exists($photo)) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($photo);
-            }
-        }
     }
 
     private function bulkStatus(array $ids, bool $status): string
@@ -323,11 +314,26 @@ class AdminController extends Controller
     private function bulkForceDelete(array $ids): string
     {
         Admin::onlyTrashed()->whereIn('id', $ids)->get()->each(function (Admin $admin) {
-            $admin->clearMediaCollection('avatars');
-            $this->deleteLegacyPhoto($admin);
+            $this->mediaLibraryService->reassignLibraryMedia($admin, auth('admin')->user());
+            $this->avatarService->purgeAll($admin);
             $admin->forceDelete();
         });
 
         return 'Selected admins permanently deleted.';
     }
+    private function reusableImageRule(): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail): void {
+            if ($value === null || $value === '') {
+                return;
+            }
+
+            $media = Media::query()->find((int) $value);
+
+            if (! $media || ! $media->isPickerSafe() || ! $media->isImage()) {
+                $fail('The selected media must be an active reusable image.');
+            }
+        };
+    }
+
 }

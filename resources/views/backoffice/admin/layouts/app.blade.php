@@ -84,14 +84,17 @@
 
 @section('footer')
     @include('backoffice.admin.includes.footer')
+    @include('backoffice.admin.media.partials.picker-modal')
 @stop
 
 @push('css')
     @include('backoffice.admin.includes.custom_css')
+    @include('backoffice.admin.media.partials.picker-style')
     @stack('page_css')
 @endpush
 
 @push('js')
     @include('backoffice.admin.includes.custom_js')
+    @include('backoffice.admin.media.partials.picker-script')
     @stack('page_js')
 @endpush

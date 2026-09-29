@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use App\Models\Media;
 
 class AdminAvatarService
 {
@@ -27,21 +27,33 @@ class AdminAvatarService
             return;
         }
 
-        $media = Media::query()->findOrFail((int) $request->input('photo_media_id'));
+        $media = Media::query()->find((int) $request->input('photo_media_id'));
 
-        if (! str_starts_with((string) $media->mime_type, 'image/')) {
+        if (! $media || ! $media->isPickerSafe()) {
+            throw ValidationException::withMessages([
+                'photo_media_id' => 'The selected media is unavailable or cannot be reused.',
+            ]);
+        }
+
+        if (! $media->isImage()) {
             throw ValidationException::withMessages([
                 'photo_media_id' => 'The selected media must be an image.',
             ]);
         }
 
-        $extension = pathinfo($media->file_name, PATHINFO_EXTENSION);
+        $media->copy($admin, 'avatars', 'public');
 
-        $admin->addMedia($media->getPath())
-            ->preservingOriginal()
-            ->usingName($media->name)
-            ->usingFileName($this->safeFilename($extension))
-            ->toMediaCollection('avatars', 'public');
+        $this->clearLegacyPhoto($admin);
+    }
+
+    public function purgeAll(Admin $admin): void
+    {
+        Media::withTrashed()
+            ->where('model_type', Admin::class)
+            ->where('model_id', $admin->getKey())
+            ->where('collection_name', 'avatars')
+            ->get()
+            ->each(fn (Media $media) => $media->forceDelete());
 
         $this->clearLegacyPhoto($admin);
     }

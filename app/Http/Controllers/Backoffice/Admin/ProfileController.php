@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backoffice\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
+use App\Models\Media;
 use App\Services\AdminAvatarService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -41,7 +42,7 @@ class ProfileController extends Controller
             'email' => ['required', 'email', 'max:255', Rule::unique('admins', 'email')->ignore($admin->id)],
             'phone' => ['nullable', 'string', 'max:20', Rule::unique('admins', 'phone')->ignore($admin->id)],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
-            'photo_media_id' => ['nullable', 'integer', 'exists:media,id'],
+            'photo_media_id' => ['nullable', 'integer', Rule::exists('media', 'id')->whereNull('deleted_at'), $this->reusableImageRule()],
         ]);
 
         $admin->update([
@@ -100,4 +101,19 @@ class ProfileController extends Controller
 
         return $admin;
     }
+    private function reusableImageRule(): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail): void {
+            if ($value === null || $value === '') {
+                return;
+            }
+
+            $media = Media::query()->find((int) $value);
+
+            if (! $media || ! $media->isPickerSafe() || ! $media->isImage()) {
+                $fail('The selected media must be an active reusable image.');
+            }
+        };
+    }
+
 }

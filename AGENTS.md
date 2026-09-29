@@ -4,9 +4,9 @@
 You are an expert Senior PHP & Laravel Developer Assistant working on a high-converting, fully dynamic home-service website and lead management platform inspired by Singapore home service portals (such as budgetpainting.sg)[cite: 6, 7].
 
 ### Core Stack & Technical Baseline
-- **Framework**: Laravel 12 on PHP 8.3+[cite: 6, 11]
+- **Framework**: Laravel ^13.17 on PHP ^8.3[cite: 6, 11]
 - **Database**: MySQL 8+ (InnoDB, `utf8mb4`, strict constraints)[cite: 6, 9]
-- **Frontend**: Blade + Alpine.js + Tailwind CSS[cite: 6, 11]
+- **Frontend**: AdminLTE 3 + Bootstrap/jQuery for backoffice; Blade + Vite/Tailwind for public UI; Alpine.js may be added where useful[cite: 6, 11]
 - **Package Standards**:
   - `spatie/laravel-permission` for multi-guard RBAC (`admin` and `web`)
   - `spatie/laravel-medialibrary` as the canonical media management system[cite: 8, 9, 11]
@@ -18,7 +18,7 @@ You are an expert Senior PHP & Laravel Developer Assistant working on a high-con
 Before generating or modifying any code, migrations, controllers, models, or views, you MUST strictly read and follow the documents in `docs/`:
 
 1. `docs/database-schema.md` — Authoritative table specifications, column data types, indexes, and migration orders.
-2. `docs/database-erd.md` — Mermaid relationship diagrams, foreign keys, cascade rules, and delete behaviors[cite: 10].
+2. `docs/Database-erd.md` — Mermaid relationship diagrams, foreign keys, cascade rules, and delete behaviors[cite: 10].
 3. `docs/folder-structure.md` — Clean architecture boundaries, directory layout, naming conventions, and file placement.
 4. `docs/architecture.md` — Technical workflow, Spatie integration patterns, dynamic hero resolution, contact routing, caching, and tracking bus[cite: 11].
 5. `docs/prd.md` — Business requirements, user journeys, functional criteria, and acceptance requirements[cite: 7].
@@ -31,16 +31,20 @@ Before generating or modifying any code, migrations, controllers, models, or vie
 ### 3.1 Controller Boundaries
 - Controllers must remain thin.
 - Never write heavy Eloquent queries, inline validation, tracking API calls, or image processing inside controllers.
-- Controller flow must always be:
-  1. Authorize via policy or Spatie permission[cite: 8, 11].
-  2. Validate incoming input via dedicated Form Request[cite: 8, 11].
-  3. Execute business logic through an Action (`app/Actions/*`) or Service (`app/Services/*`)[cite: 8, 11].
-  4. Return a redirect or view response.
+- Admin controller flow must be: authorize with granular permission, validate through a focused private controller validation method (the current backoffice convention intentionally does not use external Form Request classes), delegate reusable business logic to Actions/Services, then return the response. Future public/account modules may use dedicated Form Requests when their implementation convention explicitly requires them.
 
 ### 3.2 Spatie Permission & Multi-Guard Rules
 - Dual guard architecture: `admin` guard for `App\Models\Admin` and `web` guard for `App\Models\User`.
 - Granular permissions must always be checked (e.g. `permission_list`, `admin_create`, `service_update`) rather than loose role strings[cite: 8, 9, 11].
 - Always reset cached permissions (`php artisan permission:cache-reset`) after role/permission seeding or alterations.
+
+### 3.2.1 Global Media Picker (Implemented)
+- `App\Models\Media` extends Spatie Media and uses soft deletes for Trash/Restore; `deleted_at` is added through the project migration.
+- `MediaController` + `MediaLibraryService` power the global AdminLTE picker and Media Management screens.
+- `MediaPicker.open(callback, options)` is the reusable JavaScript contract for all current/future admin modules.
+- Generic picker results must exclude private lead attachments/private disks.
+- Current Admin avatar/Profile and Site Setting branding fields use single image selection; future galleries/sections may use multiple selection.
+- Soft delete retains physical files; force delete is the only permanent file-removal operation.
 
 ### 3.3 Media Handling with Spatie MediaLibrary
 - Never create a custom/generic uploads table. Spatie's `media` table is the only canonical source[cite: 8, 9, 11].
@@ -71,8 +75,8 @@ Before generating or modifying any code, migrations, controllers, models, or vie
 When implementing any feature:
 1. **Scope One Domain at a Time**: Never attempt multi-domain builds in a single prompt or output[cite: 7, 8].
 2. **Schema & Migration Verification**: Double check `docs/database-schema.md` to ensure correct column types (`DECIMAL(12,2)` for money, normalized E.164 for phone, soft deletes where specified)[cite: 9].
-3. **Model & Relation Implementation**: Match the foreign keys and cascade rules defined in `docs/database-erd.md`[cite: 10].
-4. **Validation & Action**: Write Form Request and Action class following `docs/folder-structure.md`[cite: 8].
+3. **Model & Relation Implementation**: Match the foreign keys and cascade rules defined in `docs/Database-erd.md`[cite: 10].
+4. **Validation & Action**: Follow the current backoffice convention: validate in a focused private controller method and delegate reusable business logic to an Action/Service. Do not add external Form Requests for admin CRUD unless the project convention is intentionally changed.
 5. **Quality Verification**: Execute migrations and verify that imports, traits, and namespace declarations are accurate.
 
 

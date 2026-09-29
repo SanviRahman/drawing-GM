@@ -6,7 +6,7 @@ use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use App\Models\Media;
 
 class SiteSettingMediaService
 {
@@ -32,9 +32,15 @@ class SiteSettingMediaService
             }
 
             if ($request->filled($mediaIdField)) {
-                $media = Media::query()->findOrFail((int) $request->input($mediaIdField));
+                $media = Media::query()->find((int) $request->input($mediaIdField));
 
-                if (! str_starts_with((string) $media->mime_type, 'image/')) {
+                if (! $media || ! $media->isPickerSafe()) {
+                    throw ValidationException::withMessages([
+                        $mediaIdField => 'The selected media is unavailable or cannot be reused.',
+                    ]);
+                }
+
+                if (! $media->isImage()) {
                     throw ValidationException::withMessages([
                         $mediaIdField => 'The selected media must be an image.',
                     ]);
@@ -42,13 +48,7 @@ class SiteSettingMediaService
 
                 $this->clearCollection($setting, $collection);
 
-                $extension = pathinfo($media->file_name, PATHINFO_EXTENSION);
-
-                $setting->addMedia($media->getPath())
-                    ->preservingOriginal()
-                    ->usingName($media->name)
-                    ->usingFileName($this->safeFilename($extension))
-                    ->toMediaCollection($collection, 'public');
+                $media->copy($setting, $collection, 'public');
             }
         }
     }
@@ -58,9 +58,12 @@ class SiteSettingMediaService
      */
     public function purgeAll(SiteSetting $setting): void
     {
-        foreach (SiteSetting::MEDIA_COLLECTIONS as $collection) {
-            $this->clearCollection($setting, $collection);
-        }
+        Media::withTrashed()
+            ->where('model_type', SiteSetting::class)
+            ->where('model_id', $setting->getKey())
+            ->whereIn('collection_name', SiteSetting::MEDIA_COLLECTIONS)
+            ->get()
+            ->each(fn (Media $media) => $media->forceDelete());
     }
 
     private function clearCollection(SiteSetting $setting, string $collection): void

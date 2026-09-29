@@ -3,6 +3,7 @@
 use App\Http\Controllers\Backoffice\Admin\AdminController;
 use App\Http\Controllers\Backoffice\Admin\DashboardController;
 use App\Http\Controllers\Backoffice\Admin\MenuController;
+use App\Http\Controllers\Backoffice\Admin\MediaController;
 use App\Http\Controllers\Backoffice\Admin\PermissionController;
 use App\Http\Controllers\Backoffice\Admin\ProfileController;
 use App\Http\Controllers\Backoffice\Admin\RoleController;
@@ -63,6 +64,24 @@ Route::middleware('auth:admin')->group(function () {
         Route::get('list', [SettingController::class, 'list'])->name('list');
         Route::get('ajax-search', [SettingController::class, 'list'])->name('ajax_search');
         Route::resource('/', SettingController::class)->parameters(['' => 'setting']);
+    });
+
+
+    // Global Media Management / Picker
+    Route::group(['prefix' => 'media-management', 'as' => 'media.'], function () {
+        Route::get('list', [MediaController::class, 'list'])->name('list');
+        Route::post('multiple-action', [MediaController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [MediaController::class, 'trash'])->name('trashed');
+        Route::post('restore/{media}', [MediaController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{media}', [MediaController::class, 'forceDelete'])->name('force_delete');
+        Route::get('{media}/download', [MediaController::class, 'download'])->name('download');
+        Route::get('/', [MediaController::class, 'index'])->name('index');
+        Route::get('create', [MediaController::class, 'create'])->name('create');
+        Route::post('/', [MediaController::class, 'store'])->name('store');
+        Route::get('{media}', [MediaController::class, 'show'])->name('show');
+        Route::get('{media}/edit', [MediaController::class, 'edit'])->name('edit');
+        Route::put('{media}', [MediaController::class, 'update'])->name('update');
+        Route::delete('{media}', [MediaController::class, 'destroy'])->name('destroy');
     });
 
     // Menus

@@ -4,7 +4,7 @@
 
 Use Laravel conventions first. Group code by responsibility and domain without turning the project into a custom framework. Authorization uses `spatie/laravel-permission`; model-associated files and conversions use `spatie/laravel-medialibrary`. Controllers remain thin; validation lives in Form Requests; authorization in policies; reusable business operations in Actions/Services; slow work in Jobs.
 
-## 2. Proposed structure
+## 2. Current + planned structure
 
 ```text
 app/
@@ -46,7 +46,7 @@ app/
 │   └── SettingsUpdated.php
 ├── Http/
 │   ├── Controllers/
-│   │   ├── Admin/
+│   │   ├── Backoffice/Admin/
 │   │   │   ├── DashboardController.php
 │   │   │   ├── SettingController.php
 │   │   │   ├── MenuController.php
@@ -80,11 +80,11 @@ app/
 │   │       ├── ContactRedirectController.php
 │   │       └── SitemapController.php
 │   ├── Middleware/
-│   │   ├── EnsureActiveUser.php
-│   │   ├── EnsureRole.php
+│   │   ├── LteContextSwitcher.php      # implemented
+│   │   ├── EnsureActiveUser.php        # planned
 │   │   └── ApplyRedirects.php
 │   ├── Requests/
-│   │   ├── Admin/
+│   │   ├── Backoffice/Admin/
 │   │   │   ├── StorePageRequest.php
 │   │   │   ├── StorePageSectionRequest.php
 │   │   │   ├── StoreServiceRequest.php
@@ -112,7 +112,8 @@ app/
 │   ├── QueueLeadNotifications.php
 │   └── RecordLeadStatusHistory.php
 ├── Models/
-│   ├── User.php
+│   ├── Admin.php                 # implemented: admin guard, roles, avatars
+│   ├── User.php                  # implemented: web/customer foundation
 │   ├── Role.php                  # only if extending Spatie's Role model
 │   ├── Permission.php            # only if extending Spatie's Permission model
 │   ├── SiteSetting.php
@@ -164,6 +165,8 @@ app/
 │   ├── ValidTrackingIdentifier.php
 │   └── ValidUploadContent.php
 ├── Services/
+│   ├── AdminAvatarService.php          # implemented
+│   ├── SiteSettingMediaService.php     # implemented
 │   ├── Content/
 │   │   ├── HeroResolver.php
 │   │   ├── PageSectionRegistry.php
@@ -206,9 +209,8 @@ database/
 ├── migrations/
 ├── seeders/
 │   ├── DatabaseSeeder.php
-│   ├── RoleSeeder.php
-│   ├── SectionDefinitionSeeder.php
-│   └── AdminUserSeeder.php
+│   ├── RolePermissionSeeder.php   # implemented
+│   └── SectionDefinitionSeeder.php # planned with Page module
 └── testing/
 
 resources/
@@ -247,9 +249,13 @@ resources/
     │   │   ├── before-after.blade.php
     │   │   ├── video-gallery.blade.php
     │   │   ├── testimonials.blade.php
+    │   │   ├── whatsapp-reviews.blade.php
+    │   │   ├── paint-calculator.blade.php
     │   │   ├── faq.blade.php
     │   │   ├── cta.blade.php
-    │   │   └── contact-form.blade.php
+    │   │   ├── contact-form.blade.php
+    │   │   ├── safe-embed.blade.php
+    │   │   └── spacer.blade.php
     │   └── ui/
     ├── layouts/
     │   ├── app.blade.php
@@ -266,7 +272,7 @@ resources/
     │   ├── quote/create.blade.php
     │   └── sitemap.blade.php
     ├── account/
-    └── admin/
+    └── backoffice/admin/
         ├── dashboard/
         ├── settings/
         ├── menus/
@@ -287,11 +293,12 @@ resources/
         └── tracking/
 
 routes/
-├── web.php
-├── admin.php
-├── account.php
-├── api.php
-└── console.php
+├── web.php          # implemented; mounts /admin + admin auth context
+├── admin.php        # implemented; auth:admin backoffice routes
+├── command.php      # implemented; protected system tools
+├── console.php
+├── account.php      # planned when customer portal starts
+└── api.php          # planned only for real JSON endpoints
 
 storage/
 ├── app/public/
@@ -315,32 +322,53 @@ tests/
     └── WhatsApp/
 ```
 
-## 2.1 Spatie integration conventions
+## 2.1 Spatie/auth integration conventions
 
-- `User` uses `HasRoles` from Spatie Permission.
-- Prefer permissions such as `manage pages`, `manage media`, `manage leads` and `manage tracking`; do not rely only on `role === admin` checks.
-- Page, Service, Location, Post, GalleryItem, Video, Testimonial, User and Lead implement `HasMedia` only where they own media.
-- Register media collections/conversions inside each owning model or dedicated trait.
-- `ResolveHeroMedia` reads `hero_desktop` and `hero_mobile` from the current entity and applies the documented fallback.
+- `Admin` is the implemented backoffice authenticatable model and uses guard `admin`, `HasRoles`, `SoftDeletes` and Spatie Media Library.
+- `User` is the implemented customer/web authentication foundation. Add `HasRoles` for guard `web` when user-side granular permissions are actually enforced.
+- Custom `Role` and `Permission` extend Spatie models and use soft deletes; `Permission` also uses `group_name`.
+- Do not collapse Admin and User into one authenticatable model.
+- Implemented media owners are `Admin.avatars` and `SiteSetting.site_logo`, `site_favicon`, `default_hero`.
+- Planned Page, Service, Location, Post, GalleryItem, Video, Testimonial, Lead, Campaign and eligible CampaignSection/SeoMeta models implement `HasMedia` only where they directly own media.
+- Register collections/conversions on the owner model or a focused trait/service.
+- `ResolveHeroMedia` will read `hero_desktop`/`hero_mobile` from the current content entity and apply the documented fallback.
 - Do not create a second generic media table beside Spatie's `media` table.
+- Media Picker v1 reads authorized existing media and target services copy the selected source file into the target collection; the picker does not transfer source ownership.
+
+### 2.2 Media Picker — next files to add
+
+Media Picker is the next implementation milestone before Page/Section models. Keep it inside the current Backoffice/Admin namespace and view convention:
+
+```text
+app/Http/Controllers/Backoffice/Admin/MediaController.php
+app/Services/Media/MediaPickerService.php              # optional focused query/serialization service
+resources/views/backoffice/admin/media/picker.blade.php
+resources/views/backoffice/admin/includes/media_picker.blade.php
+```
+
+`media_picker.blade.php` should expose the global `window.MediaPicker` API already expected by Admin and Site Setting forms. Version 1 browses/selects existing media only; direct form uploads remain the new-upload path. If the script grows, move implementation into a Vite-managed module while keeping the same public JavaScript contract.
 
 ## 3. Route file responsibilities
 
 ### `routes/web.php`
 
-Public content, service, location, blog, contact, quote, redirect and sitemap routes.
+Implemented route entry point. It currently serves the public root and mounts `/admin` with `lte_context:admin`, Laravel UI auth routes (registration disabled), `command.php` and the named routes from `admin.php`.
 
 ### `routes/admin.php`
 
-All admin routes inside `auth`, `active` and `role:admin` middleware. Register this file explicitly in the application bootstrap.
+Implemented backoffice CRUD routes protected by `auth:admin`. New sensitive actions should additionally use granular `can:*`/Spatie permission checks and policies where record-level authorization is needed.
 
-### `routes/account.php`
+### `routes/command.php`
 
-Authenticated customer profile and enquiry routes.
+Implemented protected system-tool routes under `/admin/command`; they require `auth:admin` and `can:system_tools_manage`. Environment-restricted destructive commands must remain restricted.
 
-### `routes/api.php`
+### `routes/account.php` — planned
 
-Only endpoints truly requiring JSON, such as direct-upload signing or a first-party tracking endpoint. Do not duplicate ordinary web CRUD here.
+Create when the customer portal starts. Use `web` authentication plus ownership policies for profile/enquiries/private attachment access.
+
+### `routes/api.php` — planned/optional
+
+Add only for endpoints that truly require JSON, such as upload signing or tracking. Do not duplicate ordinary Blade CRUD endpoints.
 
 ## 4. Naming conventions
 
@@ -372,7 +400,7 @@ Controllers must not contain image conversion, tracking-provider HTTP calls, lar
 - `floating-contact.blade.php`: launcher state and channel controls.
 - `whatsapp-list.blade.php`: database-provided WhatsApp options.
 - `back-to-top.blade.php`: threshold and accessibility behaviour.
-- `sections/*`: known, validated dynamic blocks.
+- `sections/*`: known, validated dynamic blocks. `whatsapp-reviews.blade.php` renders screenshot/social-proof testimonials and `paint-calculator.blade.php` renders validated calculator configuration/output; `safe-embed.blade.php` renders only allowlisted provider URLs/IDs; `spacer.blade.php` renders layout spacing from validated tokens.
 - `seo.blade.php`: escaped metadata and generated JSON-LD.
 
 ## 7. Files not to create
@@ -401,7 +429,7 @@ app/
 │   ├── CampaignStatus.php
 │   └── CampaignSectionType.php
 ├── Http/Controllers/
-│   ├── Admin/
+│   ├── Backoffice/Admin/
 │   │   ├── CampaignController.php
 │   │   ├── CampaignSectionController.php
 │   │   └── DefaultCampaignController.php
@@ -424,7 +452,7 @@ app/
 │   ├── CampaignSectionRegistry.php
 │   └── ResolveDefaultCampaign.php
 resources/views/
-├── admin/campaigns/
+├── backoffice/admin/campaigns/
 │   ├── index.blade.php
 │   ├── create.blade.php
 │   ├── edit.blade.php
@@ -444,6 +472,7 @@ resources/views/
     ├── gallery.blade.php
     ├── video-gallery.blade.php
     ├── testimonials.blade.php
+    ├── whatsapp-reviews.blade.php
     ├── faq.blade.php
     ├── cta.blade.php
     └── lead-form.blade.php
@@ -462,3 +491,4 @@ tests/Feature/Admin/
 - `SetDefaultCampaign` is the only class allowed to change the singleton default reference.
 - Blade views receive resolved media/state and contain no database queries.
 - Admin toggles submit authorized, validated requests; visual switches alone are not security controls.
+- Campaign section registry keys and Blade filenames must stay one-to-one: `category_brand` → `category-brand.blade.php`, `whatsapp_reviews` → `whatsapp-reviews.blade.php`. Unknown keys are rejected.

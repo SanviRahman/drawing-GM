@@ -8,16 +8,18 @@ Dynamic Service Website & Lead Management Platform
 
 Create a Laravel CMS and public website for a home-service business. The platform must reproduce the useful conversion patterns observed in the reference websites while keeping all content, menus, contact channels, images, videos, pricing and tracking settings dynamic.
 
-## 3. Assumptions requiring confirmation
+## 3. Confirmed project baseline
 
-- Laravel 12 and PHP 8.3+ will be used.
-- `spatie/laravel-permission` will manage Admin/User roles and granular permissions.
-- `spatie/laravel-medialibrary` will manage model-associated images, files, responsive conversions and uploaded-video records.
-- Blade + Alpine.js will power the frontend.
+- PHP `^8.3` and Laravel `^13.17` are already selected in the repository.
+- Admin backoffice uses `App\Models\Admin`, the `admins` table and the `admin` guard/provider.
+- Customer accounts use `App\Models\User`, the `users` table and the `web` guard/provider.
+- Admin UI uses AdminLTE 3.16; the public frontend uses Blade/Vite and can use Tailwind 4. Alpine.js may be added when needed but is not currently a required dependency.
+- `spatie/laravel-permission` 8.3 manages guard-specific roles/permissions.
+- `spatie/laravel-medialibrary` 11.23 manages model-associated media.
 - The website initially supports one language and one business/brand.
-- Admin and User are the required roles; Guest is an unauthenticated actor.
-- A user portal is included for enquiry history, but can be disabled by configuration.
+- A customer portal is planned for enquiry history and can remain disabled until implemented.
 - Currency, locale, timezone and contact details are admin-configurable.
+- Before implementing Page models, the project will complete Media Picker v1 because existing Admin/Settings forms already contain picker integration hooks.
 
 ## 4. Product goals
 
@@ -61,20 +63,21 @@ Create a Laravel CMS and public website for a home-service business. The platfor
 
 ### FR-001 — Authentication and authorization
 
-- Admin and User roles are mandatory and managed by Spatie Permission.
-- The `User` model uses `HasRoles`.
-- Permissions are seeded and checked through Spatie middleware plus Laravel policies.
-- Initial permission groups include settings, menus, pages, services, pricing, media, posts, contacts, leads, SEO, tracking and users.
-- Public registration can be enabled/disabled.
-- Password reset and email verification are configurable.
-- Admin routes require authentication and admin authorization.
-- Users can access only their own profile and enquiries.
+- Admin and User are separate authenticatable models and guards.
+- Admin: `App\Models\Admin`, `admins`, guard `admin`, Spatie `HasRoles` with `guard_name=admin`.
+- User: `App\Models\User`, `users`, guard `web`; customer-side roles/permissions can be enabled on User when the account module needs them.
+- Admin and web roles/permissions are guard-specific and must never be mixed.
+- Admin routes use `auth:admin` and granular permission/`can:*` checks; record-level policies remain required where applicable.
+- Current Admin registration is disabled. Password reset uses the separate admin broker/token table.
+- Users can access only their own profile/enquiries/authorized attachments when the customer portal is implemented.
 
 **Acceptance criteria**
 
-- A User receives HTTP 403 when accessing an admin route.
-- An unauthenticated visitor is redirected from protected user/admin routes.
-- Admin permissions are enforced in controllers and policies, not only hidden in UI.
+- A `web`-authenticated customer session does not satisfy `auth:admin`; admin pages require an Admin session.
+- An authenticated Admin without the required permission receives HTTP 403 for protected actions.
+- An unauthenticated visitor is redirected/challenged by the appropriate guard.
+- Admin and User password/session flows remain isolated.
+- Permission checks are server-side; hiding a menu/button is never the only authorization control.
 
 ### FR-002 — Global settings
 
@@ -126,7 +129,7 @@ Admin can manage:
 
 - Admin can create pages with title, slug, template, state and SEO.
 - Pages contain ordered reusable section blocks.
-- Supported blocks include hero, rich text, cards, benefits, pricing, media gallery, video, testimonial, FAQ, CTA, contact form and custom safe embed.
+- Supported blocks include hero, rich text, cards, benefits, pricing, media gallery, before/after, video, testimonials, WhatsApp review proof, paint calculator, FAQ, CTA, contact form and approved safe embed.
 - Sections can be duplicated, hidden and reordered.
 
 **Acceptance criteria**
@@ -167,21 +170,43 @@ Admin can manage:
 - Admin changes immediately update every page using the package.
 - Historical leads retain submitted pricing snapshots if quotation values are stored.
 
-### FR-009 — Spatie Media Library
+### FR-009 — Spatie Media Library and Media Picker
 
-- Use `spatie/laravel-medialibrary`; do not build a competing generic upload table/service.
-- Content models implement `HasMedia` and declare named collections/conversions.
-- Upload and reuse images/files through an admin media workflow.
-- Store alt text, caption, dimensions, MIME, size and disk/path.
-- Generate responsive image variants asynchronously.
-- Prevent deletion while media is referenced, or require confirmed replacement.
+- Spatie Media Library is the canonical generic media layer; do not add a competing media/upload table.
+- Implemented owners include Admin (`avatars`) and SiteSetting (`site_logo`, `site_favicon`, `default_hero`).
+- Existing Admin and Site Setting forms already provide direct file inputs plus hidden `*_media_id` fields and call `MediaPicker.open(...)`.
+- Implement **Media Picker v1 before Page models**.
+
+Media Picker v1 requirements:
+
+- Keep the existing JavaScript contract compatible: `MediaPicker.open(callback, options = {})`.
+- Browse existing authorized Spatie media inside an AdminLTE modal.
+- Use server-side search/filter/pagination; never load the entire media table at once.
+- Allow field-level MIME restrictions; image fields must reject non-image selections on both client and server.
+- Return safe metadata only: ID, display/file name, MIME, size, collection, authorized preview/thumbnail URL and created time.
+- Exclude private Lead attachments and other sensitive/private collections from the generic picker.
+- Require `auth:admin` plus `media_list`/`media_view` permissions.
+- Selecting an existing asset must not transfer its Spatie owner. Target services copy the source file into the target model's own named collection.
+- Picker v1 is selection/reuse only; existing form upload inputs remain the new-upload workflow.
+- Picker v1 requires no new database table.
+
+General media requirements:
+
+- Validate extension, detected MIME/signature and maximum size server-side.
+- Prefer direct Spatie ownership and named collections over duplicate ownership foreign keys/pivots.
+- Use `custom_properties` for alt/caption/focal/attribution metadata where needed.
+- Generate responsive image variants asynchronously where useful.
+- Private media is served only through authorization/signed routes.
 
 **Acceptance criteria**
 
-- Executable files and invalid MIME signatures are rejected.
-- Public images include alt text; decorative images use empty alt text intentionally.
-- Responsive conversions and package metadata are generated successfully.
-- Replacing the Plastering hero does not change the Home or Hacking hero.
+- Existing Admin avatar and Site Setting Media Picker buttons open the global picker.
+- Search/filter/pagination work correctly.
+- Admins without media permissions cannot access picker endpoints.
+- Private Lead files never appear in generic picker results.
+- Non-image selection is rejected for image-only fields server-side.
+- Reusing media leaves the source media row/owner unchanged.
+- Direct upload still works without using the picker.
 
 ### FR-010 — Galleries and before/after media
 
@@ -355,7 +380,7 @@ Display:
 
 ### FR-024 — Campaign section visibility
 
-- Every campaign has ordered typed sections.
+- Every campaign has ordered typed sections from an allowlisted registry, including hero, hero benefits, service grid, optional category/brand, pricing, gallery, video, testimonials/WhatsApp proof, FAQ, CTA and lead form.
 - Every section exposes an Active/Inactive toggle.
 - Toggle changes preserve section content.
 - Disabled sections are excluded from frontend HTML, structured data and section-specific tracking.
@@ -452,7 +477,8 @@ Phone/email values must not be sent to analytics providers unless legally permit
 - Back-to-top appears at the configured threshold.
 - All page sections can be enabled, disabled and reordered.
 - Image and video workflows pass validation tests.
-- Spatie Admin/User roles and granular permissions pass feature tests.
+- Separate `admin`/`web` guard isolation and granular permissions pass feature tests.
+- Media Picker permissions, filtering, private-media exclusion and selection-copy behavior pass feature/browser tests.
 - Home, Plastering and Hacking each render their own configured desktop/mobile hero image and correct fallback.
 - SEO metadata, schema, redirects and sitemap are validated.
 - Tracking events are verified with provider test tools.

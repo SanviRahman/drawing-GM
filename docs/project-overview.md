@@ -8,23 +8,26 @@ This document defines the development baseline for a Laravel-based, conversion-f
 
 Build a fast, SEO-friendly and fully dynamic service website where administrators can manage the header, footer, pages, reusable sections, services, prices, images, videos, testimonials, FAQs, location landing pages, WhatsApp numbers, tracking pixels and enquiries without editing source code.
 
-## 3. Recommended technical baseline
+## 3. Confirmed technical baseline
 
-- PHP 8.3+
-- Laravel 12
-- MySQL 8+
-- Blade + Alpine.js
-- Tailwind CSS or Bootstrap 5 (choose one and use consistently)
-- Laravel authentication with policies
-- `spatie/laravel-permission` for Admin/User roles, permissions, middleware and permission cache
-- `spatie/laravel-medialibrary` for image/file/video associations, named collections, conversions and responsive images
+- PHP `^8.3`
+- Laravel `^13.17`
+- MySQL 8+ for production; SQLite may be used locally/tests
+- Admin backoffice: AdminLTE `3.16.0`, Laravel UI `4.6.3`, Blade, Bootstrap/jQuery
+- Public asset pipeline: Vite + Tailwind CSS 4; Alpine.js may be introduced for lightweight public interactions when needed
+- `spatie/laravel-permission` `8.3`
+- `spatie/laravel-medialibrary` `11.23`
+- Admin auth model/table/guard: `Admin` / `admins` / `admin`
+- Customer auth model/table/guard: `User` / `users` / `web`
 - Redis for production cache/queue where available
-- Local public disk during development; S3-compatible storage in production
+- Local public disk during development; S3-compatible storage when production scale requires it
 - FFmpeg worker only if uploaded videos require transcoding/thumbnails
 
-The exact Laravel and PHP versions must be confirmed before implementation.
+The repository's `composer.json`, migrations and auth configuration are the source of truth for implementation versions and guard boundaries.
 
 ## 4. Actors and roles
+
+Authentication baseline: Admin and User are separate authenticatable domains. `App\Models\Admin` uses the `admin` guard for `/admin`; `App\Models\User` uses the `web` guard for the future `/account` portal. Spatie roles/permissions are guard-specific.
 
 ### 4.1 Guest
 
@@ -104,8 +107,10 @@ All sections are individually manageable, sortable and toggleable:
 12. Why choose us
 13. Guarantees
 14. FAQs
-15. Final WhatsApp/call/quotation CTA
-16. Contact/quotation form
+15. Optional WhatsApp review/screenshot proof section
+16. Optional property-size/paint calculator
+17. Final WhatsApp/call/quotation CTA
+18. Contact/quotation form
 
 ## 6. Dynamic header requirements
 
@@ -205,15 +210,27 @@ Each channel supports:
 
 Media management will use `spatie/laravel-medialibrary`. Models that own files implement `HasMedia` and `InteractsWithMedia`; each use case has a named collection and registered conversions.
 
-### 9.1 Images
+### 9.1 Images and Media Picker
 
-- Spatie Media Library-backed central media management.
-- Named collections such as `logo`, `hero_desktop`, `hero_mobile`, `featured`, `gallery`, `before`, `after`, `avatar`, `video_file`, `video_poster` and `lead_attachments`.
-- Upload validation and size limits.
-- Alt text, caption, focal point and attribution fields.
-- Responsive derivatives and WebP/AVIF where supported.
-- Hero, card, gallery and before/after usage types.
-- Safe replacement without breaking existing page references.
+- Spatie Media Library is the canonical media layer.
+- Implemented collections: `Admin.avatars`; `SiteSetting.site_logo`, `site_favicon`, `default_hero`.
+- Planned collections include `hero_desktop`, `hero_mobile`, `featured`, `content_images`, `image`, `before`, `after`, `photo`, `testimonial_screenshot`, `video_file`, `video_poster`, `social_image` and private `attachments`.
+- Upload validation and size limits are mandatory.
+- Alt text, caption, focal point and attribution may be stored in Spatie `custom_properties`.
+- Responsive derivatives/WebP/AVIF may be generated when useful.
+- Direct Spatie ownership is preferred over duplicate ownership foreign keys.
+
+**Media Picker is the next implementation milestone before Page models.** Admin avatar and Site Setting forms already call `MediaPicker.open(...)` and accept media IDs, but the global picker UI/endpoints are not implemented yet.
+
+Media Picker v1 will:
+
+- browse/search/filter/paginate existing authorized Spatie media;
+- allow image-only filtering for image fields;
+- exclude private Lead/sensitive media from generic results;
+- require Admin media permissions;
+- select/reuse existing assets only (direct form upload remains the new-upload workflow);
+- copy the selected source file into the target model's own collection instead of moving ownership;
+- require no new database table.
 
 ### 9.2 Videos
 
@@ -340,15 +357,18 @@ Unless later approved:
 
 ## 15. Delivery phases
 
-1. Confirm stack, branding and exact scope.
-2. Authentication, roles and base schema.
-3. Admin settings, menus, header/footer and media library.
-4. Services, pricing, locations and reusable sections.
-5. Public pages and responsive UI.
-6. Blog, FAQs, testimonials and enquiries.
-7. Video upload/embed and processing.
-8. Tracking, consent, SEO and sitemap.
-9. Security, performance, QA and deployment.
+Current progress / next order:
+
+1. Authentication, separate Admin guard, roles/permissions — implemented foundation.
+2. Site Settings and Menus — implemented foundation.
+3. **Media Picker v1 — next task.**
+4. Pages + Section Definitions + Page Sections.
+5. Services, pricing, locations and reusable sections.
+6. Public pages/header/footer/responsive UI.
+7. Blog, FAQs, testimonials and enquiries.
+8. Video upload/embed and processing.
+9. Tracking, consent, SEO, sitemap and campaigns.
+10. Security, performance, QA and deployment.
 
 ## 16. Definition of success
 
@@ -357,5 +377,6 @@ Unless later approved:
 - Floating contact widget and back-to-top control work on desktop and mobile.
 - Pages have unique, editable SEO metadata and appear correctly in the sitemap.
 - Uploaded media is validated, optimized and reusable.
+- Admin forms can reuse authorized existing media through the permission-protected Media Picker without exposing private assets.
 - Leads are stored, protected and trackable.
 - Role boundaries prevent users from accessing administration functions.

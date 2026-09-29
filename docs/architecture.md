@@ -4,21 +4,28 @@
 
 Use a modular Laravel monolith. This keeps the initial system simple while enforcing domain boundaries through controllers, Form Requests, policies, actions/services, events and jobs. Avoid premature microservices.
 
-## 2. Recommended stack
+## 2. Current project stack and target runtime
 
-- Laravel 12, PHP 8.3+
-- `spatie/laravel-permission`
-- `spatie/laravel-medialibrary`
-- MySQL 8+
-- Blade + Alpine.js
-- Tailwind CSS or Bootstrap 5
-- Vite
+The actual repository is the source of truth for framework/package versions:
+
+- PHP `^8.3`
+- Laravel Framework `^13.17`
+- `jeroennoten/laravel-adminlte` `3.16.0` for the backoffice UI
+- `laravel/ui` `4.6.3` for the current authentication scaffolding
+- `spatie/laravel-permission` `8.3`
+- `spatie/laravel-medialibrary` `11.23`
+- MySQL 8+ for production (the repository may use SQLite locally/tests)
+- Admin UI: Blade + AdminLTE 3 + Bootstrap/jQuery
+- Public UI: Blade + Vite; Tailwind CSS 4 is already available in the asset pipeline
+- Alpine.js is optional/planned only where lightweight public interactivity benefits from it; it is not a required installed dependency today
 - Redis cache/queue in production where available
-- S3-compatible object storage for production media
+- S3-compatible object storage for production media when needed
 - Nginx + PHP-FPM
 - Supervisor/systemd for queue workers
 - Scheduler cron every minute
 - Optional FFmpeg for uploaded-video processing
+
+Do not downgrade the implemented framework version or redesign authentication merely to match an older planning document.
 
 ## 3. High-level diagram
 
@@ -37,25 +44,28 @@ flowchart LR
     ADMIN[Admin Browser] --> WEB
 ```
 
-## 3.1 Package installation baseline
+## 3.1 Installed package baseline
+
+The repository already includes the core packages. New setup should respect the versions pinned by `composer.json`/`composer.lock` instead of reinstalling arbitrary versions.
+
+Useful verification commands:
 
 ```bash
-composer require spatie/laravel-permission spatie/laravel-medialibrary
-php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"
-php artisan vendor:publish --provider="Spatie\MediaLibrary\MediaLibraryServiceProvider" --tag="medialibrary-migrations"
-php artisan migrate
+composer install
+php artisan --version
+php artisan migrate:status
 php artisan permission:cache-reset
 ```
 
-Publish package configuration only when project-specific changes are required. Pin versions compatible with the confirmed Laravel/PHP versions.
+Package migrations/configuration should be changed only when required by the current project implementation. The existing permission migration intentionally includes `group_name`, timestamps and soft deletes for roles/permissions.
 
 ## 4. Application layers
 
 ### 4.1 Presentation
 
 - Public Blade views/components
-- Admin Blade/Livewire views or an approved admin package
-- Alpine controllers for menu, contact widget, slider, FAQ and back-to-top
+- Admin Blade views under `resources/views/backoffice/admin` using AdminLTE 3
+- Public Blade views/components; Alpine/native controllers may be added later for menu, contact widget, slider, FAQ and back-to-top
 - ViewModels/resource objects where templates would otherwise contain queries
 
 ### 4.2 HTTP/application
@@ -106,6 +116,11 @@ Suggested services/actions:
 - `/privacy-policy`
 - `/sitemap`
 
+Public URL policy:
+- Typed routes (`/services/{service:slug}`, `/locations/{location:slug}`, `/blog/{post:slug}`) are the canonical default because they avoid root-level slug collisions.
+- If SEO migration requires a legacy/reference-style path such as `/house-painting-{location}` or another marketing alias, register it explicitly or through the redirect/alias subsystem; do not add an unrestricted catch-all root slug.
+- Canonical metadata must always point to one preferred URL.
+
 ### User routes
 
 Prefix `/account`, middleware `auth`, `verified` where enabled:
@@ -117,25 +132,58 @@ Prefix `/account`, middleware `auth`, `verified` where enabled:
 
 ### Admin routes
 
-Prefix `/admin`, middleware `auth`, `active`, `role:admin`:
+Current routing is intentionally guard-isolated:
 
-- dashboard
-- settings, menus, pages, sections
-- services, locations, pricing
-- media, galleries, videos
-- testimonials, FAQs, posts
-- contact channels, leads
-- SEO, redirects, tracking
-- audit logs
+1. `routes/web.php` mounts the `/admin` prefix and applies `lte_context:admin`.
+2. Laravel UI admin auth routes are registered inside that prefix with registration disabled.
+3. `routes/admin.php` contains the authenticated backoffice CRUD routes and is protected by `auth:admin`.
+4. `routes/command.php` exposes protected system tools under `/admin/command` and requires `auth:admin` plus `can:system_tools_manage`.
+5. New admin modules must continue using the `admin` guard and granular Spatie permissions/policies.
+
+Current/future admin modules include:
+
+- dashboard, profile, admins, roles, permissions
+- settings and menus
+- pages and sections
+- services, locations and pricing
+- media, galleries and videos
+- testimonials, FAQs and posts
+- contact channels and leads
+- SEO, redirects and tracking
+- campaigns and audit logs
 
 Route model binding must use slugs only on public routes and IDs/ULIDs where appropriate in admin routes.
 
-## 5.1 Authorization with Spatie Permission
+## 5.1 Authentication and authorization
 
-- `User` uses `Spatie\Permission\Traits\HasRoles`.
-- Seed `admin` and `user` roles plus granular permissions.
-- Admin can initially receive all administrative permissions; do not scatter role-name checks throughout controllers.
-- Routes use permission middleware for broad access and policies for record-level decisions.
+The implemented project uses **two authenticatable models and two guards**. This is now the canonical architecture.
+
+### Admin/backoffice
+
+- Model: `App\Models\Admin`
+- Table: `admins`
+- Guard/provider: `admin` / `admins`
+- Password broker: `admins`
+- `Admin` uses `HasRoles` with `protected string $guard_name = 'admin'`.
+- Admin roles/permissions use `guard_name = admin`.
+- Current seeded admin role is `admin`; permissions are granular and grouped.
+- Backoffice routes use `auth:admin`; sensitive routes also require `can:*`/permission checks.
+- `status` exists on `admins`; an active-admin middleware may be added before production if disabled accounts must be rejected at request entry.
+
+### Customer/user portal
+
+- Model: `App\Models\User`
+- Table: `users`
+- Guard/provider: `web` / `users`
+- Password broker: `users`
+- The current `User` model is still the minimal Laravel user model. The customer portal can add `HasRoles` for the `web` guard when user-side granular permissions are actually enforced.
+- Customer ownership policies remain mandatory for enquiries and private attachments.
+
+### Spatie rules
+
+- Roles and permissions are guard-specific; never assign an `admin`-guard role to the `web` guard or vice versa.
+- The project extends Spatie `Role` and `Permission` and intentionally uses soft deletes; the current permission migration contains the required `deleted_at` columns.
+- Do not replace the working separate Admin guard with a single-User design.
 - Reset Spatie's permission cache after role/permission mutations and deployment seeding.
 
 ## 6. Dynamic page rendering
@@ -145,9 +193,10 @@ Route model binding must use slugs only on public routes and IDs/ULIDs where app
 3. Application resolves ordered active sections.
 4. Each section key maps to a known Blade component.
 5. Payload is validated when saved, not trusted at render time.
-6. Spatie media collections provide URLs, conversions and responsive variants.
-7. SEO builder creates metadata and schema.
-8. Cached output/data is invalidated when related content changes.
+6. Section keys are allowlisted and map to known components; `whatsapp_reviews`, `paint_calculator`, `safe_embed` and `spacer` are first-class normal-page section types.
+7. Spatie media collections provide URLs, conversions and responsive variants.
+8. SEO builder creates metadata and schema.
+9. Cached output/data is invalidated when related content changes.
 
 Do not execute arbitrary PHP/Blade/JavaScript stored in the database.
 
@@ -206,45 +255,72 @@ A separate lightweight Alpine/native controller:
 
 ## 9. Media architecture
 
-Use Spatie Media Library as the canonical media layer. Content models implement `HasMedia` and `InteractsWithMedia`, register named collections and conversions, and use package APIs such as `addMedia`, `getFirstMediaUrl` and responsive image rendering. A custom `Media` model may extend Spatie's Media model only for project-specific metadata/behaviour.
+Use Spatie Media Library as the canonical file/media layer. The package `media` table remains the only generic media table. Domain models own named collections; do not store raw public file paths as the primary relationship for new features.
 
-Recommended collections:
+### Implemented collections
+
+- `Admin`: `avatars` (single file, public disk). The legacy `admins.photo` column is compatibility-only and is cleared when a Spatie avatar is saved.
+- `SiteSetting`: `site_logo`, `site_favicon`, `default_hero` (single-file public collections).
+
+### Planned collections
 
 - `Page`, `Service`, `Location`: `hero_desktop`, `hero_mobile`, `gallery`
-- `SiteSetting` or branding owner: `logo`, `mobile_logo`, `favicon`, `default_hero`
 - `Post`: `featured`, `content_images`
 - `GalleryItem`: `image`, `before`, `after`
 - `Video`: `video_file`, `video_poster`
-- `Testimonial`: `photo`
-- `User`: `avatar`
+- `Testimonial`: `photo`, `testimonial_screenshot`
 - `Lead`: private `attachments`
+- `SeoMeta`: optional `social_image`
+- `Campaign`: `hero_images`, `hero_video`, `hero_video_poster`, `social_image`
+
+Direct Spatie ownership is preferred. A separate pivot such as `section_media` is justified only when a page section intentionally references/reorders existing media without becoming the owner.
+
+### 9.1 Media Picker — next implementation milestone
+
+The next feature before the Page models is a reusable backoffice Media Picker.
+
+**Current state:** Admin avatar and Site Setting forms already contain `*_media_id` fields and call `MediaPicker.open(...)`; `AdminAvatarService` and `SiteSettingMediaService` already accept a selected Spatie media ID. The global picker object/modal/list endpoint does not yet exist, so the feature is incomplete.
+
+**Version 1 scope:**
+
+- Browse existing authorized Spatie `media` records in an AdminLTE modal.
+- Search by name/file name and filter by MIME type/collection where useful.
+- Paginate results; do not load the full library into one response.
+- Image fields can restrict selection to image MIME types.
+- Return only safe metadata such as `id`, name, MIME, size, collection, preview URL and created time.
+- Exclude private lead attachments and other private/sensitive collections from the generic picker unless a dedicated authorized context explicitly allows them.
+- Require `auth:admin` and `media_list`/`media_view` permissions.
+- Keep the existing JavaScript contract backward-compatible: `MediaPicker.open(callback, options = {})`.
+- Picker v1 is primarily **select/reuse**. Existing form upload inputs remain responsible for new uploads; a standalone global-library upload workflow can be designed later if required.
+
+**Selection semantics:** a selected media row is a source asset. Services such as `AdminAvatarService` and `SiteSettingMediaService` copy the selected file into the target model's own named collection rather than transferring the source media row's ownership. This matches Spatie's single-owner polymorphic model and prevents one module from unexpectedly stealing another module's file.
+
+No additional database table is required for Media Picker v1.
 
 ### Images
 
-1. Form Request validates file size and allowed content.
-2. Service verifies detected MIME/signature.
-3. Original file is stored with generated name.
-4. Media row is created.
-5. Queue generates responsive variants and WebP/AVIF when supported.
-6. Frontend uses width/height, `srcset`, `sizes` and lazy loading.
+1. Validate file size, extension and detected MIME/signature server-side.
+2. Store through the owning model's named Spatie collection.
+3. Generate safe filenames.
+4. Store descriptive metadata in `custom_properties` where needed.
+5. Queue expensive responsive/conversion work.
+6. Render public media with width/height, lazy loading and responsive variants where available.
 
 ### Uploaded videos
 
 1. Validate MP4/WebM and configured maximum size/duration.
-2. Store original on private/pending path.
-3. Queue probes/transcodes if enabled.
+2. Store original on private/pending path when processing is required.
+3. Queue probe/transcode operations if enabled.
 4. Generate poster/metadata.
-5. Mark `ready` and expose final public/CDN URL.
-6. On failure, record a safe error and notify admin.
-
-Large uploads should use direct-to-object-storage signed uploads when hosting limits require it.
+5. Mark `ready` and expose only the final authorized/public URL.
+6. Record safe failures and notify Admin.
 
 ### Embedded videos
 
 - Accept only allowlisted YouTube/Vimeo URL formats.
-- Extract provider video ID server-side.
-- Render privacy-enhanced embeds when practical.
-- Lazy-load iframe only after user interaction or proximity to viewport.
+- Extract provider IDs server-side.
+- Render privacy-enhanced embeds where practical.
+- Lazy-load iframe content after interaction/proximity.
 
 ## 10. Lead architecture
 
@@ -351,7 +427,9 @@ Scheduled tasks:
 
 ### Feature tests
 
-- Admin/User authorization
+- Admin guard isolation and Admin permission authorization
+- Customer/web guard ownership authorization
+- Media Picker list/search/filter/permission/private-media exclusion
 - CRUD validation
 - Publication visibility
 - Contact-target resolution
