@@ -29,7 +29,7 @@ class PageController extends Controller
         }
 
         $title      = 'Pages Management';
-        $breadcrumb = [['text' => 'Pages', 'url' => route('admin.pages.index')]];
+        $breadcrumb = [['text' => 'CMS', 'url' => null],['text' => 'Pages', 'url' => route('admin.pages.index')]];
 
         return view('backoffice.admin.pages.index', compact('pages', 'templates', 'title', 'breadcrumb'));
     }
@@ -176,7 +176,7 @@ class PageController extends Controller
         }
 
         $title      = 'Trashed Pages';
-        $breadcrumb = [['text' => 'Pages', 'url' => route('admin.pages.index')], ['text' => 'Trash', 'url' => null]];
+        $breadcrumb = [['text' => 'CMS', 'url' => null],['text' => 'Pages', 'url' => route('admin.pages.index')], ['text' => 'Trash', 'url' => null]];
 
         return view('backoffice.admin.pages.trash', compact('pages', 'templates', 'title', 'breadcrumb'));
     }
@@ -258,8 +258,8 @@ class PageController extends Controller
             $this->pageMediaService->duplicateHeroMedia($page, $copy);
 
             if (Schema::hasTable('page_sections')) {
-                $page->sections()->get()->each(function (PageSection $section) use ($copy): void {
-                    $copy->sections()->create([
+                $page->sections()->with('mediaItems')->get()->each(function (PageSection $section) use ($copy): void {
+                    $newSection = $copy->sections()->create([
                         'section_definition_id' => $section->section_definition_id,
                         'heading'               => $section->heading,
                         'subheading'            => $section->subheading,
@@ -270,6 +270,17 @@ class PageController extends Controller
                         'starts_at'             => $section->starts_at,
                         'ends_at'               => $section->ends_at,
                     ]);
+
+                    if (Schema::hasTable('section_media')) {
+                        $section->mediaItems->each(function ($mediaItem) use ($newSection): void {
+                            $newSection->mediaItems()->create([
+                                'media_id'         => $mediaItem->media_id,
+                                'role'             => $mediaItem->role,
+                                'caption_override' => $mediaItem->caption_override,
+                                'sort_order'       => $mediaItem->sort_order,
+                            ]);
+                        });
+                    }
                 });
             }
 

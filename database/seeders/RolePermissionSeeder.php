@@ -110,6 +110,16 @@ class RolePermissionSeeder extends Seeder
             'page_section_force_delete',
         ],
 
+        'Section Media'       => [
+            'section_media_list',
+            'section_media_view',
+            'section_media_create',
+            'section_media_update',
+            'section_media_delete',
+            'section_media_trash',
+            'section_media_restore',
+            'section_media_force_delete',
+        ],
         'Section Definitions' => [
             'section_definition_list',
             'section_definition_view',

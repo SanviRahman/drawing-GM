@@ -10,6 +10,7 @@ use App\Http\Controllers\Backoffice\Admin\PermissionController;
 use App\Http\Controllers\Backoffice\Admin\ProfileController;
 use App\Http\Controllers\Backoffice\Admin\RoleController;
 use App\Http\Controllers\Backoffice\Admin\SectionDefinitionController;
+use App\Http\Controllers\Backoffice\Admin\SectionMediaController;
 use App\Http\Controllers\Backoffice\Admin\SettingController;
 use Illuminate\Support\Facades\Route;
 
@@ -147,6 +148,21 @@ Route::middleware('auth:admin')->group(function () {
         Route::get('{pageSection}/edit', [PageSectionController::class, 'edit'])->name('edit');
         Route::put('{pageSection}', [PageSectionController::class, 'update'])->name('update');
         Route::delete('{pageSection}', [PageSectionController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::group(['prefix' => 'section-media', 'as' => 'section_media.'], function () {
+        Route::post('multiple-action', [SectionMediaController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [SectionMediaController::class, 'trash'])->name('trashed');
+        Route::post('restore/{sectionMedia}', [SectionMediaController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{sectionMedia}', [SectionMediaController::class, 'forceDelete'])->name('force_delete');
+
+        Route::get('/', [SectionMediaController::class, 'index'])->name('index');
+        Route::get('create', [SectionMediaController::class, 'create'])->name('create');
+        Route::post('/', [SectionMediaController::class, 'store'])->name('store');
+        Route::get('{sectionMedia}', [SectionMediaController::class, 'show'])->name('show');
+        Route::get('{sectionMedia}/edit', [SectionMediaController::class, 'edit'])->name('edit');
+        Route::put('{sectionMedia}', [SectionMediaController::class, 'update'])->name('update');
+        Route::delete('{sectionMedia}', [SectionMediaController::class, 'destroy'])->name('destroy');
     });
 
 });

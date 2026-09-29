@@ -1,11 +1,12 @@
 <?php
-
 namespace App\Models;
 
+use App\Models\SectionMedia;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PageSection extends Model
@@ -26,19 +27,19 @@ class PageSection extends Model
     ];
 
     protected $attributes = [
-        'theme' => 'default',
+        'theme'      => 'default',
         'sort_order' => 0,
-        'is_active' => true,
+        'is_active'  => true,
     ];
 
     protected function casts(): array
     {
         return [
-            'payload' => 'array',
+            'payload'    => 'array',
             'sort_order' => 'integer',
-            'is_active' => 'boolean',
-            'starts_at' => 'datetime',
-            'ends_at' => 'datetime',
+            'is_active'  => 'boolean',
+            'starts_at'  => 'datetime',
+            'ends_at'    => 'datetime',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
             'deleted_at' => 'datetime',
@@ -53,6 +54,11 @@ class PageSection extends Model
     public function sectionDefinition(): BelongsTo
     {
         return $this->belongsTo(SectionDefinition::class)->withTrashed();
+    }
+
+    public function mediaItems(): HasMany
+    {
+        return $this->hasMany(SectionMedia::class)->ordered();
     }
 
     public function scopeActive(Builder $query): Builder
@@ -96,10 +102,10 @@ class PageSection extends Model
     public function scheduleBadgeClass(): string
     {
         return match ($this->scheduleStatus()) {
-            'active' => 'success',
+            'active'    => 'success',
             'scheduled' => 'info',
-            'expired' => 'secondary',
-            default => 'warning',
+            'expired'   => 'secondary',
+            default     => 'warning',
         };
     }
 }

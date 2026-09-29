@@ -354,6 +354,13 @@ return [
                     'icon'  => 'fas fa-fw fa-th-large',
                     'can'   => 'page_section_list',
                 ],
+
+                [
+                    'text'  => 'Section Media',
+                    'route' => 'admin.section_media.index',
+                    'icon'  => 'far fa-fw fa-images',
+                    'can'   => 'section_media_list',
+                ],
             ],
         ],
         /*
