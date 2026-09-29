@@ -135,7 +135,7 @@
                                     @endif
 
                                     @if($canUpdate)
-                                        <button type="button" class="btn btn-outline-primary btn-edit" data-url="{{ route('admin.media.edit', $item->id) }}" title="Edit media"><i class="fas fa-edit"></i></button>
+                                        <button type="button" class="btn btn-outline-primary btn-edit" data-url="{{ route('admin.media.edit', $item->id) }}" title="Edit media"><i class="fas fa-pen"></i></button>
                                     @endif
 
                                     @if($canDownload)
@@ -143,7 +143,7 @@
                                     @endif
 
                                     @if($canDelete)
-                                        <button type="button" class="btn btn-outline-danger btn-delete" data-url="{{ route('admin.media.destroy', $item->id) }}" title="Move to trash"><i class="fas fa-trash-alt"></i></button>
+                                        <button type="button" class="btn btn-outline-danger btn-delete" data-url="{{ route('admin.media.destroy', $item->id) }}" title="Move to trash"><i class="fas fa-trash"></i></button>
                                     @endif
 
                                 @else
