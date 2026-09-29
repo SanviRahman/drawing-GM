@@ -154,6 +154,10 @@ class RolePermissionSeeder extends Seeder
             'service_feature_delete',
             'service_feature_toggle',
             'service_feature_reorder',
+            'service_feature_duplicate',
+            'service_feature_trash',
+            'service_feature_restore',
+            'service_feature_force_delete',
         ],
 
         'Locations'           => [

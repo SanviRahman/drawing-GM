@@ -12,6 +12,7 @@ use App\Http\Controllers\Backoffice\Admin\RoleController;
 use App\Http\Controllers\Backoffice\Admin\SectionDefinitionController;
 use App\Http\Controllers\Backoffice\Admin\SectionMediaController;
 use App\Http\Controllers\Backoffice\Admin\ServiceController;
+use App\Http\Controllers\Backoffice\Admin\ServiceFeatureController;
 use App\Http\Controllers\Backoffice\Admin\SettingController;
 use Illuminate\Support\Facades\Route;
 
@@ -183,6 +184,23 @@ Route::middleware('auth:admin')->group(function () {
         Route::get('{service}/edit', [ServiceController::class, 'edit'])->name('edit');
         Route::put('{service}', [ServiceController::class, 'update'])->name('update');
         Route::delete('{service}', [ServiceController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::group(['prefix' => 'service-features', 'as' => 'service_features.'], function () {
+        Route::post('multiple-action', [ServiceFeatureController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [ServiceFeatureController::class, 'trash'])->name('trashed');
+        Route::post('restore/{serviceFeature}', [ServiceFeatureController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{serviceFeature}', [ServiceFeatureController::class, 'forceDelete'])->name('force_delete');
+        Route::post('reorder', [ServiceFeatureController::class, 'reorder'])->name('reorder');
+        Route::post('{serviceFeature}/toggle', [ServiceFeatureController::class, 'toggle'])->name('toggle');
+        Route::post('{serviceFeature}/duplicate', [ServiceFeatureController::class, 'duplicate'])->name('duplicate');
+        Route::get('/', [ServiceFeatureController::class, 'index'])->name('index');
+        Route::get('create', [ServiceFeatureController::class, 'create'])->name('create');
+        Route::post('/', [ServiceFeatureController::class, 'store'])->name('store');
+        Route::get('{serviceFeature}', [ServiceFeatureController::class, 'show'])->name('show');
+        Route::get('{serviceFeature}/edit', [ServiceFeatureController::class, 'edit'])->name('edit');
+        Route::put('{serviceFeature}', [ServiceFeatureController::class, 'update'])->name('update');
+        Route::delete('{serviceFeature}', [ServiceFeatureController::class, 'destroy'])->name('destroy');
     });
 
 });

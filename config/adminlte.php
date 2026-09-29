@@ -341,6 +341,7 @@ return [
                 'admin/page-sections*',
                 'admin/section-media*',
                 'admin/services*',
+                'admin/service-features*',
             ],
             'submenu' => [
                 [
@@ -377,6 +378,13 @@ return [
                     'icon'   => 'fas fa-fw fa-tools',
                     'can'    => 'service_list',
                     'active' => ['admin/services*'],
+                ],
+                [
+                    'text'   => 'Service Features',
+                    'route'  => 'admin.service_features.index',
+                    'icon'   => 'fas fa-fw fa-list-ul',
+                    'can'    => 'service_feature_list',
+                    'active' => ['admin/service-features*'],
                 ],
             ],
         ],
