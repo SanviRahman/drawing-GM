@@ -1,7 +1,8 @@
 <style>
     #globalMediaPickerModal { z-index: 1065; }
     #globalMediaPickerModal + .modal-backdrop, .media-picker-backdrop { z-index: 1060; }
-    .media-picker-upload-zone {
+    .media-picker-file-input {position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:20;}
+    .media-picker-upload-zone {position:relative;overflow:hidden;
         border: 2px dashed #88a8ff;
         border-radius: 12px;
         background: #f7f9ff;

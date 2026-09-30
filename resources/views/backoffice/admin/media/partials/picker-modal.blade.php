@@ -17,7 +17,7 @@
             <div class="modal-body p-0">
                 @can('media_upload')
                     <div class="media-picker-upload-zone m-3" id="mediaPickerDropzone" role="button" tabindex="0" aria-label="Upload media files">
-                        <input type="file" id="mediaPickerFiles" class="d-none" multiple accept="image/jpeg,image/png,image/webp,image/gif,image/x-icon,video/mp4,video/webm,application/pdf">
+                        <input type="file" id="mediaPickerFiles" class="media-picker-file-input" multiple accept="image/jpeg,image/png,image/webp,image/gif,image/x-icon,video/mp4,video/webm,application/pdf">
                         <div class="text-center py-3">
                             <i class="fas fa-cloud-upload-alt fa-2x text-primary mb-2"></i>
                             <div class="font-weight-bold">Drop files here or click to upload</div>

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -107,6 +108,9 @@ class MediaLibraryService
     public function forceDelete(int $id): void
     {
         $media = Media::onlyTrashed()->findOrFail($id);
+
+        $this->detachRelations($media->id);
+
         $media->forceDelete();
     }
 
@@ -283,9 +287,17 @@ class MediaLibraryService
 
     private function bulkForceDelete(array $ids): string
     {
-        Media::onlyTrashed()->whereIn('id', $ids)->get()->each(fn (Media $media) => $media->forceDelete());
+        Media::onlyTrashed()->whereIn('id', $ids)->get()->each(function (Media $media): void {
+            $this->detachRelations($media->id);
+            $media->forceDelete();
+        });
 
         return 'Selected media permanently deleted from database and storage.';
+    }
+
+    private function detachRelations(int $mediaId): void
+    {
+        DB::table('section_media')->where('media_id', $mediaId)->delete();
     }
 
     private function ownerLabel(Media $media): string

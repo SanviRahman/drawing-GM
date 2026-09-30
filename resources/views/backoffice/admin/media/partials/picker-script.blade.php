@@ -366,18 +366,52 @@
         runBulk('force_delete', [$(this).data('id')]);
     });
 
-    const $dropzone = $('#mediaPickerDropzone');
-    $dropzone.on('click keydown', function (event) {
-        if (event.type === 'click' || event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            $('#mediaPickerFiles').trigger('click');
+    // Global picker can be loaded inside ajax modal, so use delegated events.
+    $(document).off('click.mediaPickerDropzone').on('click.mediaPickerDropzone', '#mediaPickerDropzone', function (event) {
+        if ($(event.target).is('#mediaPickerFiles')) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const input = document.querySelector('#globalMediaPickerModal #mediaPickerFiles');
+
+        if (input) {
+            input.click();
         }
     });
-    $('#mediaPickerFiles').on('change', function () { uploadFiles(this.files); });
-    $dropzone.on('dragover dragenter', function (event) { event.preventDefault(); event.stopPropagation(); $(this).addClass('is-dragging'); });
-    $dropzone.on('dragleave dragend', function (event) { event.preventDefault(); event.stopPropagation(); $(this).removeClass('is-dragging'); });
-    $dropzone.on('drop', function (event) {
-        event.preventDefault(); event.stopPropagation(); $(this).removeClass('is-dragging');
+
+    $(document).off('keydown.mediaPickerDropzone').on('keydown.mediaPickerDropzone', '#mediaPickerDropzone', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            const input = document.querySelector('#globalMediaPickerModal #mediaPickerFiles');
+            if (input) {
+                input.click();
+            }
+        }
+    });
+
+    $(document).off('change.mediaPickerFiles').on('change.mediaPickerFiles', '#mediaPickerFiles', function () {
+        uploadFiles(this.files);
+    });
+
+    $(document).off('dragover.mediaPickerDropzone dragenter.mediaPickerDropzone').on('dragover.mediaPickerDropzone dragenter.mediaPickerDropzone', '#mediaPickerDropzone', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        $(this).addClass('is-dragging');
+    });
+
+    $(document).off('dragleave.mediaPickerDropzone dragend.mediaPickerDropzone').on('dragleave.mediaPickerDropzone dragend.mediaPickerDropzone', '#mediaPickerDropzone', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        $(this).removeClass('is-dragging');
+    });
+
+    $(document).off('drop.mediaPickerDropzone').on('drop.mediaPickerDropzone', '#mediaPickerDropzone', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        $(this).removeClass('is-dragging');
         uploadFiles(event.originalEvent.dataTransfer.files);
     });
 
