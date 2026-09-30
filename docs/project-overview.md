@@ -53,6 +53,7 @@ Authentication baseline: Admin and User are separate authenticatable domains. `A
 - Manage global site settings, header, footer and menus.
 - Manage pages and reusable page sections.
 - Manage services, pricing, add-ons and locations.
+- Manage ordered booking-form select fields and their choices without frontend code changes.
 - Manage images, galleries, before/after pairs and videos.
 - Manage testimonials, FAQs, posts and categories.
 - Manage WhatsApp/contact channels and floating widget behaviour.
@@ -111,6 +112,19 @@ All sections are individually manageable, sortable and toggleable:
 16. Optional property-size/paint calculator
 17. Final WhatsApp/call/quotation CTA
 18. Contact/quotation form
+
+### 5.4 Booking / quotation form baseline
+
+The booking form has a small fixed identity/contact layer followed by configurable select fields:
+
+1. Name — required.
+2. WhatsApp Number — required and normalized as the Lead phone number.
+3. Email Address — optional.
+4. Zero or more active Admin-managed booking fields rendered directly below email in configured order.
+
+Each configurable booking field has a label, stable key, optional placeholder, ordered allowed choices, required/optional flag, active state and sort order. Typical fields are `Size of House to Paint`, `Type of Paint to Use` and `Sealer Needed?`, but Admin can add more without editing Blade.
+
+The current booking baseline intentionally excludes the `Add-ons Required` checklist and `Preferred Date` control shown in the reference. Pricing add-ons remain valid elsewhere in pricing sections; they are simply not part of booking by default. Submitted dynamic answers are snapshotted with the Lead so historical enquiries remain readable after field configuration changes.
 
 ## 6. Dynamic header requirements
 
@@ -266,6 +280,7 @@ Uploaded binary files must be stored on a filesystem/object-storage disk, not in
 - FAQs
 - Blog posts/categories
 - Contact channels
+- Booking-form field definitions and lead answer snapshots
 - Leads/enquiries and attachments
 - SEO metadata and redirects
 - Tracking providers/events

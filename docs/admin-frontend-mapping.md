@@ -17,7 +17,7 @@ This document is the implementation map between administration modules and the p
 | Page Sections | PageSection, SectionDefinition | Hero, rich text, benefits, service carousel, pricing, gallery, before/after, videos, testimonials, WhatsApp review proof, paint calculator, FAQ, CTA, contact form | No direct CRUD; published output may be reused in account shell only when explicitly configured |
 | Services | Service, ServiceFeature | Services listing/detail, cards, hero, related services, quote choices | Selected/requested services in enquiry details |
 | Locations | Location, service_location | Location landing pages, localized hero/content/pricing/contact/SEO | Selected property/service location in enquiries |
-| Pricing | PricingPackage, PricingItem, PricingAddon | Pricing sections/pages, service/location pricing and add-ons | Submitted pricing snapshot in enquiry when captured |
+| Pricing | PricingPackage, PricingItem, PricingAddon | Pricing sections/pages, service/location pricing and add-ons; pricing add-ons are not automatically injected into the booking form | Submitted pricing snapshot in enquiry when captured |
 | Media | Spatie Media | Supplies logos, heroes, cards, galleries, post images, testimonials and campaign assets | Authorized private enquiry attachments; future user avatar if implemented |
 | Media Picker (admin tool) | Existing Spatie `media` rows; no new table in v1 | No direct public output; it helps Admin choose assets for CMS fields | None |
 | Galleries / Before-After | Gallery, GalleryItem + Spatie media | Gallery page, service/location sections, before/after comparison | None |
@@ -26,7 +26,8 @@ This document is the implementation map between administration modules and the p
 | FAQs | Faq + faqables | Page/service/location FAQ accordions + valid FAQ schema | None |
 | Blog / Categories | Post, Category | Blog listing/detail, related posts, SEO content | None |
 | Contact Channels | ContactChannel, ContactTarget | Floating widget, WhatsApp list, phone/email CTA, page/service/location targeting | Shared account contact shortcuts if desired |
-| Leads / Enquiries | Lead, lead_services, status history, notes, private media | Public quote/contact forms create leads | `/account/enquiries`, enquiry detail, visible notes/status, authorized attachment download |
+| Booking Form Fields | LeadFormField | Renders any number of ordered active select fields directly below optional email; current booking excludes add-ons and preferred date | Definitions are Admin-only; submitted snapshots are shown with the enquiry |
+| Leads / Enquiries | Lead, LeadFormAnswer, lead_services, status history, notes, private media | Public quote/contact forms create leads; name + WhatsApp are required, email is optional, dynamic answers are snapshotted | `/account/enquiries`, enquiry detail, submitted booking answers, visible notes/status, authorized attachment download |
 | SEO | SeoMeta + optional social image | Meta title/description, canonical, OG/Twitter, schema, sitemap flags | Account pages should normally be noindex; no customer editing |
 | Redirects | Redirect | 301/302/307/308 handling for changed/legacy public URLs | None |
 | Tracking & Consent | TrackingProvider, TrackingEventRule, settings | Page/contact/WhatsApp/call/pricing/quote events according to consent | Account pages should avoid marketing tracking unless explicitly justified/consented |

@@ -44,12 +44,14 @@ Create a Laravel CMS and public website for a home-service business. The platfor
 ### 5.2 Quotation journey
 
 1. Guest clicks Get Quote/Book Measurement.
-2. Guest submits validated contact, property and service details.
-3. Guest may upload approved images/documents.
-4. System creates a lead and reference number.
-5. Admin receives a notification.
-6. If the guest has an account, the lead appears in their dashboard.
-7. Admin updates status and records notes.
+2. Guest enters name and WhatsApp number, with email optional.
+3. Directly below email, the form renders active admin-managed booking select fields in configured order (for example house size, paint type, sealer requirement). Admin can add any number of these fields and choices.
+4. The current booking form does not render an add-ons checklist or preferred-date field.
+5. Guest may upload approved images/documents when that upload control is enabled.
+6. System validates every dynamic answer against the current allowed choices, creates a lead and snapshots the submitted field labels/values.
+7. Admin receives a notification.
+8. If the guest has an account, the lead appears in their dashboard.
+9. Admin updates status and records notes.
 
 ### 5.3 Content publishing journey
 
@@ -282,15 +284,27 @@ General media requirements:
 - Works with mouse, touch and keyboard.
 - Does not overlap cookie banner or the expanded contact panel.
 
-### FR-017 — Leads/enquiries
+### FR-017 — Leads/enquiries and booking-form fields
 
-- Public form captures identity, contact, location/property, services, preferred date, message and attachments.
+- Fixed booking fields are `name` (required), WhatsApp/phone number (required) and `email` (optional).
+- Directly below email, render active admin-managed booking fields ordered by `sort_order`; the initial field type is a single-select with an admin-defined label, placeholder and ordered choice list.
+- Admin can add, edit, reorder, activate/deactivate and soft-delete any number of booking fields.
+- Example dynamic fields include house size, paint type and sealer requirement; these are configuration examples, not hard-coded database columns.
+- The current booking baseline does not include an add-ons checklist or preferred-date control. Pricing add-ons remain independent pricing content and are not automatically rendered inside booking.
+- Submitted dynamic answers are stored as historical snapshots linked to the Lead so later field edits do not alter previous enquiries.
+- Public form may additionally capture configured location/services, message and approved attachments.
 - Store source page, UTM values and consent flags.
 - Admin can assign, change status and add internal/public notes.
 - Notify configured recipients.
 
 **Acceptance criteria**
 
+- Email may be empty; name and WhatsApp/phone are validated server-side.
+- Only active booking fields render publicly, in configured order.
+- A submitted select value not present in the field's current allowed choices is rejected.
+- Adding a new booking field in Admin requires no frontend source-code edit.
+- Removing/deactivating a field removes it from new bookings without destroying historical answer snapshots.
+- Add-ons and preferred date are absent from the current booking UI.
 - Server-side validation is mandatory.
 - Rate limits and anti-spam protection apply.
 - Users can see only their own enquiries.

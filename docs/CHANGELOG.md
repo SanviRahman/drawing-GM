@@ -1,5 +1,14 @@
 # Specification Reconciliation Changelog
 
+## 2026-09-30 — Booking form refinement
+
+- Booking fixed fields are now Name (required), WhatsApp/phone (required) and Email (optional).
+- Admin can create any number of ordered active booking select fields below Email, with configurable labels/placeholders/choices.
+- Dynamic submissions are snapshotted through `lead_form_answers`.
+- The booking form no longer includes the Add-ons Required checklist or Preferred Date field in the current baseline.
+- Pricing add-ons remain in the pricing domain and are not automatically injected into booking.
+- Updated `database-schema.md`, `Database-erd.md`, `architecture.md`, `folder-structure.md`, `prd.md`, `project-overview.md` and `admin-frontend-mapping.md`.
+
 ## Updated decisions
 
 1. **Authentication unified:** one `users` table and one Laravel `web` guard. `admin` and `user` are Spatie roles; the separate `admins` table/guard was removed from the baseline specification.

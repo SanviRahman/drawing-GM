@@ -331,18 +331,18 @@ return [
         | CMS
         |--------------------------------------------------------------------------
         */
-        ['header' => 'CMS MANAGEMENT'],
+
         [
-            'text'    => 'CMS',
+            'header' => 'CMS MANAGEMENT',
+        ],
+        [
+            'text'    => 'CMS Pages',
             'icon'    => 'fas fa-fw fa-layer-group',
             'active'  => [
                 'admin/pages*',
                 'admin/section-definitions*',
                 'admin/page-sections*',
                 'admin/section-media*',
-                'admin/services*',
-                'admin/service-features*',
-                'admin/locations*',
             ],
             'submenu' => [
                 [
@@ -373,6 +373,28 @@ return [
                     'can'    => 'section_media_list',
                     'active' => ['admin/section-media*'],
                 ],
+
+            ],
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | Services
+        |--------------------------------------------------------------------------
+        */
+        [
+            'header' => 'SERVICES MANAGEMENT',
+        ],
+        [
+            'text'    => 'Services & Locations',
+            'icon'    => 'fas fa-fw fa-tools',
+            'active'  => [
+                'admin/services*',
+                'admin/service-features*',
+                'admin/locations*',
+                'admin/pricing-packages*',
+            ],
+            'submenu' => [
                 [
                     'text'   => 'Services',
                     'route'  => 'admin.services.index',
@@ -387,7 +409,6 @@ return [
                     'can'    => 'service_feature_list',
                     'active' => ['admin/service-features*'],
                 ],
-
                 [
                     'text'   => 'Locations',
                     'route'  => 'admin.locations.index',
@@ -395,8 +416,16 @@ return [
                     'can'    => 'location_list',
                     'active' => ['admin/locations*'],
                 ],
+                [
+                    'text'   => 'Pricing Packages',
+                    'route'  => 'admin.pricing_packages.index',
+                    'icon'   => 'fas fa-fw fa-tags',
+                    'can'    => 'pricing_package_list',
+                    'active' => ['admin/pricing-packages*'],
+                ],
             ],
         ],
+
         /*
         |--------------------------------------------------------------------------
         | Site Configuration

@@ -324,11 +324,21 @@ No additional database table is required for Media Picker v1.
 
 ## 10. Lead architecture
 
+### Booking-form resolution
+
+- Fixed public fields are `name` and WhatsApp/phone (required) plus `email` (optional).
+- Directly below email, query active `LeadFormField` definitions ordered by `sort_order`, then ID.
+- Initial dynamic fields are single-select controls. Each definition owns an ordered JSON list of allowed choices plus label, placeholder, required/optional state and active state.
+- Admin may add any number of booking fields without changing public Blade.
+- The current booking baseline excludes the add-ons checklist and preferred-date input. Pricing add-ons remain a separate domain and are not implicitly injected into booking.
+- On submission, every dynamic key must resolve to an active field and every selected answer must belong to that field's allowed choices.
+- Persist a `LeadFormAnswer` snapshot containing field key, label, answer and order. Historical answers must remain readable even if the source field is later renamed, deactivated or soft-deleted.
+
 `CreateLead` performs:
 
 1. Rate-limit and anti-spam verification.
-2. Server-side validation.
-3. Transaction: lead, services, attribution and attachments.
+2. Server-side validation of fixed fields plus the current dynamic field definitions/choices.
+3. Transaction: lead, dynamic answer snapshots, services, attribution and attachments.
 4. Status-history creation.
 5. Commit.
 6. Queue admin/customer notifications.

@@ -181,8 +181,10 @@ class RolePermissionSeeder extends Seeder
             'pricing_package_update',
             'pricing_package_delete',
             'pricing_package_toggle',
-            'pricing_package_reorder',
-            'pricing_package_set_featured',
+            'pricing_package_duplicate',
+            'pricing_package_trash',
+            'pricing_package_restore',
+            'pricing_package_force_delete',
         ],
 
         'Pricing Items'       => [
@@ -193,16 +195,6 @@ class RolePermissionSeeder extends Seeder
             'pricing_item_delete',
             'pricing_item_toggle',
             'pricing_item_reorder',
-        ],
-
-        'Pricing Add-ons'     => [
-            'pricing_addon_list',
-            'pricing_addon_view',
-            'pricing_addon_create',
-            'pricing_addon_update',
-            'pricing_addon_delete',
-            'pricing_addon_toggle',
-            'pricing_addon_reorder',
         ],
 
         'Campaigns'           => [

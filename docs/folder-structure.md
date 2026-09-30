@@ -63,6 +63,7 @@ app/
 │   │   │   ├── FaqController.php
 │   │   │   ├── PostController.php
 │   │   │   ├── ContactChannelController.php
+│   │   │   ├── LeadFormFieldController.php
 │   │   │   ├── LeadController.php
 │   │   │   ├── SeoController.php
 │   │   │   ├── RedirectController.php
@@ -93,6 +94,8 @@ app/
 │   │   │   ├── StoreMediaRequest.php
 │   │   │   ├── StoreVideoRequest.php
 │   │   │   ├── StoreContactChannelRequest.php
+│   │   │   ├── StoreLeadFormFieldRequest.php
+│   │   │   ├── UpdateLeadFormFieldRequest.php
 │   │   │   ├── UpdateTrackingProviderRequest.php
 │   │   │   └── UpdateLeadRequest.php
 │   │   ├── Account/
@@ -137,6 +140,8 @@ app/
 │   ├── Category.php
 │   ├── Post.php
 │   ├── ContactChannel.php
+│   ├── LeadFormField.php
+│   ├── LeadFormAnswer.php
 │   ├── Lead.php
 │   ├── LeadStatusHistory.php
 │   ├── LeadNote.php
@@ -287,6 +292,7 @@ resources/
         ├── faqs/
         ├── posts/
         ├── contacts/
+        ├── lead-form-fields/
         ├── leads/
         ├── seo/
         ├── redirects/
@@ -402,6 +408,14 @@ Controllers must not contain image conversion, tracking-provider HTTP calls, lar
 - `back-to-top.blade.php`: threshold and accessibility behaviour.
 - `sections/*`: known, validated dynamic blocks. `whatsapp-reviews.blade.php` renders screenshot/social-proof testimonials and `paint-calculator.blade.php` renders validated calculator configuration/output; `safe-embed.blade.php` renders only allowlisted provider URLs/IDs; `spacer.blade.php` renders layout spacing from validated tokens.
 - `seo.blade.php`: escaped metadata and generated JSON-LD.
+- `frontend/quote/create.blade.php`: fixed name/WhatsApp/email controls plus active ordered `LeadFormField` selects; do not hard-code house-size/paint-type fields, pricing add-ons or preferred date.
+
+### 6.1 Booking field ownership
+
+- `LeadFormFieldController` manages field definitions in Admin; it does not manage submitted answers.
+- `LeadFormAnswer` rows are created as part of `CreateLead` and are displayed read-only inside Lead/enquiry management.
+- Dynamic field definitions are soft-deletable; answer snapshots preserve historical label/key/value.
+- Initial booking fields render as select controls using validated JSON choices.
 
 ## 7. Files not to create
 

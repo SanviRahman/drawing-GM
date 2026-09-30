@@ -58,6 +58,8 @@ erDiagram
 
     LEADS ||--o{ LEAD_SERVICES : requests
     SERVICES ||--o{ LEAD_SERVICES : selected
+    LEAD_FORM_FIELDS ||--o{ LEAD_FORM_ANSWERS : defines
+    LEADS ||--o{ LEAD_FORM_ANSWERS : answers
     LEADS ||--o{ MEDIA : owns_private_attachments
     LEADS ||--o{ LEAD_STATUS_HISTORIES : changes
     LEADS ||--o{ LEAD_NOTES : has
@@ -322,6 +324,25 @@ erDiagram
       string status
       json attribution
     }
+    LEAD_FORM_FIELDS {
+      bigint id PK
+      string label
+      string field_key UK
+      string placeholder
+      json options
+      boolean is_required
+      boolean is_active
+      int sort_order
+    }
+    LEAD_FORM_ANSWERS {
+      bigint id PK
+      bigint lead_id FK
+      bigint lead_form_field_id FK
+      string field_key
+      string field_label
+      text answer
+      int sort_order
+    }
     LEAD_SERVICES {
       bigint lead_id FK
       bigint service_id FK
@@ -415,7 +436,7 @@ Page, Service and Location implement Spatie `HasMedia`. Their `hero_desktop` and
 
 ### Leads
 
-A lead can be submitted by a guest or user. Guest identity is stored on `leads`; `user_id` is nullable. Lead owns private Spatie `attachments` media directly; access is enforced through the Lead policy/signed download route.
+A lead can be submitted by a guest or user. Guest identity is stored on `leads`; `user_id` is nullable. The public booking form keeps `name` and WhatsApp/phone as required fixed fields, keeps email optional, then renders any number of active ordered `lead_form_fields` as select controls. Submitted answers are snapshotted into `lead_form_answers` so later edits to field labels/options do not rewrite historical enquiries. The current booking baseline has no add-ons checklist and no preferred-date field. Lead owns private Spatie `attachments` media directly; access is enforced through the Lead policy/signed download route.
 
 ## 4. Delete behaviour
 
@@ -423,6 +444,7 @@ A lead can be submitted by a guest or user. Guest identity is stored on `leads`;
 - `page_sections`: cascade when page is force-deleted.
 - `service_features`: cascade with service.
 - `pricing_items`: cascade with package.
+- `lead_form_answers`: cascade with the parent Lead; answer snapshots retain `field_key`/`field_label` even when a field definition is later soft-deleted.
 - `lead_status_histories` and `lead_notes`: restrict or retain for audit.
 - `media`: restrict deletion while referenced; allow soft deletion and scheduled cleanup.
 - `admins`: prefer deactivation/status disable for operational accounts; soft delete only when appropriate.

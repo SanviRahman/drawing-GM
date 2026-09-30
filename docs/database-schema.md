@@ -370,10 +370,8 @@ Selection algorithm:
 | email | varchar(190) | nullable |
 | phone | varchar(32) | required, E.164 normalized |
 | location_id | bigint unsigned | nullable FK locations |
-| property_type | varchar(80) | nullable (e.g. HDB 3-Room, Condo, Landed) |
-| preferred_date | date | nullable |
 | message | text | nullable |
-| metadata | json | nullable (house condition e.g. furnished/vacant, paint choice e.g. Nippon/Dulux, ceiling requirement, calculator output) |
+| metadata | json | nullable supplemental/non-field metadata such as calculator output or attribution-safe context; dynamic booking answers are stored in `lead_form_answers` |
 | status | varchar(30) | default 'new' ('new', 'contacted', 'qualified', 'quoted', 'won', 'lost', 'spam', 'closed') |
 | assigned_to | bigint unsigned | nullable FK admins; assignee must have the required lead-management permission |
 | source_page_url | varchar(255) | nullable lead landing URL |
@@ -384,6 +382,42 @@ Selection algorithm:
 | deleted_at | timestamp | nullable (soft deletes) |
 
 Indexes: `status`, `created_at`, `assigned_to`, `user_id`, `location_id`.
+
+### `lead_form_fields`
+
+Admin-managed booking/quotation select fields rendered after the optional email field.
+
+| Column | Type | Notes |
+|---|---|---|
+| id | bigint unsigned | PK |
+| label | varchar(150) | required; customer-facing field label |
+| field_key | varchar(100) | unique, required, stable machine key |
+| placeholder | varchar(190) | nullable, e.g. `Select house size` |
+| options | json | required ordered list of allowed select choices |
+| is_required | boolean | default false |
+| is_active | boolean | default true |
+| sort_order | int | default 0 |
+| created_at/updated_at | timestamp | required |
+| deleted_at | timestamp | nullable, soft deletes |
+
+Rules:
+
+- Public booking form order is: `name` (required), `phone`/WhatsApp number (required), `email` (optional), then active `lead_form_fields` ordered by `sort_order` and ID.
+- Initial implementation renders each dynamic booking field as a single-select control.
+- Admin may create any number of fields such as `Size of House to Paint`, `Type of Paint to Use`, `Sealer Needed?`, etc.
+- Submitted values must match the currently allowed choices for the selected field.
+- The booking form does **not** include an add-ons checklist or preferred-date field in the current baseline. Pricing add-ons remain a separate pricing domain and are not automatically injected into booking.
+- Field definitions use soft deletes so historical lead answers can remain understandable.
+
+### `lead_form_answers`
+
+`id`, `lead_id`, nullable `lead_form_field_id`, `field_key`, `field_label`, `answer` text, `sort_order`, timestamps, soft deletes.
+
+Rules:
+
+- Unique recommendation: (`lead_id`, `field_key`).
+- `lead_form_field_id` may become null if a field is permanently removed; `field_key`, `field_label` and `answer` are snapshots retained with the lead.
+- Answers are written only after validating against the active field definition and its allowed `options`.
 
 ### `lead_services`
 
@@ -459,7 +493,7 @@ Laravel default operational tables:
 8. Testimonials, testimonialables and FAQs
 9. Blog
 10. Contact channels
-11. Leads, lead services, status history and notes; lead attachment media is owned directly by Lead
+11. Leads, booking form fields/answers, lead services, status history and notes; lead attachment media is owned directly by Lead
 12. SEO, redirects and tracking
 13. Audit and operational tables
 14. Campaigns and campaign sections
