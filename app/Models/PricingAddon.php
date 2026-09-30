@@ -5,30 +5,32 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class PricingItem extends Model
+class PricingAddon extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, InteractsWithMedia, SoftDeletes;
+
+    public const MEDIA_COLLECTION = 'image';
 
     protected $fillable = [
-        'pricing_package_id',
-        'label',
+        'name',
+        'description',
         'amount',
         'amount_max',
         'price_type',
         'unit',
-        'prefix',
-        'suffix',
-        'sort_order',
         'is_active',
+        'sort_order',
     ];
 
     protected $attributes = [
         'price_type' => 'fixed',
-        'sort_order' => 0,
         'is_active' => true,
+        'sort_order' => 0,
     ];
 
     protected function casts(): array
@@ -36,15 +38,26 @@ class PricingItem extends Model
         return [
             'amount' => 'decimal:2',
             'amount_max' => 'decimal:2',
-            'sort_order' => 'integer',
             'is_active' => 'boolean',
+            'sort_order' => 'integer',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
             'deleted_at' => 'datetime',
         ];
     }
 
-    public function pricingPackage(): BelongsTo
+    public function registerMediaCollections(): void
     {
-        return $this->belongsTo(PricingPackage::class)->withTrashed();
+        $this->addMediaCollection(self::MEDIA_COLLECTION)
+            ->useDisk('public')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+    }
+
+    public function pricingPackages(): BelongsToMany
+    {
+        return $this->belongsToMany(PricingPackage::class, 'pricing_package_addon')
+            ->withPivot('override_data');
     }
 
     public function scopeActive(Builder $query): Builder
@@ -54,9 +67,8 @@ class PricingItem extends Model
 
     public function scopeOrdered(Builder $query): Builder
     {
-        return $query->orderBy('sort_order')->orderBy('id');
+        return $query->orderBy('sort_order')->orderBy('name')->orderBy('id');
     }
-    
 
     public function getPriceTypeLabelAttribute(): string
     {
@@ -71,23 +83,19 @@ class PricingItem extends Model
 
     public function getDisplayPriceAttribute(): string
     {
-        $currency = $this->pricingPackage?->currency ?: '';
-        $prefix = trim((string) $this->prefix);
-        $suffix = trim((string) $this->suffix);
-
         if ($this->price_type === 'call') {
-            return trim(($prefix ? $prefix . ' ' : '') . 'Call for Price' . ($suffix ? ' ' . $suffix : ''));
+            return 'Call for Price';
         }
 
-        $amount = $this->amount !== null ? number_format((float) $this->amount, 2) : null;
+        $amount = $this->amount !== null ? number_format((float) $this->amount, 2) : '—';
         $amountMax = $this->amount_max !== null ? number_format((float) $this->amount_max, 2) : null;
 
-        $value = match ($this->price_type) {
-            'from' => trim('From ' . $currency . ' ' . $amount),
-            'range' => trim($currency . ' ' . $amount . ' - ' . $currency . ' ' . $amountMax),
-            default => trim($currency . ' ' . $amount),
+        $price = match ($this->price_type) {
+            'from' => 'From ' . $amount,
+            'range' => $amountMax !== null ? $amount . ' - ' . $amountMax : $amount,
+            default => $amount,
         };
 
-        return trim(($prefix ? $prefix . ' ' : '') . $value . ($suffix ? ' ' . $suffix : ''));
+        return $this->unit ? $price . ' / ' . $this->unit : $price;
     }
 }

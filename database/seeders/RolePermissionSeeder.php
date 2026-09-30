@@ -200,6 +200,19 @@ class RolePermissionSeeder extends Seeder
             'pricing_item_force_delete',
         ],
 
+        'Pricing Add-ons'     => [
+            'pricing_addon_list',
+            'pricing_addon_view',
+            'pricing_addon_create',
+            'pricing_addon_update',
+            'pricing_addon_delete',
+            'pricing_addon_toggle',
+            'pricing_addon_duplicate',
+            'pricing_addon_trash',
+            'pricing_addon_restore',
+            'pricing_addon_force_delete',
+        ],
+
         'Campaigns'           => [
             'campaign_list',
             'campaign_view',

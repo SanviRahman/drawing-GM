@@ -394,6 +394,7 @@ return [
                 'admin/locations*',
                 'admin/pricing-packages*',
                 'admin/pricing-items*',
+                'admin/pricing-addons*',
             ],
             'submenu' => [
                 [
@@ -431,6 +432,13 @@ return [
                     'icon'   => 'fas fa-fw fa-list-ol',
                     'can'    => 'pricing_item_list',
                     'active' => ['admin/pricing-items*'],
+                ],
+                [
+                    'text'   => 'Pricing Add-ons',
+                    'route'  => 'admin.pricing_addons.index',
+                    'icon'   => 'fas fa-fw fa-puzzle-piece',
+                    'can'    => 'pricing_addon_list',
+                    'active' => ['admin/pricing-addons*'],
                 ],
             ],
         ],

@@ -8,6 +8,7 @@ use App\Http\Controllers\Backoffice\Admin\MenuController;
 use App\Http\Controllers\Backoffice\Admin\PageController;
 use App\Http\Controllers\Backoffice\Admin\PageSectionController;
 use App\Http\Controllers\Backoffice\Admin\PermissionController;
+use App\Http\Controllers\Backoffice\Admin\PricingAddonController;
 use App\Http\Controllers\Backoffice\Admin\PricingItemController;
 use App\Http\Controllers\Backoffice\Admin\PricingPackageController;
 use App\Http\Controllers\Backoffice\Admin\ProfileController;
@@ -231,5 +232,22 @@ Route::middleware('auth:admin')->group(function () {
         Route::post('{pricingItem}/duplicate', [PricingItemController::class, 'duplicate'])->name('duplicate');
 
         Route::resource('/', PricingItemController::class)->parameters(['' => 'pricingItem']);
+    });
+
+// Pricing Add-ons
+    Route::group(['prefix' => 'pricing-addons', 'as' => 'pricing_addons.'], function () {
+        Route::post('multiple-action', [PricingAddonController::class, 'multipleAction'])->name('multiple_action');
+
+        Route::get('trash', [PricingAddonController::class, 'trash'])->name('trashed');
+        Route::post('restore/{pricingAddon}', [PricingAddonController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{pricingAddon}', [PricingAddonController::class, 'forceDelete'])->name('force_delete');
+
+        Route::get('list', [PricingAddonController::class, 'list'])->name('list');
+        Route::get('ajax-search', [PricingAddonController::class, 'list'])->name('ajax_search');
+
+        Route::post('{pricingAddon}/toggle', [PricingAddonController::class, 'toggle'])->name('toggle');
+        Route::post('{pricingAddon}/duplicate', [PricingAddonController::class, 'duplicate'])->name('duplicate');
+
+        Route::resource('/', PricingAddonController::class)->parameters(['' => 'pricingAddon']);
     });
 });
