@@ -1,4 +1,6 @@
-@php($isEdit = isset($media))
+@php
+    $isEdit = isset($media);
+@endphp
 @if($isEdit)
 <form id="ajax-form" action="{{ route('admin.media.update', $media->id) }}" method="POST">
     @csrf @method('PUT')

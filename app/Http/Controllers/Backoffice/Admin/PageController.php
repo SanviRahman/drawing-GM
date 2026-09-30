@@ -21,7 +21,7 @@ class PageController extends Controller
     {
         $this->ensurePermission('page_list');
 
-        $query = Page::query()->with(['createdBy:id,name', 'updatedBy:id,name']);
+        $query = Page::query()->with(['createdBy:id,name', 'updatedBy:id,name', 'media']);
         $this->applyFilters($query, $request);
 
         $pages     = $query->latest('id')->paginate(15)->withQueryString();
@@ -168,7 +168,7 @@ class PageController extends Controller
     {
         $this->ensurePermission('page_trash');
 
-        $query = Page::onlyTrashed()->with(['createdBy:id,name', 'updatedBy:id,name']);
+        $query = Page::onlyTrashed()->with(['createdBy:id,name', 'updatedBy:id,name', 'media']);
         $this->applyFilters($query, $request);
 
         $pages     = $query->latest('deleted_at')->paginate(15)->withQueryString();

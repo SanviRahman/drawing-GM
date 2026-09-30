@@ -16,7 +16,7 @@ class SettingController extends Controller
 
     public function index(Request $request)
     {
-        $query = SiteSetting::query();
+        $query = SiteSetting::query()->with('media');
 
         if ($request->filled('search')) {
             $search = trim((string) $request->search);
@@ -188,7 +188,7 @@ class SettingController extends Controller
 
     public function trash(Request $request)
     {
-        $query = SiteSetting::onlyTrashed()->latest('deleted_at');
+        $query = SiteSetting::onlyTrashed()->with('media')->latest('deleted_at');
 
         if ($request->filled('search')) {
             $search = trim((string) $request->search);

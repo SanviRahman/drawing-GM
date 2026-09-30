@@ -1,4 +1,6 @@
-@php($imageUrl = $pricingAddon->getFirstMediaUrl(\App\Models\PricingAddon::MEDIA_COLLECTION))
+@php
+    $imageUrl = $pricingAddon->getFirstMediaUrl(\App\Models\PricingAddon::MEDIA_COLLECTION);
+@endphp
 <div class="row">
     <div class="col-md-4 mb-3">
         @if($imageUrl)

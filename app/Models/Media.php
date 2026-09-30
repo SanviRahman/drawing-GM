@@ -10,6 +10,10 @@ class Media extends BaseMedia
 {
     use SoftDeletes;
 
+    public const PATH_SCHEME_PROPERTY = 'storage_path_scheme';
+
+    public const PATH_SCHEME_MODEL_SECTION = 'model_section_v1';
+
     /**
      * Collections that must never be exposed by the reusable global picker.
      * They can still be managed from the dedicated media manager by an
@@ -21,6 +25,26 @@ class Media extends BaseMedia
         'lead_attachments',
         'attachments',
     ];
+
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::creating(function (self $media): void {
+            $properties = is_array($media->custom_properties) ? $media->custom_properties : [];
+
+            if (! array_key_exists(self::PATH_SCHEME_PROPERTY, $properties)) {
+                $properties[self::PATH_SCHEME_PROPERTY] = self::PATH_SCHEME_MODEL_SECTION;
+                $media->custom_properties = $properties;
+            }
+        });
+    }
+
+    public function usesModelSectionPath(): bool
+    {
+        return $this->getCustomProperty(self::PATH_SCHEME_PROPERTY) === self::PATH_SCHEME_MODEL_SECTION;
+    }
 
     public function scopePickerSafe(Builder $query): Builder
     {

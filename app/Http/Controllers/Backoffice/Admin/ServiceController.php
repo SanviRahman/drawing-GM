@@ -21,7 +21,7 @@ class ServiceController extends Controller
     {
         $this->ensurePermission('service_list');
 
-        $query = Service::query();
+        $query = Service::query()->with('media');
         $this->applyFilters($query, $request);
         $services = $query->ordered()->paginate(15)->withQueryString();
 
@@ -161,7 +161,7 @@ class ServiceController extends Controller
     {
         $this->ensurePermission('service_trash');
 
-        $query = Service::onlyTrashed();
+        $query = Service::onlyTrashed()->with('media');
         $this->applyFilters($query, $request);
         $services = $query->orderByDesc('deleted_at')->paginate(15)->withQueryString();
 

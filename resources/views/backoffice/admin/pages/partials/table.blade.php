@@ -13,12 +13,24 @@
 
 <div class="table-responsive table-responsive-custom">
     <table class="table table-hover border-bottom page-table mb-0 text-nowrap">
-        <thead class="thead-light"><tr><th class="text-center align-middle" style="width:40px;"><input type="checkbox" id="checkAll"></th><th class="align-middle">Page</th><th class="align-middle" style="width:125px;">Template</th><th class="text-center align-middle" style="width:120px;">Status</th><th class="text-center align-middle" style="width:110px;">Homepage</th><th class="align-middle" style="width:160px;">Updated</th><th class="text-center align-middle" style="width:210px;">Actions</th></tr></thead>
+        <thead class="thead-light"><tr><th class="text-center align-middle" style="width:40px;"><input type="checkbox" id="checkAll"></th><th class="align-middle" style="width:86px;">Preview</th><th class="align-middle">Page</th><th class="align-middle" style="width:125px;">Template</th><th class="text-center align-middle" style="width:120px;">Status</th><th class="text-center align-middle" style="width:110px;">Homepage</th><th class="align-middle" style="width:160px;">Updated</th><th class="text-center align-middle" style="width:210px;">Actions</th></tr></thead>
         <tbody>
             @if($pages->count() > 0)
                 @foreach($pages as $page)
+                    @php
+                        $heroMedia = $page->media->firstWhere('collection_name', 'hero_desktop') ?: $page->media->firstWhere('collection_name', 'hero_mobile');
+                        $heroUrl = null;
+                        if ($heroMedia) {
+                            try {
+                                $heroUrl = $heroMedia->getUrl();
+                            } catch (\Throwable) {
+                                $heroUrl = null;
+                            }
+                        }
+                    @endphp
                     <tr>
                         <td class="text-center align-middle" data-label="Select"><input type="checkbox" class="row-checkbox" value="{{ $page->id }}"></td>
+                        <td class="align-middle" data-label="Preview"><div class="border rounded bg-light d-flex align-items-center justify-content-center overflow-hidden" style="width:64px;height:54px;">@if($heroUrl)<img src="{{ $heroUrl }}" alt="{{ $page->title }}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">@else<i class="far fa-image text-muted"></i>@endif</div></td>
                         <td class="align-middle page-title-cell" data-label="Page"><div class="font-weight-bold text-dark"><i class="fas fa-file-alt text-primary mr-1"></i>{{ $page->title }}</div><div class="small text-muted"><i class="fas fa-link mr-1"></i>/{{ $page->slug }}</div>@if($page->excerpt)<div class="small text-muted text-truncate mt-1" style="max-width:360px;" title="{{ strip_tags($page->excerpt) }}">{{ \Illuminate\Support\Str::limit(strip_tags($page->excerpt), 140) }}</div>@endif</td>
                         <td class="align-middle" data-label="Template"><span class="badge badge-light border px-2 py-1">{{ $page->template }}</span></td>
                         <td class="text-center align-middle" data-label="Status"><span class="badge badge-{{ $page->statusBadgeClass() }} px-2 py-1">{{ $page->statusLabel() }}</span>@if($page->published_at)<small class="text-muted d-block mt-1">{{ $page->published_at->format('d M Y') }}</small>@endif</td>
@@ -42,7 +54,7 @@
                     </tr>
                 @endforeach
             @else
-                <tr><td colspan="7"><div class="text-center py-5"><div class="mb-3"><span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light" style="width:72px;height:72px;"><i class="far fa-file-alt fa-2x text-muted"></i></span></div><h5 class="text-muted mb-1">{{ $isTrash ? 'Trash bin is empty' : 'No pages found' }}</h5><p class="text-muted small mb-0">{{ $isTrash ? 'Deleted pages will appear here.' : 'Create a page or adjust the current filters.' }}</p></div></td></tr>
+                <tr><td colspan="8"><div class="text-center py-5"><div class="mb-3"><span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light" style="width:72px;height:72px;"><i class="far fa-file-alt fa-2x text-muted"></i></span></div><h5 class="text-muted mb-1">{{ $isTrash ? 'Trash bin is empty' : 'No pages found' }}</h5><p class="text-muted small mb-0">{{ $isTrash ? 'Deleted pages will appear here.' : 'Create a page or adjust the current filters.' }}</p></div></td></tr>
             @endif
         </tbody>
     </table>

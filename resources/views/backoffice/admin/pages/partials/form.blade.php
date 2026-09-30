@@ -44,7 +44,9 @@
     <div class="alert alert-info py-2"><i class="fas fa-info-circle mr-1"></i>Uploading or selecting a new set replaces the existing collection. Maximum 10 images per desktop/mobile collection.</div>
 
     @foreach(['hero_desktop' => 'Desktop Hero Images', 'hero_mobile' => 'Mobile Hero Images'] as $collection => $label)
-        @php($existingMedia = $isEdit ? $page->getMedia($collection) : collect())
+        @php
+            $existingMedia = $isEdit ? $page->getMedia($collection) : collect();
+        @endphp
         <div class="col-12 px-0 mb-4 hero-media-block" data-collection="{{ $collection }}">
             <div class="card border shadow-none mb-0"><div class="card-header bg-light py-2"><strong>{{ $label }}</strong></div><div class="card-body">
                 <div class="d-flex flex-wrap align-items-center mb-2" style="gap:8px;"><input type="file" name="{{ $collection }}[]" id="{{ $collection }}" class="form-control-file hero-file-input" accept="image/jpeg,image/png,image/webp,image/gif" multiple>@if(auth('admin')->user()?->can('media_list'))<button type="button" class="btn btn-outline-primary btn-sm btn-choose-page-media" data-collection="{{ $collection }}" data-label="{{ $label }}"><i class="fas fa-images mr-1"></i>Media Picker</button>@endif <button type="button" class="btn btn-outline-danger btn-sm btn-clear-page-media" data-collection="{{ $collection }}"><i class="fas fa-times mr-1"></i>Clear</button></div>

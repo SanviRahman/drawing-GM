@@ -5,6 +5,7 @@
             <th style="width: 40px;" class="text-center align-middle">
                 <input type="checkbox" id="checkAll">
             </th>
+            <th style="width: 76px;" class="text-center align-middle">Preview</th>
             <th class="align-middle">Setting Key</th>
             <th class="align-middle">Value</th>
             <th style="width: 110px;" class="text-center align-middle">Type</th>
@@ -16,9 +17,24 @@
 
         <tbody>
         @forelse($settings as $setting)
+            @php
+                $previewMedia = $setting->media->first(fn ($media) => in_array($media->collection_name, \App\Models\SiteSetting::MEDIA_COLLECTIONS, true));
+                $previewUrl = null;
+                if ($previewMedia) {
+                    try {
+                        $previewUrl = $previewMedia->getUrl();
+                    } catch (\Throwable) {
+                        $previewUrl = null;
+                    }
+                }
+            @endphp
             <tr>
                 <td data-label="Select" class="text-center align-middle">
                     <input type="checkbox" class="row-checkbox" value="{{ $setting->id }}">
+                </td>
+
+                <td data-label="Preview" class="text-center align-middle">
+                    <div class="border rounded bg-light d-inline-flex align-items-center justify-content-center overflow-hidden" style="width:52px;height:52px;">@if($previewUrl)<img src="{{ $previewUrl }}" alt="{{ $setting->setting_key }}" style="width:100%;height:100%;object-fit:contain;" loading="lazy">@else<i class="far fa-image text-muted"></i>@endif</div>
                 </td>
 
                 <td data-label="Setting Key" class="align-middle">
@@ -80,7 +96,7 @@
             </tr>
         @empty
             <tr>
-                <td colspan="7" class="text-center py-5">
+                <td colspan="8" class="text-center py-5">
                     <div class="text-muted">
                         <i class="fas fa-cogs fa-3x mb-3 text-light"></i>
                         <h5 class="font-weight-bold">No Settings Found</h5>

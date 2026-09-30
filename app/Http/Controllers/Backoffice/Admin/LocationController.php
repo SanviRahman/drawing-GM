@@ -21,7 +21,7 @@ class LocationController extends Controller
     {
         $this->ensurePermission('location_list');
 
-        $query = Location::query();
+        $query = Location::query()->with('media');
         $this->applyFilters($query, $request);
         $locations = $query->ordered()->paginate(15)->withQueryString();
         $regions = Location::query()->whereNotNull('region')->where('region', '!=', '')->distinct()->orderBy('region')->pluck('region');
@@ -162,7 +162,7 @@ class LocationController extends Controller
     {
         $this->ensurePermission('location_trash');
 
-        $query = Location::onlyTrashed();
+        $query = Location::onlyTrashed()->with('media');
         $this->applyFilters($query, $request);
         $locations = $query->orderByDesc('deleted_at')->paginate(15)->withQueryString();
         $regions = Location::withTrashed()->whereNotNull('region')->where('region', '!=', '')->distinct()->orderBy('region')->pluck('region');

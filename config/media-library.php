@@ -23,7 +23,7 @@ use Spatie\MediaLibrary\ResponsiveImages\TinyPlaceholderGenerator\Blurred;
 use Spatie\MediaLibrary\ResponsiveImages\WidthCalculator\FileSizeOptimizedWidthCalculator;
 use Spatie\MediaLibrary\Support\FileNamer\DefaultFileNamer;
 use Spatie\MediaLibrary\Support\FileRemover\DefaultFileRemover;
-use Spatie\MediaLibrary\Support\PathGenerator\DefaultPathGenerator;
+use App\Support\Media\ModelSectionPathGenerator;
 use Spatie\MediaLibrary\Support\UrlGenerator\DefaultUrlGenerator;
 use Spatie\MediaLibraryPro\Models\TemporaryUpload;
 
@@ -141,7 +141,7 @@ return [
     /*
      * The class that contains the strategy for determining a media file's path.
      */
-    'path_generator' => DefaultPathGenerator::class,
+    'path_generator' => ModelSectionPathGenerator::class,
 
     /*
      * The class that contains the strategy for determining how to remove files.

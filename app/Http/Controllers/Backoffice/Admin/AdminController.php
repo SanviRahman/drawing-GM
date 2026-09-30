@@ -19,7 +19,7 @@ class AdminController extends Controller
 
     public function index(Request $request)
     {
-        $query = Admin::query()->with('roles');
+        $query = Admin::query()->with(['roles', 'media']);
 
         if ($request->filled('search')) {
             $search = trim((string) $request->search);
@@ -216,7 +216,7 @@ class AdminController extends Controller
 
     public function trash(Request $request)
     {
-        $query = Admin::onlyTrashed()->with('roles')->latest('deleted_at');
+        $query = Admin::onlyTrashed()->with(['roles', 'media'])->latest('deleted_at');
 
         if ($request->filled('search')) {
             $search = trim((string) $request->search);

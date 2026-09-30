@@ -5,6 +5,7 @@
             <th style="width: 40px;" class="text-center align-middle">
                 <input type="checkbox" id="checkAll">
             </th>
+            <th style="width: 76px;" class="text-center align-middle">Preview</th>
             <th class="align-middle">Name</th>
             <th class="align-middle">Email</th>
             <th class="align-middle">Roles</th>
@@ -20,6 +21,14 @@
                     {{-- নিজের প্রোফাইল নিজে সিলেক্ট করা আটকানোর জন্য --}}
                     @if($admin->id !== auth('admin')->id())
                         <input type="checkbox" class="row-checkbox" value="{{ $admin->id }}">
+                    @endif
+                </td>
+
+                <td data-label="Preview" class="text-center align-middle">
+                    @if($admin->hasProfilePhoto())
+                        <img src="{{ $admin->image_url }}" alt="{{ $admin->name }}" class="rounded-circle border" style="width:48px;height:48px;object-fit:cover;" loading="lazy">
+                    @else
+                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle border bg-light text-muted" style="width:48px;height:48px;"><i class="fas fa-user"></i></span>
                     @endif
                 </td>
 
@@ -76,7 +85,7 @@
             </tr>
         @empty
             <tr>
-                <td colspan="6" class="text-center py-5">
+                <td colspan="7" class="text-center py-5">
                     <div class="text-muted">
                         <i class="fas fa-users fa-3x mb-3 text-light"></i>
                         <h5 class="font-weight-bold">No Admins Found</h5>
