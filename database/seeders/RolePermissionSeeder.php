@@ -171,7 +171,7 @@ class RolePermissionSeeder extends Seeder
             'location_force_delete',
             'location_publish',
             'location_unpublish',
-            'location_preview',
+            'location_duplicate',
         ],
 
         'Pricing Packages'    => [

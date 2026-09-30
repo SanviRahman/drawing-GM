@@ -342,6 +342,7 @@ return [
                 'admin/section-media*',
                 'admin/services*',
                 'admin/service-features*',
+                'admin/locations*',
             ],
             'submenu' => [
                 [
@@ -385,6 +386,14 @@ return [
                     'icon'   => 'fas fa-fw fa-list-ul',
                     'can'    => 'service_feature_list',
                     'active' => ['admin/service-features*'],
+                ],
+
+                [
+                    'text'   => 'Locations',
+                    'route'  => 'admin.locations.index',
+                    'icon'   => 'fas fa-fw fa-map-marker-alt',
+                    'can'    => 'location_list',
+                    'active' => ['admin/locations*'],
                 ],
             ],
         ],

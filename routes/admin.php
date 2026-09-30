@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Backoffice\Admin\AdminController;
 use App\Http\Controllers\Backoffice\Admin\DashboardController;
+use App\Http\Controllers\Backoffice\Admin\LocationController;
 use App\Http\Controllers\Backoffice\Admin\MediaController;
 use App\Http\Controllers\Backoffice\Admin\MenuController;
 use App\Http\Controllers\Backoffice\Admin\PageController;
@@ -76,17 +77,14 @@ Route::middleware('auth:admin')->group(function () {
     Route::group(['prefix' => 'media-management', 'as' => 'media.'], function () {
         Route::get('list', [MediaController::class, 'list'])->name('list');
         Route::post('multiple-action', [MediaController::class, 'multipleAction'])->name('multiple_action');
+
         Route::get('trash', [MediaController::class, 'trash'])->name('trashed');
         Route::post('restore/{media}', [MediaController::class, 'restore'])->name('restore');
         Route::delete('force-delete/{media}', [MediaController::class, 'forceDelete'])->name('force_delete');
+
         Route::get('{media}/download', [MediaController::class, 'download'])->name('download');
-        Route::get('/', [MediaController::class, 'index'])->name('index');
-        Route::get('create', [MediaController::class, 'create'])->name('create');
-        Route::post('/', [MediaController::class, 'store'])->name('store');
-        Route::get('{media}', [MediaController::class, 'show'])->name('show');
-        Route::get('{media}/edit', [MediaController::class, 'edit'])->name('edit');
-        Route::put('{media}', [MediaController::class, 'update'])->name('update');
-        Route::delete('{media}', [MediaController::class, 'destroy'])->name('destroy');
+
+        Route::resource('/', MediaController::class)->parameters(['' => 'media']);
     });
 
     // Menus
@@ -143,30 +141,21 @@ Route::middleware('auth:admin')->group(function () {
         Route::post('restore/{pageSection}', [PageSectionController::class, 'restore'])->name('restore');
         Route::delete('force-delete/{pageSection}', [PageSectionController::class, 'forceDelete'])->name('force_delete');
         Route::post('{pageSection}/toggle', [PageSectionController::class, 'toggle'])->name('toggle');
-        Route::get('/', [PageSectionController::class, 'index'])->name('index');
-        Route::get('create', [PageSectionController::class, 'create'])->name('create');
-        Route::post('/', [PageSectionController::class, 'store'])->name('store');
-        Route::get('{pageSection}', [PageSectionController::class, 'show'])->name('show');
-        Route::get('{pageSection}/edit', [PageSectionController::class, 'edit'])->name('edit');
-        Route::put('{pageSection}', [PageSectionController::class, 'update'])->name('update');
-        Route::delete('{pageSection}', [PageSectionController::class, 'destroy'])->name('destroy');
+
+        Route::resource('/', PageSectionController::class)->parameters(['' => 'pageSection']);
     });
 
+    // Section Media
     Route::group(['prefix' => 'section-media', 'as' => 'section_media.'], function () {
         Route::post('multiple-action', [SectionMediaController::class, 'multipleAction'])->name('multiple_action');
         Route::get('trash', [SectionMediaController::class, 'trash'])->name('trashed');
         Route::post('restore/{sectionMedia}', [SectionMediaController::class, 'restore'])->name('restore');
         Route::delete('force-delete/{sectionMedia}', [SectionMediaController::class, 'forceDelete'])->name('force_delete');
 
-        Route::get('/', [SectionMediaController::class, 'index'])->name('index');
-        Route::get('create', [SectionMediaController::class, 'create'])->name('create');
-        Route::post('/', [SectionMediaController::class, 'store'])->name('store');
-        Route::get('{sectionMedia}', [SectionMediaController::class, 'show'])->name('show');
-        Route::get('{sectionMedia}/edit', [SectionMediaController::class, 'edit'])->name('edit');
-        Route::put('{sectionMedia}', [SectionMediaController::class, 'update'])->name('update');
-        Route::delete('{sectionMedia}', [SectionMediaController::class, 'destroy'])->name('destroy');
+        Route::resource('/', SectionMediaController::class)->parameters(['' => 'sectionMedia']);
     });
 
+    // Services
     Route::group(['prefix' => 'services', 'as' => 'services.'], function () {
         Route::post('multiple-action', [ServiceController::class, 'multipleAction'])->name('multiple_action');
         Route::get('trash', [ServiceController::class, 'trash'])->name('trashed');
@@ -177,15 +166,10 @@ Route::middleware('auth:admin')->group(function () {
         Route::post('{service}/unpublish', [ServiceController::class, 'unpublish'])->name('unpublish');
         Route::post('{service}/duplicate', [ServiceController::class, 'duplicate'])->name('duplicate');
 
-        Route::get('/', [ServiceController::class, 'index'])->name('index');
-        Route::get('create', [ServiceController::class, 'create'])->name('create');
-        Route::post('/', [ServiceController::class, 'store'])->name('store');
-        Route::get('{service}', [ServiceController::class, 'show'])->name('show');
-        Route::get('{service}/edit', [ServiceController::class, 'edit'])->name('edit');
-        Route::put('{service}', [ServiceController::class, 'update'])->name('update');
-        Route::delete('{service}', [ServiceController::class, 'destroy'])->name('destroy');
+        Route::resource('/', ServiceController::class)->parameters(['' => 'service']);
     });
 
+    // Service Features
     Route::group(['prefix' => 'service-features', 'as' => 'service_features.'], function () {
         Route::post('multiple-action', [ServiceFeatureController::class, 'multipleAction'])->name('multiple_action');
         Route::get('trash', [ServiceFeatureController::class, 'trash'])->name('trashed');
@@ -194,13 +178,22 @@ Route::middleware('auth:admin')->group(function () {
         Route::post('reorder', [ServiceFeatureController::class, 'reorder'])->name('reorder');
         Route::post('{serviceFeature}/toggle', [ServiceFeatureController::class, 'toggle'])->name('toggle');
         Route::post('{serviceFeature}/duplicate', [ServiceFeatureController::class, 'duplicate'])->name('duplicate');
-        Route::get('/', [ServiceFeatureController::class, 'index'])->name('index');
-        Route::get('create', [ServiceFeatureController::class, 'create'])->name('create');
-        Route::post('/', [ServiceFeatureController::class, 'store'])->name('store');
-        Route::get('{serviceFeature}', [ServiceFeatureController::class, 'show'])->name('show');
-        Route::get('{serviceFeature}/edit', [ServiceFeatureController::class, 'edit'])->name('edit');
-        Route::put('{serviceFeature}', [ServiceFeatureController::class, 'update'])->name('update');
-        Route::delete('{serviceFeature}', [ServiceFeatureController::class, 'destroy'])->name('destroy');
+
+        Route::resource('/', ServiceFeatureController::class)->parameters(['' => 'serviceFeature']);
     });
 
+    // Locations
+    Route::group(['prefix' => 'locations', 'as' => 'locations.'], function () {
+        Route::post('multiple-action', [LocationController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [LocationController::class, 'trash'])->name('trashed');
+        Route::post('restore/{location}', [LocationController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{location}', [LocationController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [LocationController::class, 'list'])->name('list');
+        Route::get('ajax-search', [LocationController::class, 'list'])->name('ajax_search');
+        Route::post('{location}/publish', [LocationController::class, 'publish'])->name('publish');
+        Route::post('{location}/unpublish', [LocationController::class, 'unpublish'])->name('unpublish');
+        Route::post('{location}/duplicate', [LocationController::class, 'duplicate'])->name('duplicate');
+
+        Route::resource('/', LocationController::class)->parameters(['' => 'location']);
+    });
 });
