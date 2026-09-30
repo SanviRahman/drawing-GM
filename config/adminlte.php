@@ -393,6 +393,7 @@ return [
                 'admin/service-features*',
                 'admin/locations*',
                 'admin/pricing-packages*',
+                'admin/pricing-items*',
             ],
             'submenu' => [
                 [
@@ -422,6 +423,14 @@ return [
                     'icon'   => 'fas fa-fw fa-tags',
                     'can'    => 'pricing_package_list',
                     'active' => ['admin/pricing-packages*'],
+                ],
+
+                [
+                    'text'   => 'Pricing Items',
+                    'route'  => 'admin.pricing_items.index',
+                    'icon'   => 'fas fa-fw fa-list-ol',
+                    'can'    => 'pricing_item_list',
+                    'active' => ['admin/pricing-items*'],
                 ],
             ],
         ],

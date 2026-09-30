@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Backoffice\Admin;
 
 use App\Http\Controllers\Controller;
@@ -8,7 +7,9 @@ use App\Models\PricingPackage;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class PricingPackageController extends Controller
 {
@@ -19,8 +20,8 @@ class PricingPackageController extends Controller
         $query = PricingPackage::query()->with(['service:id,name', 'location:id,name']);
         $this->applyFilters($query, $request);
 
-        $packages = $query->orderBy('sort_order')->latest('id')->paginate(15)->withQueryString();
-        $services = Service::query()->orderBy('name')->get(['id', 'name']);
+        $packages  = $query->orderBy('sort_order')->latest('id')->paginate(15)->withQueryString();
+        $services  = Service::query()->orderBy('name')->get(['id', 'name']);
         $locations = Location::query()->orderBy('name')->get(['id', 'name']);
 
         if ($request->ajax()) {
@@ -29,7 +30,7 @@ class PricingPackageController extends Controller
             ]);
         }
 
-        $title = 'Pricing Packages Management';
+        $title      = 'Pricing Packages Management';
         $breadcrumb = [
             ['text' => 'CMS', 'url' => null],
             ['text' => 'Pricing Packages', 'url' => route('admin.pricing_packages.index')],
@@ -51,7 +52,7 @@ class PricingPackageController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $query->orderBy('name')->limit(50)->get(),
+            'data'    => $query->orderBy('name')->limit(50)->get(),
         ]);
     }
 
@@ -68,9 +69,9 @@ class PricingPackageController extends Controller
     public function store(Request $request)
     {
         $this->ensurePermission('pricing_package_create');
-        $validated = $this->validatePackage($request);
+        $validated                = $this->validatePackage($request);
         $validated['description'] = $this->sanitizeRichText($validated['description'] ?? null);
-        $validated['currency'] = strtoupper($validated['currency']);
+        $validated['currency']    = strtoupper($validated['currency']);
 
         PricingPackage::create($validated);
 
@@ -102,9 +103,9 @@ class PricingPackageController extends Controller
     public function update(Request $request, PricingPackage $pricingPackage)
     {
         $this->ensurePermission('pricing_package_update');
-        $validated = $this->validatePackage($request, $pricingPackage);
+        $validated                = $this->validatePackage($request, $pricingPackage);
         $validated['description'] = $this->sanitizeRichText($validated['description'] ?? null);
-        $validated['currency'] = strtoupper($validated['currency']);
+        $validated['currency']    = strtoupper($validated['currency']);
 
         $pricingPackage->update($validated);
 
@@ -132,16 +133,16 @@ class PricingPackageController extends Controller
         $this->ensurePermission('pricing_package_duplicate');
 
         $copy = PricingPackage::create([
-            'service_id' => $pricingPackage->service_id,
+            'service_id'  => $pricingPackage->service_id,
             'location_id' => $pricingPackage->location_id,
-            'name' => $pricingPackage->name . ' Copy',
-            'subtitle' => $pricingPackage->subtitle,
-            'badge' => $pricingPackage->badge,
+            'name'        => $pricingPackage->name . ' Copy',
+            'subtitle'    => $pricingPackage->subtitle,
+            'badge'       => $pricingPackage->badge,
             'description' => $pricingPackage->description,
-            'currency' => $pricingPackage->currency,
+            'currency'    => $pricingPackage->currency,
             'is_featured' => false,
-            'is_active' => false,
-            'sort_order' => $pricingPackage->sort_order,
+            'is_active'   => false,
+            'sort_order'  => $pricingPackage->sort_order,
         ]);
 
         return response()->json(['success' => true, 'message' => 'Pricing package duplicated.', 'data' => ['id' => $copy->id]]);
@@ -153,8 +154,8 @@ class PricingPackageController extends Controller
 
         $query = PricingPackage::onlyTrashed()->with(['service:id,name', 'location:id,name']);
         $this->applyFilters($query, $request);
-        $packages = $query->latest('deleted_at')->paginate(15)->withQueryString();
-        $services = Service::query()->orderBy('name')->get(['id', 'name']);
+        $packages  = $query->latest('deleted_at')->paginate(15)->withQueryString();
+        $services  = Service::query()->orderBy('name')->get(['id', 'name']);
         $locations = Location::query()->orderBy('name')->get(['id', 'name']);
 
         if ($request->ajax()) {
@@ -163,7 +164,7 @@ class PricingPackageController extends Controller
             ]);
         }
 
-        $title = 'Trashed Pricing Packages';
+        $title      = 'Trashed Pricing Packages';
         $breadcrumb = [
             ['text' => 'CMS', 'url' => null],
             ['text' => 'Pricing Packages', 'url' => route('admin.pricing_packages.index')],
@@ -184,26 +185,40 @@ class PricingPackageController extends Controller
     public function forceDelete(int $pricingPackage)
     {
         $this->ensurePermission('pricing_package_force_delete');
-        PricingPackage::onlyTrashed()->findOrFail($pricingPackage)->forceDelete();
 
-        return response()->json(['success' => true, 'message' => 'Pricing package permanently deleted.']);
+        DB::transaction(function () use ($pricingPackage): void {
+            $record = PricingPackage::onlyTrashed()->findOrFail($pricingPackage);
+
+            if (Schema::hasTable('pricing_items') && DB::table('pricing_items')->where('pricing_package_id', $record->id)->exists()) {
+                throw ValidationException::withMessages([
+                    'pricing_package' => 'This pricing package still contains pricing items. Permanently delete its pricing items first.',
+                ]);
+            }
+
+            $record->forceDelete();
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pricing package permanently deleted.',
+        ]);
     }
 
     public function multipleAction(Request $request)
     {
         $validated = $request->validate([
             'action' => ['required', Rule::in(['activate', 'deactivate', 'delete', 'restore', 'force_delete'])],
-            'ids' => ['required', 'array', 'min:1'],
-            'ids.*' => ['required', 'integer', 'distinct'],
+            'ids'    => ['required', 'array', 'min:1'],
+            'ids.*'  => ['required', 'integer', 'distinct'],
         ]);
 
-        $ids = collect($validated['ids'])->map(fn ($id) => (int) $id)->unique()->values()->all();
+        $ids = collect($validated['ids'])->map(fn($id) => (int) $id)->unique()->values()->all();
 
         $message = match ($validated['action']) {
-            'activate' => $this->bulkStatus($ids, true),
-            'deactivate' => $this->bulkStatus($ids, false),
-            'delete' => $this->bulkDelete($ids),
-            'restore' => $this->bulkRestore($ids),
+            'activate'     => $this->bulkStatus($ids, true),
+            'deactivate'   => $this->bulkStatus($ids, false),
+            'delete'       => $this->bulkDelete($ids),
+            'restore'      => $this->bulkRestore($ids),
             'force_delete' => $this->bulkForceDelete($ids),
         };
 
@@ -213,7 +228,7 @@ class PricingPackageController extends Controller
     private function formData(): array
     {
         return [
-            'services' => Service::query()->orderBy('name')->get(['id', 'name']),
+            'services'  => Service::query()->orderBy('name')->get(['id', 'name']),
             'locations' => Location::query()->orderBy('name')->get(['id', 'name']),
         ];
     }
@@ -221,16 +236,16 @@ class PricingPackageController extends Controller
     private function validatePackage(Request $request, ?PricingPackage $pricingPackage = null): array
     {
         return $request->validate([
-            'service_id' => ['nullable', 'integer', Rule::exists('services', 'id')->whereNull('deleted_at')],
+            'service_id'  => ['nullable', 'integer', Rule::exists('services', 'id')->whereNull('deleted_at')],
             'location_id' => ['nullable', 'integer', Rule::exists('locations', 'id')->whereNull('deleted_at')],
-            'name' => ['required', 'string', 'max:190'],
-            'subtitle' => ['nullable', 'string', 'max:190'],
-            'badge' => ['nullable', 'string', 'max:100'],
+            'name'        => ['required', 'string', 'max:190'],
+            'subtitle'    => ['nullable', 'string', 'max:190'],
+            'badge'       => ['nullable', 'string', 'max:100'],
             'description' => ['nullable', 'string', 'max:60000'],
-            'currency' => ['required', 'string', 'size:3', 'regex:/^[A-Za-z]{3}$/'],
+            'currency'    => ['required', 'string', 'size:3', 'regex:/^[A-Za-z]{3}$/'],
             'is_featured' => ['required', 'boolean'],
-            'is_active' => ['required', 'boolean'],
-            'sort_order' => ['nullable', 'integer', 'min:0'],
+            'is_active'   => ['required', 'boolean'],
+            'sort_order'  => ['nullable', 'integer', 'min:0'],
         ]);
     }
 
@@ -287,9 +302,31 @@ class PricingPackageController extends Controller
     private function bulkForceDelete(array $ids): string
     {
         $this->ensurePermission('pricing_package_force_delete');
+
         DB::transaction(function () use ($ids): void {
-            PricingPackage::onlyTrashed()->whereIn('id', $ids)->get()->each->forceDelete();
+            $packages = PricingPackage::onlyTrashed()
+                ->whereIn('id', $ids)
+                ->get();
+
+            if (Schema::hasTable('pricing_items') && $packages->isNotEmpty()) {
+                $blockedPackageIds = DB::table('pricing_items')
+                    ->whereIn('pricing_package_id', $packages->pluck('id')->all())
+                    ->pluck('pricing_package_id')
+                    ->unique()
+                    ->values();
+
+                if ($blockedPackageIds->isNotEmpty()) {
+                    throw ValidationException::withMessages([
+                        'pricing_package' => 'One or more selected pricing packages still contain pricing items. Permanently delete those pricing items first.',
+                    ]);
+                }
+            }
+
+            $packages->each(function (PricingPackage $pricingPackage): void {
+                $pricingPackage->forceDelete();
+            });
         });
+
         return 'Selected pricing packages permanently deleted.';
     }
 

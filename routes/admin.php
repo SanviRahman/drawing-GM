@@ -8,6 +8,7 @@ use App\Http\Controllers\Backoffice\Admin\MenuController;
 use App\Http\Controllers\Backoffice\Admin\PageController;
 use App\Http\Controllers\Backoffice\Admin\PageSectionController;
 use App\Http\Controllers\Backoffice\Admin\PermissionController;
+use App\Http\Controllers\Backoffice\Admin\PricingItemController;
 use App\Http\Controllers\Backoffice\Admin\PricingPackageController;
 use App\Http\Controllers\Backoffice\Admin\ProfileController;
 use App\Http\Controllers\Backoffice\Admin\RoleController;
@@ -198,7 +199,7 @@ Route::middleware('auth:admin')->group(function () {
         Route::resource('/', LocationController::class)->parameters(['' => 'location']);
     });
 
-// Pricing Packages
+    // Pricing Packages
     Route::group(['prefix' => 'pricing-packages', 'as' => 'pricing_packages.'], function () {
         Route::post('multiple-action', [PricingPackageController::class, 'multipleAction'])->name('multiple_action');
 
@@ -213,5 +214,22 @@ Route::middleware('auth:admin')->group(function () {
         Route::post('{pricingPackage}/duplicate', [PricingPackageController::class, 'duplicate'])->name('duplicate');
 
         Route::resource('/', PricingPackageController::class)->parameters(['' => 'pricingPackage']);
+    });
+
+    // Pricing Items
+    Route::group(['prefix' => 'pricing-items', 'as' => 'pricing_items.'], function () {
+        Route::post('multiple-action', [PricingItemController::class, 'multipleAction'])->name('multiple_action');
+
+        Route::get('trash', [PricingItemController::class, 'trash'])->name('trashed');
+        Route::post('restore/{pricingItem}', [PricingItemController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{pricingItem}', [PricingItemController::class, 'forceDelete'])->name('force_delete');
+
+        Route::get('list', [PricingItemController::class, 'list'])->name('list');
+        Route::get('ajax-search', [PricingItemController::class, 'list'])->name('ajax_search');
+
+        Route::post('{pricingItem}/toggle', [PricingItemController::class, 'toggle'])->name('toggle');
+        Route::post('{pricingItem}/duplicate', [PricingItemController::class, 'duplicate'])->name('duplicate');
+
+        Route::resource('/', PricingItemController::class)->parameters(['' => 'pricingItem']);
     });
 });

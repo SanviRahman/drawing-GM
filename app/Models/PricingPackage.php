@@ -1,11 +1,11 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PricingPackage extends Model
@@ -27,19 +27,19 @@ class PricingPackage extends Model
 
     protected $attributes = [
         'is_featured' => false,
-        'is_active' => true,
-        'sort_order' => 0,
+        'is_active'   => true,
+        'sort_order'  => 0,
     ];
 
     protected function casts(): array
     {
         return [
             'is_featured' => 'boolean',
-            'is_active' => 'boolean',
-            'sort_order' => 'integer',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-            'deleted_at' => 'datetime',
+            'is_active'   => 'boolean',
+            'sort_order'  => 'integer',
+            'created_at'  => 'datetime',
+            'updated_at'  => 'datetime',
+            'deleted_at'  => 'datetime',
         ];
     }
 
@@ -53,6 +53,10 @@ class PricingPackage extends Model
         return $this->belongsTo(Location::class)->withTrashed();
     }
 
+    public function items(): HasMany
+    {
+        return $this->hasMany(PricingItem::class)->ordered();
+    }
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
