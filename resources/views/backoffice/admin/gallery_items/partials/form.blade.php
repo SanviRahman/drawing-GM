@@ -48,17 +48,51 @@ $afterUrl=$isEdit&&$galleryItem->hasMedia('after')?$galleryItem->getFirstMediaUr
                 placeholder="Enter caption">{{$isEdit?$galleryItem->caption:old('caption')}}</textarea>
             <div class="invalid-feedback error-caption"></div>
         </div>
-        <div class="col-md-12 mb-3">
-            <label class="font-weight-bold">Main Image</label>
-            <div class="d-flex align-items-center" style="gap:10px;">
-                <img id="image_preview" src="{{$imageUrl}}" width="90" height="90" class="rounded border"
-                    style="object-fit:cover;">
-                <input type="file" name="image" id="image_file" class="form-control-file" accept="image/*">
-                <button type="button" class="btn btn-outline-primary btn-sm choose-media" data-target="image"><i
-                        class="fas fa-images"></i> Media Picker</button>
+        <div class="col-md-12 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0 font-weight-bold">
+                        <i class="fas fa-image text-primary mr-1"></i> Main Image
+                    </h6>
+                </div>
+
+                <div class="card-body">
+                    <div class="media-upload-wrapper">
+
+                        <div class="preview-wrapper mb-3 position-relative">
+                            <img id="image_preview"
+                                src="{{$imageUrl}}"
+                                class="media-preview-image rounded border">
+
+                            <button type="button"
+                                class="btn btn-danger btn-sm remove-preview"
+                                data-target="image">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <input type="file"
+                                name="image"
+                                id="image_file"
+                                class="form-control-file"
+                                accept="image/*">
+
+                            <button type="button"
+                                class="btn btn-primary choose-media"
+                                data-target="image">
+                                <i class="fas fa-images mr-1"></i>
+                                Media Picker
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <input type="hidden" name="image_media_id" id="image_media_id">
+
+                    <div class="invalid-feedback error-image"></div>
+                </div>
             </div>
-            <input type="hidden" name="image_media_id" id="image_media_id">
-            <div class="invalid-feedback error-image"></div>
         </div>
         <div class="col-md-6 mb-3">
             <label class="font-weight-bold">Before Image</label>
@@ -184,3 +218,51 @@ $(document).ready(function() {
     height: 38px !important;
 }
 </style>
+<style>
+.select2-container--default .select2-selection--single {
+    height: 38px !important;
+    display:flex !important;
+    align-items:center !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height:normal !important;
+    padding-left:12px !important;
+}
+
+.media-preview-image {
+    width:120px;
+    height:120px;
+    object-fit:cover;
+    display:block;
+}
+
+.preview-wrapper {
+    width:120px;
+}
+
+.remove-preview {
+    position:absolute;
+    top:-8px;
+    right:-8px;
+    border-radius:50%;
+    width:28px;
+    height:28px;
+    padding:0;
+}
+</style>
+
+<script>
+$(document).on('click','.remove-preview',function(){
+
+    let target=$(this).data('target');
+
+    $('#'+target+'_preview')
+        .attr('src','{{ asset("images/no-image.png") }}');
+
+    $('#'+target+'_media_id').val('');
+
+    $('#'+target+'_file').val('');
+
+});
+</script>
