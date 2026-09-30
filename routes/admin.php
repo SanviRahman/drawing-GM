@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Backoffice\Admin\AdminController;
 use App\Http\Controllers\Backoffice\Admin\DashboardController;
+use App\Http\Controllers\Backoffice\Admin\GalleryController;
+use App\Http\Controllers\Backoffice\Admin\GalleryItemController;
 use App\Http\Controllers\Backoffice\Admin\LocationController;
 use App\Http\Controllers\Backoffice\Admin\MediaController;
 use App\Http\Controllers\Backoffice\Admin\MenuController;
@@ -234,20 +236,39 @@ Route::middleware('auth:admin')->group(function () {
         Route::resource('/', PricingItemController::class)->parameters(['' => 'pricingItem']);
     });
 
-// Pricing Add-ons
+    // Pricing Add-on
     Route::group(['prefix' => 'pricing-addons', 'as' => 'pricing_addons.'], function () {
         Route::post('multiple-action', [PricingAddonController::class, 'multipleAction'])->name('multiple_action');
-
         Route::get('trash', [PricingAddonController::class, 'trash'])->name('trashed');
         Route::post('restore/{pricingAddon}', [PricingAddonController::class, 'restore'])->name('restore');
         Route::delete('force-delete/{pricingAddon}', [PricingAddonController::class, 'forceDelete'])->name('force_delete');
-
         Route::get('list', [PricingAddonController::class, 'list'])->name('list');
         Route::get('ajax-search', [PricingAddonController::class, 'list'])->name('ajax_search');
-
         Route::post('{pricingAddon}/toggle', [PricingAddonController::class, 'toggle'])->name('toggle');
         Route::post('{pricingAddon}/duplicate', [PricingAddonController::class, 'duplicate'])->name('duplicate');
-
         Route::resource('/', PricingAddonController::class)->parameters(['' => 'pricingAddon']);
+    });
+
+    // Galleries
+    Route::group(['prefix' => 'galleries', 'as' => 'galleries.'], function () {
+        Route::post('multiple-action', [GalleryController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [GalleryController::class, 'trash'])->name('trashed');
+        Route::post('restore/{gallery}', [GalleryController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{gallery}', [GalleryController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [GalleryController::class, 'list'])->name('list');
+        Route::get('ajax-search', [GalleryController::class, 'list'])->name('ajax_search');
+        Route::resource('/', GalleryController::class)->parameters(['' => 'gallery']);
+
+    });
+
+    // Gallery Items
+    Route::group(['prefix' => 'gallery-items', 'as' => 'gallery_items.'], function () {
+        Route::post('multiple-action', [GalleryItemController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [GalleryItemController::class, 'trash'])->name('trashed');
+        Route::post('restore/{galleryItem}', [GalleryItemController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{galleryItem}', [GalleryItemController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [GalleryItemController::class, 'list'])->name('list');
+        Route::get('ajax-search', [GalleryItemController::class, 'list'])->name('ajax_search');
+        Route::resource('/', GalleryItemController::class)->parameters(['' => 'galleryItem']);
     });
 });

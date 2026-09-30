@@ -445,6 +445,38 @@ return [
 
         /*
         |--------------------------------------------------------------------------
+        | Gallery Management
+        |--------------------------------------------------------------------------
+        */
+
+        ['header' => 'GALLERY MANAGEMENT'],
+        [
+            'text'    => 'Gallery Manage',
+            'icon'    => 'fas fa-fw fa-images',
+            'active'  => [
+                'admin/galleries*',
+                'admin/gallery-items*',
+            ],
+            'submenu' => [
+                [
+                    'text'   => 'Galleries',
+                    'route'  => 'admin.galleries.index',
+                    'icon'   => 'far fa-fw fa-image',
+                    'can'    => 'gallery_list',
+                    'active' => ['admin/galleries*'],
+                ],
+                [
+                    'text'   => 'Gallery Items',
+                    'route'  => 'admin.gallery_items.index',
+                    'icon'   => 'fas fa-fw fa-photo-video',
+                    'can'    => 'gallery_item_list',
+                    'active' => ['admin/gallery-items*'],
+                ],
+            ],
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
         | Site Configuration
         |--------------------------------------------------------------------------
         */

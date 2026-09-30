@@ -262,6 +262,9 @@ class RolePermissionSeeder extends Seeder
             'gallery_delete',
             'gallery_toggle',
             'gallery_reorder',
+            'gallery_trash',
+            'gallery_restore',
+            'gallery_force_delete',
         ],
 
         'Gallery Items'       => [
@@ -272,8 +275,11 @@ class RolePermissionSeeder extends Seeder
             'gallery_item_delete',
             'gallery_item_toggle',
             'gallery_item_reorder',
+            'gallery_item_trash',
+            'gallery_item_restore',
+            'gallery_item_force_delete',
         ],
-
+        
         'Videos'              => [
             'video_list',
             'video_view',
