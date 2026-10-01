@@ -456,6 +456,8 @@ return [
             'active'  => [
                 'admin/galleries*',
                 'admin/gallery-items*',
+                'admin/videos*',
+                'admin/testimonials*',
             ],
             'submenu' => [
                 [
@@ -471,6 +473,21 @@ return [
                     'icon'   => 'fas fa-fw fa-photo-video',
                     'can'    => 'gallery_item_list',
                     'active' => ['admin/gallery-items*'],
+                ],
+                [
+                    'text'   => 'Videos',
+                    'route'  => 'admin.videos.index',
+                    'icon'   => 'fas fa-fw fa-video',
+                    'can'    => 'video_list',
+                    'active' => ['admin/videos*'],
+                ],
+
+                [
+                    'text'   => 'Testimonials',
+                    'route'  => 'admin.testimonials.index',
+                    'icon'   => 'fas fa-fw fa-comment-dots',
+                    'can'    => 'testimonial_list',
+                    'active' => ['admin/testimonials*'],
                 ],
             ],
         ],

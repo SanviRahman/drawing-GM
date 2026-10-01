@@ -20,6 +20,8 @@ use App\Http\Controllers\Backoffice\Admin\SectionMediaController;
 use App\Http\Controllers\Backoffice\Admin\ServiceController;
 use App\Http\Controllers\Backoffice\Admin\ServiceFeatureController;
 use App\Http\Controllers\Backoffice\Admin\SettingController;
+use App\Http\Controllers\Backoffice\Admin\TestimonialController;
+use App\Http\Controllers\Backoffice\Admin\VideoController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:admin')->group(function () {
@@ -270,5 +272,29 @@ Route::middleware('auth:admin')->group(function () {
         Route::get('list', [GalleryItemController::class, 'list'])->name('list');
         Route::get('ajax-search', [GalleryItemController::class, 'list'])->name('ajax_search');
         Route::resource('/', GalleryItemController::class)->parameters(['' => 'galleryItem']);
+    });
+
+    // Videos
+    Route::group(['prefix' => 'videos', 'as' => 'videos.'], function () {
+        Route::post('multiple-action', [VideoController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [VideoController::class, 'trash'])->name('trashed');
+        Route::post('restore/{video}', [VideoController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{video}', [VideoController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [VideoController::class, 'list'])->name('list');
+        Route::get('ajax-search', [VideoController::class, 'list'])->name('ajax_search');
+        Route::post('reorder', [VideoController::class, 'reorder'])->name('reorder');
+        Route::post('{video}/toggle', [VideoController::class, 'toggle'])->name('toggle');
+        Route::resource('/', VideoController::class)->parameters(['' => 'video']);
+    });
+
+    // Testimonials
+    Route::group(['prefix' => 'testimonials', 'as' => 'testimonials.'], function () {
+        Route::post('multiple-action', [TestimonialController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [TestimonialController::class, 'trash'])->name('trashed');
+        Route::post('restore/{testimonial}', [TestimonialController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{testimonial}', [TestimonialController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [TestimonialController::class, 'list'])->name('list');
+        Route::get('ajax-search', [TestimonialController::class, 'list'])->name('ajax_search');
+        Route::resource('/', TestimonialController::class)->parameters(['' => 'testimonial']);
     });
 });

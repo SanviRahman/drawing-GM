@@ -279,13 +279,16 @@ class RolePermissionSeeder extends Seeder
             'gallery_item_restore',
             'gallery_item_force_delete',
         ],
-        
+
         'Videos'              => [
             'video_list',
             'video_view',
             'video_create',
             'video_update',
             'video_delete',
+            'video_trash',
+            'video_restore',
+            'video_force_delete',
             'video_upload',
             'video_embed',
             'video_process',
@@ -295,13 +298,13 @@ class RolePermissionSeeder extends Seeder
 
         'Testimonials'        => [
             'testimonial_list',
-            'testimonial_view',
             'testimonial_create',
+            'testimonial_view',
             'testimonial_update',
             'testimonial_delete',
-            'testimonial_toggle',
-            'testimonial_reorder',
-            'testimonial_set_featured',
+            'testimonial_trash',
+            'testimonial_restore',
+            'testimonial_force_delete',
         ],
 
         'Reviews'             => [
@@ -510,30 +513,23 @@ class RolePermissionSeeder extends Seeder
                 'name'       => 'admin',
                 'guard_name' => 'admin',
             ]);
-
             $userRole = Role::query()->firstOrCreate([
                 'name'       => 'user',
                 'guard_name' => 'web',
             ]);
-
             $adminPermissions = $this->seedPermissionGroups(
                 groups: self::ADMIN_PERMISSION_GROUPS,
                 guardName: 'admin',
             );
-
             $userPermissions = $this->seedPermissionGroups(
                 groups: self::USER_PERMISSION_GROUPS,
                 guardName: 'web',
             );
-
             $adminRole->syncPermissions($adminPermissions);
             $userRole->syncPermissions($userPermissions);
-
             $admin = $this->createInitialAdmin();
-
             $admin->syncRoles([$adminRole]);
         });
-
         $permissionRegistrar->forgetCachedPermissions();
     }
 
@@ -578,24 +574,19 @@ class RolePermissionSeeder extends Seeder
         $admin = Admin::query()->firstOrNew([
             'email' => 'admin@gmail.com',
         ]);
-
         $isNewAdmin = ! $admin->exists;
-
         $admin->forceFill([
             'name'     => 'Super Admin',
             'username' => 'admin',
             'phone'    => '01700000000',
             'status'   => true,
         ]);
-
         if ($isNewAdmin) {
             $admin->password = Hash::make(
                 'password123'
             );
         }
-
         $admin->save();
-
         return $admin;
     }
 }

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
@@ -15,9 +14,9 @@ class Service extends Model implements HasMedia
     use HasFactory, InteractsWithMedia, SoftDeletes;
 
     public const STATUSES = [
-        'draft' => 'Draft',
+        'draft'     => 'Draft',
         'published' => 'Published',
-        'archived' => 'Archived',
+        'archived'  => 'Archived',
     ];
 
     public const MEDIA_COLLECTIONS = [
@@ -40,30 +39,33 @@ class Service extends Model implements HasMedia
     ];
 
     protected $attributes = [
-        'status' => 'draft',
+        'status'      => 'draft',
         'is_featured' => false,
-        'sort_order' => 0,
+        'sort_order'  => 0,
     ];
 
     protected function casts(): array
     {
         return [
-            'hero_config' => 'array',
-            'is_featured' => 'boolean',
-            'sort_order' => 'integer',
+            'hero_config'  => 'array',
+            'is_featured'  => 'boolean',
+            'sort_order'   => 'integer',
             'published_at' => 'datetime',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-            'deleted_at' => 'datetime',
+            'created_at'   => 'datetime',
+            'updated_at'   => 'datetime',
+            'deleted_at'   => 'datetime',
         ];
     }
 
-
     public function features(): HasMany
-{
-    return $this->hasMany(ServiceFeature::class)->ordered();
-}
-    
+    {
+        return $this->hasMany(ServiceFeature::class)->ordered();
+    }
+
+    public function testimonials()
+    {
+        return $this->morphToMany(Testimonial::class, 'testimonialable')->withPivot('sort_order')->withTimestamps();
+    }
     public function registerMediaCollections(): void
     {
         $allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -97,8 +99,8 @@ class Service extends Model implements HasMedia
     {
         return match ($this->status) {
             'published' => 'success',
-            'archived' => 'secondary',
-            default => 'warning',
+            'archived'  => 'secondary',
+            default     => 'warning',
         };
     }
 

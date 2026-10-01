@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
@@ -14,9 +13,9 @@ class Location extends Model implements HasMedia
     use HasFactory, InteractsWithMedia, SoftDeletes;
 
     public const STATUSES = [
-        'draft' => 'Draft',
+        'draft'     => 'Draft',
         'published' => 'Published',
-        'archived' => 'Archived',
+        'archived'  => 'Archived',
     ];
 
     public const MEDIA_COLLECTIONS = [
@@ -39,7 +38,7 @@ class Location extends Model implements HasMedia
     ];
 
     protected $attributes = [
-        'status' => 'draft',
+        'status'     => 'draft',
         'sort_order' => 0,
     ];
 
@@ -47,13 +46,18 @@ class Location extends Model implements HasMedia
     {
         return [
             'postal_codes' => 'array',
-            'hero_config' => 'array',
-            'sort_order' => 'integer',
+            'hero_config'  => 'array',
+            'sort_order'   => 'integer',
             'published_at' => 'datetime',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-            'deleted_at' => 'datetime',
+            'created_at'   => 'datetime',
+            'updated_at'   => 'datetime',
+            'deleted_at'   => 'datetime',
         ];
+    }
+
+    public function testimonials()
+    {
+        return $this->morphToMany(Testimonial::class, 'testimonialable')->withPivot('sort_order')->withTimestamps();
     }
 
     public function registerMediaCollections(): void
@@ -84,8 +88,8 @@ class Location extends Model implements HasMedia
     {
         return match ($this->status) {
             'published' => 'success',
-            'archived' => 'secondary',
-            default => 'warning',
+            'archived'  => 'secondary',
+            default     => 'warning',
         };
     }
 
