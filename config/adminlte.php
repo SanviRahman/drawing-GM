@@ -623,6 +623,58 @@ return [
             'active' => ['admin/media-management*'],
         ],
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEO & Tracking
+        |--------------------------------------------------------------------------
+        */
+
+        [
+            'header' => 'SEO & TRACKING',
+        ],
+
+        [
+            'text'    => 'SEO & Tracking',
+            'icon'    => 'fas fa-fw fa-chart-area',
+            'active'  => [
+                'admin/seo*',
+                'admin/redirects*',
+                'admin/tracking*',
+                'admin/tracking-event-rules*',
+            ],
+            'submenu' => [
+                [
+                    'text'   => 'SEO Metadata',
+                    'route'  => 'admin.seo.index',
+                    'icon'   => 'fas fa-fw fa-search',
+                    'can'    => 'seo_meta_list',
+                    'active' => ['admin/seo*'],
+                ],
+                [
+                    'text'   => 'Redirects',
+                    'route'  => 'admin.redirects.index',
+                    'icon'   => 'fas fa-fw fa-random',
+                    'can'    => 'redirect_list',
+                    'active' => ['admin/redirects*'],
+                ],
+                [
+                    'text'   => 'Tracking Providers',
+                    'route'  => 'admin.tracking.index',
+                    'icon'   => 'fas fa-fw fa-chart-line',
+                    'can'    => 'tracking_provider_list',
+                    'active' => ['admin/tracking', 'admin/tracking/*'],
+                ],
+                [
+                    'text'   => 'Tracking Event Rules',
+                    'route'  => 'admin.tracking_event_rules.index',
+                    'icon'   => 'fas fa-fw fa-project-diagram',
+                    'can'    => 'tracking_event_rule_list',
+                    'active' => ['admin/tracking-event-rules*'],
+                ],
+            ],
+        ],
+
         /*
         |--------------------------------------------------------------------------
         | Account

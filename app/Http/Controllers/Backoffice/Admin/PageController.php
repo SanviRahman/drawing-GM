@@ -223,6 +223,15 @@ class PageController extends Controller
                 ]);
             }
 
+            if (Schema::hasTable('seo_metas') && DB::table('seo_metas')
+                ->where('seoable_type', $record->getMorphClass())
+                ->where('seoable_id', $record->id)
+                ->exists()) {
+                throw ValidationException::withMessages([
+                    'page' => 'This page still has SEO metadata. Permanently delete its SEO metadata first.',
+                ]);
+            }
+
             $this->pageMediaService->purgeAll($record);
             $record->forceDelete();
         });
@@ -500,6 +509,20 @@ class PageController extends Controller
                 if ($hasFaqMappings) {
                     throw ValidationException::withMessages([
                         'pages' => 'One or more selected pages still have FAQ mappings. Detach those FAQs before permanently deleting the pages.',
+                    ]);
+                }
+            }
+
+            if (Schema::hasTable('seo_metas') && $pages->isNotEmpty()) {
+                $morphType = (new Page())->getMorphClass();
+                $hasSeoMetadata = DB::table('seo_metas')
+                    ->where('seoable_type', $morphType)
+                    ->whereIn('seoable_id', $pages->pluck('id')->all())
+                    ->exists();
+
+                if ($hasSeoMetadata) {
+                    throw ValidationException::withMessages([
+                        'pages' => 'One or more selected pages still have SEO metadata. Permanently delete that SEO metadata first.',
                     ]);
                 }
             }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\ApplyRedirects;
 use App\Http\Middleware\LteContextSwitcher;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -15,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->web(append: [ApplyRedirects::class]);
         $middleware->alias([
             'lte_context' => LteContextSwitcher::class,
 

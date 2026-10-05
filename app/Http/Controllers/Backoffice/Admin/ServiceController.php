@@ -189,13 +189,7 @@ class ServiceController extends Controller
 
         DB::transaction(function () use ($service): void {
             $record = Service::onlyTrashed()->findOrFail($service);
-
-            if (Schema::hasTable('service_features') && DB::table('service_features')->where('service_id', $record->id)->exists()) {
-                throw ValidationException::withMessages([
-                    'service' => 'This service still contains service features. Permanently delete its service features first.',
-                ]);
-            }
-
+            $this->ensureForceDeletable($record);
             $this->serviceMediaService->purgeAll($record);
             $record->forceDelete();
         });
@@ -471,18 +465,8 @@ class ServiceController extends Controller
         DB::transaction(function () use ($ids): void {
             $services = Service::onlyTrashed()->whereIn('id', $ids)->get();
 
-            if (Schema::hasTable('service_features')) {
-                $blockedServiceIds = DB::table('service_features')
-                    ->whereIn('service_id', $services->pluck('id')->all())
-                    ->pluck('service_id')
-                    ->unique()
-                    ->values();
-
-                if ($blockedServiceIds->isNotEmpty()) {
-                    throw ValidationException::withMessages([
-                        'services' => 'One or more selected services still contain service features. Permanently delete those service features first.',
-                    ]);
-                }
+            foreach ($services as $service) {
+                $this->ensureForceDeletable($service);
             }
 
             $services->each(function (Service $service): void {

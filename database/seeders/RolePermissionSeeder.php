@@ -440,6 +440,15 @@ class RolePermissionSeeder extends Seeder
             'seo_sitemap_manage',
             'seo_schema_manage',
             'seo_social_manage',
+
+            'seo_meta_list',
+            'seo_meta_view',
+            'seo_meta_create',
+            'seo_meta_update',
+            'seo_meta_delete',
+            'seo_meta_trash',
+            'seo_meta_restore',
+            'seo_meta_force_delete',
         ],
 
         'Redirects'               => [
@@ -451,6 +460,9 @@ class RolePermissionSeeder extends Seeder
             'redirect_toggle',
             'redirect_import',
             'redirect_export',
+            'redirect_trash',
+            'redirect_restore',
+            'redirect_force_delete',
         ],
 
         'Tracking Settings'       => [
@@ -459,6 +471,26 @@ class RolePermissionSeeder extends Seeder
             'tracking_event_manage',
             'tracking_test_event',
             'tracking_consent_manage',
+
+            'tracking_provider_list',
+            'tracking_provider_view',
+            'tracking_provider_create',
+            'tracking_provider_update',
+            'tracking_provider_delete',
+            'tracking_provider_toggle',
+            'tracking_provider_trash',
+            'tracking_provider_restore',
+            'tracking_provider_force_delete',
+
+            'tracking_event_rule_list',
+            'tracking_event_rule_view',
+            'tracking_event_rule_create',
+            'tracking_event_rule_update',
+            'tracking_event_rule_delete',
+            'tracking_event_rule_toggle',
+            'tracking_event_rule_trash',
+            'tracking_event_rule_restore',
+            'tracking_event_rule_force_delete',
         ],
 
         'Meta Pixel'              => [

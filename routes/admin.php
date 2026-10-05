@@ -22,6 +22,10 @@ use App\Http\Controllers\Backoffice\Admin\PricingItemController;
 use App\Http\Controllers\Backoffice\Admin\PricingPackageAddonController;
 use App\Http\Controllers\Backoffice\Admin\PricingPackageController;
 use App\Http\Controllers\Backoffice\Admin\ProfileController;
+use App\Http\Controllers\Backoffice\Admin\RedirectController;
+use App\Http\Controllers\Backoffice\Admin\SeoController;
+use App\Http\Controllers\Backoffice\Admin\TrackingController;
+use App\Http\Controllers\Backoffice\Admin\TrackingEventRuleController;
 use App\Http\Controllers\Backoffice\Admin\RoleController;
 use App\Http\Controllers\Backoffice\Admin\SectionDefinitionController;
 use App\Http\Controllers\Backoffice\Admin\SectionMediaController;
@@ -411,6 +415,59 @@ Route::middleware('auth:admin')->group(function () {
         Route::get('{lead}/attachments/{media}/download', [LeadController::class, 'downloadAttachment'])->name('attachments.download');
         Route::get('{lead}/attachments/{media}/preview', [LeadController::class, 'previewAttachment'])->name('attachments.preview');
         Route::resource('/', LeadController::class)->parameters(['' => 'lead']);
+    });
+
+
+    // SEO Metadata
+    Route::group(['prefix' => 'seo', 'as' => 'seo.'], function () {
+        Route::post('multiple-action', [SeoController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [SeoController::class, 'trash'])->name('trashed');
+        Route::post('restore/{seo}', [SeoController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{seo}', [SeoController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [SeoController::class, 'list'])->name('list');
+        Route::get('ajax-search', [SeoController::class, 'list'])->name('ajax_search');
+        Route::get('targets', [SeoController::class, 'targets'])->name('targets');
+        Route::resource('/', SeoController::class)->parameters(['' => 'seo']);
+    });
+
+    // Redirects
+    Route::group(['prefix' => 'redirects', 'as' => 'redirects.'], function () {
+        Route::post('multiple-action', [RedirectController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [RedirectController::class, 'trash'])->name('trashed');
+        Route::post('restore/{redirect}', [RedirectController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{redirect}', [RedirectController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [RedirectController::class, 'list'])->name('list');
+        Route::get('ajax-search', [RedirectController::class, 'list'])->name('ajax_search');
+        Route::get('export', [RedirectController::class, 'export'])->name('export');
+        Route::post('import', [RedirectController::class, 'import'])->name('import');
+        Route::post('{redirect}/toggle', [RedirectController::class, 'toggle'])->name('toggle');
+        Route::post('{redirect}/reset-hits', [RedirectController::class, 'resetHits'])->name('reset_hits');
+        Route::resource('/', RedirectController::class)->parameters(['' => 'redirect']);
+    });
+
+    // Tracking Providers
+    Route::group(['prefix' => 'tracking', 'as' => 'tracking.'], function () {
+        Route::post('multiple-action', [TrackingController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [TrackingController::class, 'trash'])->name('trashed');
+        Route::post('restore/{tracking}', [TrackingController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{tracking}', [TrackingController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [TrackingController::class, 'list'])->name('list');
+        Route::get('ajax-search', [TrackingController::class, 'list'])->name('ajax_search');
+        Route::post('{tracking}/toggle', [TrackingController::class, 'toggle'])->name('toggle');
+        Route::post('{tracking}/test', [TrackingController::class, 'test'])->name('test');
+        Route::resource('/', TrackingController::class)->parameters(['' => 'tracking']);
+    });
+
+    // Tracking Event Rules
+    Route::group(['prefix' => 'tracking-event-rules', 'as' => 'tracking_event_rules.'], function () {
+        Route::post('multiple-action', [TrackingEventRuleController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [TrackingEventRuleController::class, 'trash'])->name('trashed');
+        Route::post('restore/{trackingEventRule}', [TrackingEventRuleController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{trackingEventRule}', [TrackingEventRuleController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [TrackingEventRuleController::class, 'list'])->name('list');
+        Route::get('ajax-search', [TrackingEventRuleController::class, 'list'])->name('ajax_search');
+        Route::post('{trackingEventRule}/toggle', [TrackingEventRuleController::class, 'toggle'])->name('toggle');
+        Route::resource('/', TrackingEventRuleController::class)->parameters(['' => 'trackingEventRule']);
     });
 
 });

@@ -387,14 +387,27 @@ class CategoryController extends Controller
 
     private function ensureForceDeletable(array $ids): void
     {
-        if ($ids === [] || ! Schema::hasTable('posts')) {
+        if ($ids === []) {
             return;
         }
 
-        if (DB::table('posts')->whereIn('category_id', $ids)->exists()) {
+        if (Schema::hasTable('posts') && DB::table('posts')->whereIn('category_id', $ids)->exists()) {
             throw ValidationException::withMessages([
                 'category' => 'One or more categories are still assigned to blog posts. Reassign or clear those posts before permanently deleting the category.',
             ]);
+        }
+
+        if (Schema::hasTable('seo_metas')) {
+            $morphType = (new Category())->getMorphClass();
+
+            if (DB::table('seo_metas')
+                ->where('seoable_type', $morphType)
+                ->whereIn('seoable_id', $ids)
+                ->exists()) {
+                throw ValidationException::withMessages([
+                    'category' => 'One or more categories still have SEO metadata. Permanently delete that SEO metadata before permanently deleting the category.',
+                ]);
+            }
         }
     }
 

@@ -1,6 +1,8 @@
 <?php
 namespace App\Models;
 
+use App\Models\Concerns\HasSeoMeta;
+
 use App\Models\ContactTarget;
 use App\Models\Faq;
 use App\Models\ServiceFeature;
@@ -18,7 +20,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Service extends Model implements HasMedia
 {
-    use HasFactory, InteractsWithMedia, SoftDeletes;
+    use HasFactory, InteractsWithMedia, SoftDeletes, HasSeoMeta;
 
     public const STATUSES = [
         'draft'     => 'Draft',
