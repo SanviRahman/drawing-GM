@@ -8,7 +8,10 @@ use App\Models\Role;
 use App\Services\AdminAvatarService;
 use App\Services\Media\MediaLibraryService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class AdminController extends Controller
 {
@@ -262,6 +265,7 @@ class AdminController extends Controller
     public function forceDelete(int $admin)
     {
         $model = Admin::onlyTrashed()->findOrFail($admin);
+        $this->ensureNoAuthoredPosts([$model->id]);
         $this->mediaLibraryService->reassignLibraryMedia($model, auth('admin')->user());
         $this->avatarService->purgeAll($model);
         $model->forceDelete();
@@ -314,7 +318,10 @@ class AdminController extends Controller
 
     private function bulkForceDelete(array $ids): string
     {
-        Admin::onlyTrashed()->whereIn('id', $ids)->get()->each(function (Admin $admin) {
+        $admins = Admin::onlyTrashed()->whereIn('id', $ids)->get();
+        $this->ensureNoAuthoredPosts($admins->pluck('id')->all());
+
+        $admins->each(function (Admin $admin) {
             $this->mediaLibraryService->reassignLibraryMedia($admin, auth('admin')->user());
             $this->avatarService->purgeAll($admin);
             $admin->forceDelete();
@@ -322,6 +329,20 @@ class AdminController extends Controller
 
         return 'Selected admins permanently deleted.';
     }
+
+    private function ensureNoAuthoredPosts(array $adminIds): void
+    {
+        if ($adminIds === [] || ! Schema::hasTable('posts')) {
+            return;
+        }
+
+        if (DB::table('posts')->whereIn('author_id', $adminIds)->exists()) {
+            throw ValidationException::withMessages([
+                'admin' => 'One or more admins still own blog posts. Reassign those posts before permanently deleting the admin account.',
+            ]);
+        }
+    }
+
     private function reusableImageRule(): \Closure
     {
         return function (string $attribute, mixed $value, \Closure $fail): void {

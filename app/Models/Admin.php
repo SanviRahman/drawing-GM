@@ -46,6 +46,12 @@ class Admin extends Authenticatable implements HasMedia
     }
 
 
+
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class, 'author_id');
+    }
+
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('avatars')

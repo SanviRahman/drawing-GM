@@ -12,6 +12,7 @@ use App\Http\Controllers\Backoffice\Admin\MenuController;
 use App\Http\Controllers\Backoffice\Admin\PageController;
 use App\Http\Controllers\Backoffice\Admin\PageSectionController;
 use App\Http\Controllers\Backoffice\Admin\PermissionController;
+use App\Http\Controllers\Backoffice\Admin\PostController;
 use App\Http\Controllers\Backoffice\Admin\PricingAddonController;
 use App\Http\Controllers\Backoffice\Admin\PricingItemController;
 use App\Http\Controllers\Backoffice\Admin\PricingPackageAddonController;
@@ -334,6 +335,21 @@ Route::middleware('auth:admin')->group(function () {
         Route::get('ajax-search', [CategoryController::class, 'list'])->name('ajax_search');
         Route::post('{category}/toggle', [CategoryController::class, 'toggle'])->name('toggle');
         Route::resource('/', CategoryController::class)->parameters(['' => 'category']);
+    });
+
+    // Posts
+    Route::group(['prefix' => 'posts', 'as' => 'posts.'], function () {
+        Route::post('multiple-action', [PostController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [PostController::class, 'trash'])->name('trashed');
+        Route::post('restore/{post}', [PostController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{post}', [PostController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [PostController::class, 'list'])->name('list');
+        Route::get('ajax-search', [PostController::class, 'list'])->name('ajax_search');
+        Route::get('{post}/preview', [PostController::class, 'preview'])->name('preview');
+        Route::post('{post}/publish', [PostController::class, 'publish'])->name('publish');
+        Route::post('{post}/unpublish', [PostController::class, 'unpublish'])->name('unpublish');
+        Route::post('{post}/duplicate', [PostController::class, 'duplicate'])->name('duplicate');
+        Route::resource('/', PostController::class)->parameters(['' => 'post']);
     });
 
 });

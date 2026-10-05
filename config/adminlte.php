@@ -335,6 +335,7 @@ return [
             'icon'    => 'fas fa-fw fa-blog',
             'active'  => [
                 'admin/categories*',
+                'admin/posts*',
             ],
 
             'submenu' => [
@@ -344,6 +345,13 @@ return [
                     'icon'   => 'fas fa-fw fa-folder-open',
                     'can'    => 'blog_category_list',
                     'active' => ['admin/categories*'],
+                ],
+                [
+                    'text'   => 'Posts',
+                    'route'  => 'admin.posts.index',
+                    'icon'   => 'fas fa-fw fa-newspaper',
+                    'can'    => 'blog_post_list',
+                    'active' => ['admin/posts*'],
                 ],
             ],
         ],
