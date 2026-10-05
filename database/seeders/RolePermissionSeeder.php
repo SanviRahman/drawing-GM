@@ -553,7 +553,45 @@ class RolePermissionSeeder extends Seeder
             'audit_log_list',
             'audit_log_view',
             'audit_log_export',
+            'audit_log_delete',
+            'audit_log_trash',
+            'audit_log_restore',
+            'audit_log_force_delete',
         ],
+
+        'Campaigns'               => [
+            'campaign_list',
+            'campaign_view',
+            'campaign_create',
+            'campaign_update',
+            'campaign_delete',
+            'campaign_trash',
+            'campaign_restore',
+            'campaign_force_delete',
+            'campaign_publish',
+            'campaign_preview',
+            'campaign_set_default',
+            'campaign_media_manage',
+        ],
+
+        'Campaign Sections'       => [
+            'campaign_section_list',
+            'campaign_section_view',
+            'campaign_section_create',
+            'campaign_section_update',
+            'campaign_section_delete',
+            'campaign_section_toggle',
+            'campaign_section_reorder',
+            'campaign_section_trash',
+            'campaign_section_restore',
+            'campaign_section_force_delete',
+        ],
+
+        'Campaign Settings'       => [
+            'campaign_setting_view',
+            'campaign_setting_update',
+        ],
+
     ];
 
     /**

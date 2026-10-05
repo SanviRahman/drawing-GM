@@ -623,7 +623,6 @@ return [
             'active' => ['admin/media-management*'],
         ],
 
-
         /*
         |--------------------------------------------------------------------------
         | SEO & Tracking
@@ -673,6 +672,56 @@ return [
                     'active' => ['admin/tracking-event-rules*'],
                 ],
             ],
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | Campaign Management
+        |--------------------------------------------------------------------------
+        */
+        [
+            'header' => 'CAMPAIGN MANAGEMENT',
+        ],
+        [
+            'text'    => 'Campaign Management',
+            'icon'    => 'fas fa-fw fa-bullhorn',
+            'active'  => [
+                'admin/campaigns*',
+                'admin/campaign-sections*',
+                'admin/campaign-settings*',
+            ],
+            'submenu' => [
+                [
+                    'text'   => 'Campaigns',
+                    'route'  => 'admin.campaigns.index',
+                    'icon'   => 'fas fa-fw fa-bullhorn',
+                    'can'    => 'campaign_list',
+                    'active' => ['admin/campaigns*'],
+                ],
+                [
+                    'text'   => 'Campaign Sections',
+                    'route'  => 'admin.campaign_sections.index',
+                    'icon'   => 'fas fa-fw fa-layer-group',
+                    'can'    => 'campaign_section_list',
+                    'active' => ['admin/campaign-sections*'],
+                ],
+                [
+                    'text'   => 'Campaign Settings',
+                    'route'  => 'admin.campaign_settings.edit',
+                    'icon'   => 'fas fa-fw fa-cogs',
+                    'can'    => 'campaign_setting_view',
+                    'active' => ['admin/campaign-settings*'],
+                ],
+            ],
+        ],
+
+// Add under SYSTEM TOOLS or a new OPERATIONS header:
+        [
+            'text'   => 'Audit Logs',
+            'route'  => 'admin.audit_logs.index',
+            'icon'   => 'fas fa-fw fa-history',
+            'can'    => 'audit_log_list',
+            'active' => ['admin/audit-logs*'],
         ],
 
         /*

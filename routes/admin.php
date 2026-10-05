@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\Backoffice\Admin\AdminController;
+use App\Http\Controllers\Backoffice\Admin\AuditLogController;
+use App\Http\Controllers\Backoffice\Admin\CampaignController;
+use App\Http\Controllers\Backoffice\Admin\CampaignSectionController;
+use App\Http\Controllers\Backoffice\Admin\CampaignSettingController;
 use App\Http\Controllers\Backoffice\Admin\CategoryController;
 use App\Http\Controllers\Backoffice\Admin\ContactChannelController;
 use App\Http\Controllers\Backoffice\Admin\ContactTargetController;
@@ -23,16 +27,16 @@ use App\Http\Controllers\Backoffice\Admin\PricingPackageAddonController;
 use App\Http\Controllers\Backoffice\Admin\PricingPackageController;
 use App\Http\Controllers\Backoffice\Admin\ProfileController;
 use App\Http\Controllers\Backoffice\Admin\RedirectController;
-use App\Http\Controllers\Backoffice\Admin\SeoController;
-use App\Http\Controllers\Backoffice\Admin\TrackingController;
-use App\Http\Controllers\Backoffice\Admin\TrackingEventRuleController;
 use App\Http\Controllers\Backoffice\Admin\RoleController;
 use App\Http\Controllers\Backoffice\Admin\SectionDefinitionController;
 use App\Http\Controllers\Backoffice\Admin\SectionMediaController;
+use App\Http\Controllers\Backoffice\Admin\SeoController;
 use App\Http\Controllers\Backoffice\Admin\ServiceController;
 use App\Http\Controllers\Backoffice\Admin\ServiceFeatureController;
 use App\Http\Controllers\Backoffice\Admin\SettingController;
 use App\Http\Controllers\Backoffice\Admin\TestimonialController;
+use App\Http\Controllers\Backoffice\Admin\TrackingController;
+use App\Http\Controllers\Backoffice\Admin\TrackingEventRuleController;
 use App\Http\Controllers\Backoffice\Admin\VideoController;
 use Illuminate\Support\Facades\Route;
 
@@ -417,7 +421,6 @@ Route::middleware('auth:admin')->group(function () {
         Route::resource('/', LeadController::class)->parameters(['' => 'lead']);
     });
 
-
     // SEO Metadata
     Route::group(['prefix' => 'seo', 'as' => 'seo.'], function () {
         Route::post('multiple-action', [SeoController::class, 'multipleAction'])->name('multiple_action');
@@ -469,5 +472,53 @@ Route::middleware('auth:admin')->group(function () {
         Route::post('{trackingEventRule}/toggle', [TrackingEventRuleController::class, 'toggle'])->name('toggle');
         Route::resource('/', TrackingEventRuleController::class)->parameters(['' => 'trackingEventRule']);
     });
+
+    // Audit Logs
+    Route::group(['prefix' => 'audit-logs', 'as' => 'audit_logs.'], function () {
+        Route::post('multiple-action', [AuditLogController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [AuditLogController::class, 'trash'])->name('trashed');
+        Route::post('restore/{auditLog}', [AuditLogController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{auditLog}', [AuditLogController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [AuditLogController::class, 'list'])->name('list');
+        Route::get('ajax-search', [AuditLogController::class, 'list'])->name('ajax_search');
+        Route::get('export', [AuditLogController::class, 'export'])->name('export');
+        Route::get('/', [AuditLogController::class, 'index'])->name('index');
+        Route::get('{auditLog}', [AuditLogController::class, 'show'])->name('show');
+        Route::delete('{auditLog}', [AuditLogController::class, 'destroy'])->name('destroy');
+    });
+
+    // Campaigns
+    Route::group(['prefix' => 'campaigns', 'as' => 'campaigns.'], function () {
+        Route::post('multiple-action', [CampaignController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [CampaignController::class, 'trash'])->name('trashed');
+        Route::post('restore/{campaign}', [CampaignController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{campaign}', [CampaignController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [CampaignController::class, 'list'])->name('list');
+        Route::get('ajax-search', [CampaignController::class, 'list'])->name('ajax_search');
+        Route::get('{campaign}/preview', [CampaignController::class, 'preview'])->name('preview');
+        Route::post('{campaign}/publish', [CampaignController::class, 'publish'])->name('publish');
+        Route::post('{campaign}/unpublish', [CampaignController::class, 'unpublish'])->name('unpublish');
+        Route::post('{campaign}/set-default', [CampaignController::class, 'setDefault'])->name('set_default');
+        Route::post('{campaign}/duplicate', [CampaignController::class, 'duplicate'])->name('duplicate');
+        Route::resource('/', CampaignController::class)->parameters(['' => 'campaign']);
+    });
+
+    // Campaign Sections
+    Route::group(['prefix' => 'campaign-sections', 'as' => 'campaign_sections.'], function () {
+        Route::post('multiple-action', [CampaignSectionController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [CampaignSectionController::class, 'trash'])->name('trashed');
+        Route::post('restore/{campaignSection}', [CampaignSectionController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{campaignSection}', [CampaignSectionController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [CampaignSectionController::class, 'list'])->name('list');
+        Route::get('ajax-search', [CampaignSectionController::class, 'list'])->name('ajax_search');
+        Route::post('reorder', [CampaignSectionController::class, 'reorder'])->name('reorder');
+        Route::post('{campaignSection}/toggle', [CampaignSectionController::class, 'toggle'])->name('toggle');
+        Route::post('{campaignSection}/duplicate', [CampaignSectionController::class, 'duplicate'])->name('duplicate');
+        Route::resource('/', CampaignSectionController::class)->parameters(['' => 'campaignSection']);
+    });
+
+    // Campaign singleton settings
+    Route::get('campaign-settings', [CampaignSettingController::class, 'edit'])->name('campaign_settings.edit');
+    Route::put('campaign-settings', [CampaignSettingController::class, 'update'])->name('campaign_settings.update');
 
 });

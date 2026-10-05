@@ -1,0 +1,17 @@
+@extends('backoffice.admin.layouts.app')
+@section('title',$title)
+@section('content')
+<div class="container-fluid py-3"><div class="card shadow-sm border-0"><div class="card-header bg-white py-3"><h3 class="card-title font-weight-bold"><i class="fas fa-cogs text-primary mr-1"></i>Campaign Settings</h3></div><div class="card-body">
+<form id="campaign-settings-form" action="{{ route('admin.campaign_settings.update') }}" method="POST">@csrf @method('PUT')
+<div class="row"><div class="col-md-6 mb-3"><label class="font-weight-bold">Default Campaign</label><select name="default_campaign_id" class="form-control"><option value="">No Default Campaign</option>@foreach($campaigns as $campaign)<option value="{{ $campaign->id }}" {{ (int)$settings->default_campaign_id===(int)$campaign->id?'selected':'' }}>{{ $campaign->title }} — {{ $campaign->statusLabel() }}</option>@endforeach</select><div class="invalid-feedback error-default_campaign_id"></div><small class="text-muted">Only published, started and non-expired campaigns are accepted when saving.</small></div><div class="col-md-3 mb-3"><label class="font-weight-bold">Fallback Mode</label><select name="fallback_mode" id="fallback_mode" class="form-control">@foreach($fallbackModes as $key=>$label)<option value="{{ $key }}" {{ $settings->fallback_mode===$key?'selected':'' }}>{{ $label }}</option>@endforeach</select></div><div class="col-md-3 mb-3" id="fallback_page_wrap"><label class="font-weight-bold">Fallback Page</label><select name="fallback_page_id" class="form-control select2"><option value="">Choose Page</option>@foreach($pages as $page)<option value="{{ $page->id }}" {{ (int)$settings->fallback_page_id===(int)$page->id?'selected':'' }}>{{ $page->title }}{{ $page->is_homepage?' (Homepage)':'' }}</option>@endforeach</select><div class="invalid-feedback error-fallback_page_id"></div></div></div>
+<div class="alert alert-info"><i class="fas fa-info-circle mr-1"></i>The singleton row <code>campaign_settings.id = 1</code> is the single source of truth. Changing the default always runs through the transactional SetDefaultCampaign action.</div>
+<div class="text-right"><button type="submit" class="btn btn-primary font-weight-bold px-5"><i class="fas fa-save mr-1"></i>Save Campaign Settings</button></div>
+</form></div></div></div>
+@endsection
+@section('plugins.Select2', true)
+@section('plugins.Sweetalert2', true)
+@section('js')
+<script>
+$(function(){if($.fn.select2)$('.select2').select2({width:'100%'});function toggle(){$('#fallback_page_wrap').toggle($('#fallback_mode').val()==='page')}toggle();$('#fallback_mode').on('change',toggle);$('#campaign-settings-form').on('submit',function(e){e.preventDefault();const $f=$(this),$b=$f.find('button[type="submit"]');$f.find('.is-invalid').removeClass('is-invalid');$f.find('[class*="error-"]').text('');$b.prop('disabled',true);$.ajax({url:$f.attr('action'),type:'POST',data:$f.serialize()}).done(r=>window.showAlert?showAlert(r.message,'success'):null).fail(x=>{if(x.status===422&&x.responseJSON?.errors){Object.entries(x.responseJSON.errors).forEach(([k,m])=>{$f.find('[name="'+k+'"]').addClass('is-invalid');$f.find('.error-'+k).text(m[0])});window.showAlert?showAlert(Object.values(x.responseJSON.errors)[0][0],'error'):null}else window.showAlert?showAlert(x.responseJSON?.message||'Request failed.','error'):null}).always(()=>$b.prop('disabled',false))})});
+</script>
+@endsection

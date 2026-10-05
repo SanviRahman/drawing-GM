@@ -55,6 +55,21 @@ class Admin extends Authenticatable implements HasMedia
         return $this->hasMany(Lead::class, 'assigned_to');
     }
 
+    public function createdCampaigns(): HasMany
+    {
+        return $this->hasMany(Campaign::class, 'created_by');
+    }
+
+    public function updatedCampaigns(): HasMany
+    {
+        return $this->hasMany(Campaign::class, 'updated_by');
+    }
+
+    public function auditLogs(): MorphMany
+    {
+        return $this->morphMany(AuditLog::class, 'actor');
+    }
+
     public function leadNotes(): MorphMany
     {
         return $this->morphMany(LeadNote::class, 'author');
