@@ -380,8 +380,10 @@ class RolePermissionSeeder extends Seeder
             'contact_channel_toggle',
             'contact_channel_reorder',
             'contact_channel_set_default',
+            'contact_channel_trash',
+            'contact_channel_restore',
+            'contact_channel_force_delete',
         ],
-
         'Contact Messages'        => [
             'contact_message_list',
             'contact_message_view',

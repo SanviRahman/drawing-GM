@@ -336,6 +336,7 @@ return [
             'active'  => [
                 'admin/categories*',
                 'admin/posts*',
+                'admin/contact-channels*',
             ],
 
             'submenu' => [
@@ -352,6 +353,13 @@ return [
                     'icon'   => 'fas fa-fw fa-newspaper',
                     'can'    => 'blog_post_list',
                     'active' => ['admin/posts*'],
+                ],
+                [
+                    'text'   => 'Contact Channels',
+                    'route'  => 'admin.contact_channels.index',
+                    'icon'   => 'fas fa-fw fa-address-book',
+                    'can'    => 'contact_channel_list',
+                    'active' => ['admin/contact-channels*'],
                 ],
             ],
         ],
@@ -635,89 +643,16 @@ return [
         | System
         |--------------------------------------------------------------------------
         */
-
         [
-            'header' => 'SYSTEM',
+            'header' => 'SYSTEM TOOLS',
+            'can'    => 'system_tools_manage',
         ],
-
         [
-            'text'    => 'System Commands',
-            'icon'    => 'fas fa-fw fa-terminal',
-            'can'     => 'system_tools_manage',
-            'submenu' => [
-
-                [
-                    'text'  => 'Clear Cache',
-                    'route' => 'command.clear-cache',
-                    'icon'  => 'fas fa-fw fa-broom',
-                ],
-
-                [
-                    'text'  => 'Clear Config',
-                    'route' => 'command.clear-config',
-                    'icon'  => 'fas fa-fw fa-cog',
-                ],
-
-                [
-                    'text'  => 'Clear Route',
-                    'route' => 'command.clear-route',
-                    'icon'  => 'fas fa-fw fa-route',
-                ],
-
-                [
-                    'text'  => 'Clear View',
-                    'route' => 'command.clear-view',
-                    'icon'  => 'fas fa-fw fa-eye-slash',
-                ],
-
-                [
-                    'text'  => 'Clear Events',
-                    'route' => 'command.clear-events',
-                    'icon'  => 'fas fa-fw fa-calendar-times',
-                ],
-
-                [
-                    'text'  => 'Optimize',
-                    'route' => 'command.optimize',
-                    'icon'  => 'fas fa-fw fa-bolt',
-                ],
-
-                [
-                    'text'  => 'Optimize Clear',
-                    'route' => 'command.optimize-clear',
-                    'icon'  => 'fas fa-fw fa-sync-alt',
-                ],
-
-                [
-                    'text'  => 'Migrate Database',
-                    'route' => 'command.migrate',
-                    'icon'  => 'fas fa-fw fa-database',
-                ],
-
-                [
-                    'text'  => 'Seed Database',
-                    'route' => 'command.seed',
-                    'icon'  => 'fas fa-fw fa-seedling',
-                ],
-
-                [
-                    'text'  => 'Media Storage Doctor',
-                    'route' => 'command.media-storage-doctor',
-                    'icon'  => 'fas fa-fw fa-stethoscope',
-                ],
-
-                [
-                    'text'  => 'Migrate Fresh',
-                    'route' => 'command.migrate-fresh',
-                    'icon'  => 'fas fa-fw fa-exclamation-triangle',
-                ],
-
-                [
-                    'text'  => 'Migrate Fresh + Seed',
-                    'route' => 'command.migrate-fresh-seed',
-                    'icon'  => 'fas fa-fw fa-radiation',
-                ],
-            ],
+            'text'   => 'System Commands',
+            'route'  => 'command.index',
+            'icon'   => 'fas fa-fw fa-terminal',
+            'active' => ['admin/command*'],
+            'can'    => 'system_tools_manage',
         ],
     ],
 

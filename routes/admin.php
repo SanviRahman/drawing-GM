@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Backoffice\Admin\AdminController;
 use App\Http\Controllers\Backoffice\Admin\CategoryController;
+use App\Http\Controllers\Backoffice\Admin\ContactChannelController;
 use App\Http\Controllers\Backoffice\Admin\DashboardController;
 use App\Http\Controllers\Backoffice\Admin\FaqController;
 use App\Http\Controllers\Backoffice\Admin\GalleryController;
@@ -350,6 +351,20 @@ Route::middleware('auth:admin')->group(function () {
         Route::post('{post}/unpublish', [PostController::class, 'unpublish'])->name('unpublish');
         Route::post('{post}/duplicate', [PostController::class, 'duplicate'])->name('duplicate');
         Route::resource('/', PostController::class)->parameters(['' => 'post']);
+    });
+
+    // Contact Channels
+    Route::group(['prefix' => 'contact-channels', 'as' => 'contact_channels.'], function () {
+        Route::post('multiple-action', [ContactChannelController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [ContactChannelController::class, 'trash'])->name('trashed');
+        Route::post('restore/{contactChannel}', [ContactChannelController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{contactChannel}', [ContactChannelController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [ContactChannelController::class, 'list'])->name('list');
+        Route::get('ajax-search', [ContactChannelController::class, 'list'])->name('ajax_search');
+        Route::post('reorder', [ContactChannelController::class, 'reorder'])->name('reorder');
+        Route::post('{contactChannel}/toggle', [ContactChannelController::class, 'toggle'])->name('toggle');
+        Route::post('{contactChannel}/set-default', [ContactChannelController::class, 'setDefault'])->name('set_default');
+        Route::resource('/', ContactChannelController::class)->parameters(['' => 'contactChannel']);
     });
 
 });
