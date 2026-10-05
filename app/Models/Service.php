@@ -5,6 +5,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -65,6 +66,14 @@ class Service extends Model implements HasMedia
     public function testimonials()
     {
         return $this->morphToMany(Testimonial::class, 'testimonialable')->withPivot('sort_order')->withTimestamps();
+    }
+
+    public function faqs(): MorphToMany
+    {
+        return $this->morphToMany(Faq::class, 'faqable')
+            ->withPivot('sort_order')
+            ->withTimestamps()
+            ->orderByPivot('sort_order');
     }
     public function registerMediaCollections(): void
     {

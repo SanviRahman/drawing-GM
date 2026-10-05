@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Backoffice\Admin\AdminController;
 use App\Http\Controllers\Backoffice\Admin\DashboardController;
+use App\Http\Controllers\Backoffice\Admin\FaqController;
 use App\Http\Controllers\Backoffice\Admin\GalleryController;
 use App\Http\Controllers\Backoffice\Admin\GalleryItemController;
 use App\Http\Controllers\Backoffice\Admin\LocationController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\Backoffice\Admin\PageSectionController;
 use App\Http\Controllers\Backoffice\Admin\PermissionController;
 use App\Http\Controllers\Backoffice\Admin\PricingAddonController;
 use App\Http\Controllers\Backoffice\Admin\PricingItemController;
+use App\Http\Controllers\Backoffice\Admin\PricingPackageAddonController;
 use App\Http\Controllers\Backoffice\Admin\PricingPackageController;
 use App\Http\Controllers\Backoffice\Admin\ProfileController;
 use App\Http\Controllers\Backoffice\Admin\RoleController;
@@ -251,6 +253,17 @@ Route::middleware('auth:admin')->group(function () {
         Route::resource('/', PricingAddonController::class)->parameters(['' => 'pricingAddon']);
     });
 
+    // Pricing Package Add-ons
+    Route::group(['prefix' => 'pricing-package-addons', 'as' => 'pricing_package_addons.'], function () {
+        Route::post('multiple-action', [PricingPackageAddonController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [PricingPackageAddonController::class, 'trash'])->name('trashed');
+        Route::post('restore/{pricingPackageAddon}', [PricingPackageAddonController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{pricingPackageAddon}', [PricingPackageAddonController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [PricingPackageAddonController::class, 'list'])->name('list');
+        Route::get('ajax-search', [PricingPackageAddonController::class, 'list'])->name('ajax_search');
+        Route::resource('/', PricingPackageAddonController::class)->parameters(['' => 'pricingPackageAddon']);
+    });
+
     // Galleries
     Route::group(['prefix' => 'galleries', 'as' => 'galleries.'], function () {
         Route::post('multiple-action', [GalleryController::class, 'multipleAction'])->name('multiple_action');
@@ -297,4 +310,17 @@ Route::middleware('auth:admin')->group(function () {
         Route::get('ajax-search', [TestimonialController::class, 'list'])->name('ajax_search');
         Route::resource('/', TestimonialController::class)->parameters(['' => 'testimonial']);
     });
+    // FAQs
+    Route::group(['prefix' => 'faqs', 'as' => 'faqs.'], function () {
+        Route::post('multiple-action', [FaqController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [FaqController::class, 'trash'])->name('trashed');
+        Route::post('restore/{faq}', [FaqController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{faq}', [FaqController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [FaqController::class, 'list'])->name('list');
+        Route::get('ajax-search', [FaqController::class, 'list'])->name('ajax_search');
+        Route::post('reorder', [FaqController::class, 'reorderMappings'])->name('reorder');
+        Route::post('{faq}/toggle', [FaqController::class, 'toggle'])->name('toggle');
+        Route::resource('/', FaqController::class)->parameters(['' => 'faq']);
+    });
+
 });

@@ -371,7 +371,7 @@ class PricingAddonController extends Controller
 
         if (DB::table('pricing_package_addon')->whereIn('pricing_addon_id', $ids)->exists()) {
             throw ValidationException::withMessages([
-                'pricing_addon' => 'One or more pricing add-ons are still attached to pricing packages. Detach them before permanently deleting.',
+                'pricing_addon' => 'One or more pricing add-ons still have package mappings. Permanently delete those mappings before permanently deleting the add-on.',
             ]);
         }
     }

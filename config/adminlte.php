@@ -343,6 +343,7 @@ return [
                 'admin/section-definitions*',
                 'admin/page-sections*',
                 'admin/section-media*',
+                'admin/faqs*',
             ],
             'submenu' => [
                 [
@@ -373,6 +374,13 @@ return [
                     'can'    => 'section_media_list',
                     'active' => ['admin/section-media*'],
                 ],
+                [
+                    'text'   => 'FAQs',
+                    'route'  => 'admin.faqs.index',
+                    'icon'   => 'fas fa-fw fa-question-circle',
+                    'can'    => 'faq_list',
+                    'active' => ['admin/faqs*'],
+                ],
 
             ],
         ],
@@ -395,6 +403,7 @@ return [
                 'admin/pricing-packages*',
                 'admin/pricing-items*',
                 'admin/pricing-addons*',
+                'admin/pricing-package-addons*',
             ],
             'submenu' => [
                 [
@@ -439,6 +448,13 @@ return [
                     'icon'   => 'fas fa-fw fa-puzzle-piece',
                     'can'    => 'pricing_addon_list',
                     'active' => ['admin/pricing-addons*'],
+                ],
+                [
+                    'text'   => 'Package Add-on Mapping',
+                    'route'  => 'admin.pricing_package_addons.index',
+                    'icon'   => 'fas fa-fw fa-link',
+                    'can'    => 'pricing_package_addon_list',
+                    'active' => ['admin/pricing-package-addons*'],
                 ],
             ],
         ],

@@ -214,6 +214,15 @@ class PageController extends Controller
                 ]);
             }
 
+            if (Schema::hasTable('faqables') && DB::table('faqables')
+                ->where('faqable_type', $record->getMorphClass())
+                ->where('faqable_id', $record->id)
+                ->exists()) {
+                throw ValidationException::withMessages([
+                    'page' => 'This page still has FAQ mappings. Detach those FAQs before permanently deleting the page.',
+                ]);
+            }
+
             $this->pageMediaService->purgeAll($record);
             $record->forceDelete();
         });
@@ -477,6 +486,20 @@ class PageController extends Controller
                 if ($blockedPageIds->isNotEmpty()) {
                     throw ValidationException::withMessages([
                         'pages' => 'One or more selected pages still contain page sections. Permanently delete those page sections first.',
+                    ]);
+                }
+            }
+
+            if (Schema::hasTable('faqables') && $pages->isNotEmpty()) {
+                $morphType = (new Page())->getMorphClass();
+                $hasFaqMappings = DB::table('faqables')
+                    ->where('faqable_type', $morphType)
+                    ->whereIn('faqable_id', $pages->pluck('id')->all())
+                    ->exists();
+
+                if ($hasFaqMappings) {
+                    throw ValidationException::withMessages([
+                        'pages' => 'One or more selected pages still have FAQ mappings. Detach those FAQs before permanently deleting the pages.',
                     ]);
                 }
             }

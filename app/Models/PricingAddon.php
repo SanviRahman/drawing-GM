@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -54,10 +55,17 @@ class PricingAddon extends Model implements HasMedia
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
     }
 
+    public function pricingPackageLinks(): HasMany
+    {
+        return $this->hasMany(PricingPackageAddon::class);
+    }
+
     public function pricingPackages(): BelongsToMany
     {
         return $this->belongsToMany(PricingPackage::class, 'pricing_package_addon')
-            ->withPivot('override_data');
+            ->withPivot('id', 'override_data', 'deleted_at')
+            ->withTimestamps()
+            ->wherePivotNull('deleted_at');
     }
 
     public function scopeActive(Builder $query): Builder

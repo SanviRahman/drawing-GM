@@ -5,6 +5,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -56,6 +57,19 @@ class PricingPackage extends Model
     public function items(): HasMany
     {
         return $this->hasMany(PricingItem::class)->ordered();
+    }
+
+    public function pricingAddonLinks(): HasMany
+    {
+        return $this->hasMany(PricingPackageAddon::class);
+    }
+
+    public function pricingAddons(): BelongsToMany
+    {
+        return $this->belongsToMany(PricingAddon::class, 'pricing_package_addon')
+            ->withPivot('id', 'override_data', 'deleted_at')
+            ->withTimestamps()
+            ->wherePivotNull('deleted_at');
     }
     public function scopeActive(Builder $query): Builder
     {

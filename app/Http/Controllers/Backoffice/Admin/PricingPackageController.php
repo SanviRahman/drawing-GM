@@ -195,6 +195,12 @@ class PricingPackageController extends Controller
                 ]);
             }
 
+            if (Schema::hasTable('pricing_package_addon') && DB::table('pricing_package_addon')->where('pricing_package_id', $record->id)->exists()) {
+                throw ValidationException::withMessages([
+                    'pricing_package' => 'This pricing package still has add-on mappings. Permanently delete those mappings first.',
+                ]);
+            }
+
             $record->forceDelete();
         });
 
@@ -318,6 +324,18 @@ class PricingPackageController extends Controller
                 if ($blockedPackageIds->isNotEmpty()) {
                     throw ValidationException::withMessages([
                         'pricing_package' => 'One or more selected pricing packages still contain pricing items. Permanently delete those pricing items first.',
+                    ]);
+                }
+            }
+
+            if (Schema::hasTable('pricing_package_addon') && $packages->isNotEmpty()) {
+                $hasAddonMappings = DB::table('pricing_package_addon')
+                    ->whereIn('pricing_package_id', $packages->pluck('id')->all())
+                    ->exists();
+
+                if ($hasAddonMappings) {
+                    throw ValidationException::withMessages([
+                        'pricing_package' => 'One or more selected pricing packages still have add-on mappings. Permanently delete those mappings first.',
                     ]);
                 }
             }
