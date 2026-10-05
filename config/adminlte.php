@@ -326,6 +326,28 @@ return [
             'active' => ['admin', 'admin/dashboard'],
         ],
 
+        [
+            'header' => 'BLOG MANAGEMENT',
+        ],
+
+        [
+            'text'    => 'Blog Manage',
+            'icon'    => 'fas fa-fw fa-blog',
+            'active'  => [
+                'admin/categories*',
+            ],
+
+            'submenu' => [
+                [
+                    'text'   => 'Categories',
+                    'route'  => 'admin.categories.index',
+                    'icon'   => 'fas fa-fw fa-folder-open',
+                    'can'    => 'blog_category_list',
+                    'active' => ['admin/categories*'],
+                ],
+            ],
+        ],
+
         /*
         |--------------------------------------------------------------------------
         | CMS

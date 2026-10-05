@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Backoffice\Admin\AdminController;
+use App\Http\Controllers\Backoffice\Admin\CategoryController;
 use App\Http\Controllers\Backoffice\Admin\DashboardController;
 use App\Http\Controllers\Backoffice\Admin\FaqController;
 use App\Http\Controllers\Backoffice\Admin\GalleryController;
@@ -321,6 +322,18 @@ Route::middleware('auth:admin')->group(function () {
         Route::post('reorder', [FaqController::class, 'reorderMappings'])->name('reorder');
         Route::post('{faq}/toggle', [FaqController::class, 'toggle'])->name('toggle');
         Route::resource('/', FaqController::class)->parameters(['' => 'faq']);
+    });
+
+    // Categories
+    Route::group(['prefix' => 'categories', 'as' => 'categories.'], function () {
+        Route::post('multiple-action', [CategoryController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [CategoryController::class, 'trash'])->name('trashed');
+        Route::post('restore/{category}', [CategoryController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{category}', [CategoryController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [CategoryController::class, 'list'])->name('list');
+        Route::get('ajax-search', [CategoryController::class, 'list'])->name('ajax_search');
+        Route::post('{category}/toggle', [CategoryController::class, 'toggle'])->name('toggle');
+        Route::resource('/', CategoryController::class)->parameters(['' => 'category']);
     });
 
 });

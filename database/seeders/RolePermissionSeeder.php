@@ -350,8 +350,12 @@ class RolePermissionSeeder extends Seeder
             'blog_category_create',
             'blog_category_update',
             'blog_category_delete',
+
+            'blog_category_trash',
+            'blog_category_restore',
+            'blog_category_force_delete',
+
             'blog_category_toggle',
-            'blog_category_reorder',
         ],
 
         'Blog Posts'              => [
