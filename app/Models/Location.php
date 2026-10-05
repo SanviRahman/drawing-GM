@@ -7,6 +7,7 @@ use App\Models\Testimonial;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -60,6 +61,10 @@ class Location extends Model implements HasMedia
         ];
     }
 
+    public function leads(): HasMany
+    {
+        return $this->hasMany(Lead::class);
+    }
     public function contactTargets(): MorphMany
     {
         return $this->morphMany(ContactTarget::class, 'targetable');

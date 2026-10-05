@@ -8,6 +8,7 @@ use App\Models\Testimonial;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
@@ -61,6 +62,20 @@ class Service extends Model implements HasMedia
             'updated_at'   => 'datetime',
             'deleted_at'   => 'datetime',
         ];
+    }
+
+    // BelongsToMany is new:
+    public function leadServiceLinks(): HasMany
+    {
+        return $this->hasMany(LeadService::class);
+    }
+
+    public function leads(): BelongsToMany
+    {
+        return $this->belongsToMany(Lead::class, 'lead_services')
+            ->withPivot(['id', 'notes', 'deleted_at'])
+            ->withTimestamps()
+            ->wherePivotNull('deleted_at');
     }
 
     public function features(): HasMany

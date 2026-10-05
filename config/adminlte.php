@@ -433,6 +433,41 @@ return [
 
         /*
         |--------------------------------------------------------------------------
+        | Lead Management
+        |--------------------------------------------------------------------------
+        */
+
+        // Keep both submenu items under LEAD MANAGEMENT.
+        [
+            'header' => 'LEAD MANAGEMENT',
+        ],
+        [
+            'text'    => 'Leads & Booking',
+            'icon'    => 'fas fa-fw fa-user-tag',
+            'active'  => [
+                'admin/leads*',
+                'admin/lead-form-fields*',
+            ],
+            'submenu' => [
+                [
+                    'text'   => 'Leads',
+                    'route'  => 'admin.leads.index',
+                    'icon'   => 'fas fa-fw fa-user-tag',
+                    'can'    => 'lead_list',
+                    'active' => ['admin/leads*'],
+                ],
+                [
+                    'text'   => 'Booking Form Fields',
+                    'route'  => 'admin.lead_form_fields.index',
+                    'icon'   => 'fas fa-fw fa-list-alt',
+                    'can'    => 'lead_form_field_list',
+                    'active' => ['admin/lead-form-fields*'],
+                ],
+            ],
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
         | Services
         |--------------------------------------------------------------------------
         */

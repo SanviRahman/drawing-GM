@@ -8,6 +8,8 @@ use App\Http\Controllers\Backoffice\Admin\DashboardController;
 use App\Http\Controllers\Backoffice\Admin\FaqController;
 use App\Http\Controllers\Backoffice\Admin\GalleryController;
 use App\Http\Controllers\Backoffice\Admin\GalleryItemController;
+use App\Http\Controllers\Backoffice\Admin\LeadController;
+use App\Http\Controllers\Backoffice\Admin\LeadFormFieldController;
 use App\Http\Controllers\Backoffice\Admin\LocationController;
 use App\Http\Controllers\Backoffice\Admin\MediaController;
 use App\Http\Controllers\Backoffice\Admin\MenuController;
@@ -377,6 +379,38 @@ Route::middleware('auth:admin')->group(function () {
         Route::get('list', [ContactTargetController::class, 'list'])->name('list');
         Route::get('ajax-search', [ContactTargetController::class, 'list'])->name('ajax_search');
         Route::resource('/', ContactTargetController::class)->parameters(['' => 'contactTarget']);
+    });
+
+    // Booking Form Fields
+    Route::group(['prefix' => 'lead-form-fields', 'as' => 'lead_form_fields.'], function () {
+        Route::post('multiple-action', [LeadFormFieldController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [LeadFormFieldController::class, 'trash'])->name('trashed');
+        Route::post('restore/{leadFormField}', [LeadFormFieldController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{leadFormField}', [LeadFormFieldController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [LeadFormFieldController::class, 'list'])->name('list');
+        Route::get('ajax-search', [LeadFormFieldController::class, 'list'])->name('ajax_search');
+        Route::post('reorder', [LeadFormFieldController::class, 'reorder'])->name('reorder');
+        Route::post('{leadFormField}/toggle', [LeadFormFieldController::class, 'toggle'])->name('toggle');
+        Route::resource('/', LeadFormFieldController::class)->parameters(['' => 'leadFormField']);
+    });
+
+    // Leads
+    Route::group(['prefix' => 'leads', 'as' => 'leads.'], function () {
+        Route::post('multiple-action', [LeadController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [LeadController::class, 'trash'])->name('trashed');
+        Route::post('restore/{lead}', [LeadController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{lead}', [LeadController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [LeadController::class, 'list'])->name('list');
+        Route::get('ajax-search', [LeadController::class, 'list'])->name('ajax_search');
+        Route::get('export', [LeadController::class, 'export'])->name('export');
+        Route::post('{lead}/assign', [LeadController::class, 'assign'])->name('assign');
+        Route::post('{lead}/change-status', [LeadController::class, 'changeStatus'])->name('change_status');
+        Route::post('{lead}/notes', [LeadController::class, 'storeNote'])->name('notes.store');
+        Route::delete('{lead}/notes/{note}', [LeadController::class, 'destroyNote'])->name('notes.destroy');
+        Route::post('{lead}/notes/{note}/restore', [LeadController::class, 'restoreNote'])->name('notes.restore');
+        Route::get('{lead}/attachments/{media}/download', [LeadController::class, 'downloadAttachment'])->name('attachments.download');
+        Route::get('{lead}/attachments/{media}/preview', [LeadController::class, 'previewAttachment'])->name('attachments.preview');
+        Route::resource('/', LeadController::class)->parameters(['' => 'lead']);
     });
 
 });

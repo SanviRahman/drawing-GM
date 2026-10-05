@@ -1,9 +1,9 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -40,26 +40,34 @@ class Admin extends Authenticatable implements HasMedia
     {
         return [
             'email_verified_at' => 'datetime',
-            'status' => 'boolean',
-            'password' => 'hashed',
+            'status'            => 'boolean',
+            'password'          => 'hashed',
         ];
     }
-
-
 
     public function posts(): HasMany
     {
         return $this->hasMany(Post::class, 'author_id');
     }
 
+    public function assignedLeads(): HasMany
+    {
+        return $this->hasMany(Lead::class, 'assigned_to');
+    }
+
+    public function leadNotes(): MorphMany
+    {
+        return $this->morphMany(LeadNote::class, 'author');
+    }
+
+    public function leadStatusChanges(): MorphMany
+    {
+        return $this->morphMany(LeadStatusHistory::class, 'changedBy');
+    }
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('avatars')
-            ->useDisk('public')
-            ->singleFile();
-
-        $this->addMediaCollection('media_library')
-            ->useDisk('public');
+        $this->addMediaCollection('avatars')->useDisk('public')->singleFile();
+        $this->addMediaCollection('media_library')->useDisk('public');
     }
 
     public function adminlte_profile_url(): string
@@ -85,39 +93,30 @@ class Admin extends Authenticatable implements HasMedia
     public function getImageUrlAttribute(): string
     {
         $mediaUrl = $this->getFirstMediaUrl('avatars');
-
         if ($mediaUrl !== '') {
             return $mediaUrl;
         }
-
         if (! empty($this->photo)) {
             $photo = ltrim((string) $this->photo, '/');
-
             if (str_starts_with($photo, 'http://') || str_starts_with($photo, 'https://')) {
                 return $photo;
             }
-
             if (str_starts_with($photo, 'storage/')) {
                 $storagePath = Str::after($photo, 'storage/');
-
                 if (Storage::disk('public')->exists($storagePath)) {
                     return Storage::disk('public')->url($storagePath);
                 }
             }
-
             if (str_starts_with($photo, 'uploads/')) {
                 return asset($photo);
             }
-
             if (Storage::disk('public')->exists($photo)) {
                 return Storage::disk('public')->url($photo);
             }
-
             if (is_file(public_path('uploads/' . $photo))) {
                 return asset('uploads/' . $photo);
             }
         }
-
         return asset('images/no-image.png');
     }
 }

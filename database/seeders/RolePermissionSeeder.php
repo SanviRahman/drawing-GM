@@ -421,6 +421,19 @@ class RolePermissionSeeder extends Seeder
             'lead_attachment_download',
         ],
 
+        'Lead Form Fields'        => [
+            'lead_form_field_list',
+            'lead_form_field_view',
+            'lead_form_field_create',
+            'lead_form_field_update',
+            'lead_form_field_delete',
+            'lead_form_field_toggle',
+            'lead_form_field_reorder',
+            'lead_form_field_trash',
+            'lead_form_field_restore',
+            'lead_form_field_force_delete',
+        ],
+
         'SEO Settings'            => [
             'seo_setting_view',
             'seo_setting_update',

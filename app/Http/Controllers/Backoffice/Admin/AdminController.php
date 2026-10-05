@@ -266,6 +266,7 @@ class AdminController extends Controller
     {
         $model = Admin::onlyTrashed()->findOrFail($admin);
         $this->ensureNoAuthoredPosts([$model->id]);
+        $this->ensureNoLeadAuditReferences([$model->id]);
         $this->mediaLibraryService->reassignLibraryMedia($model, auth('admin')->user());
         $this->avatarService->purgeAll($model);
         $model->forceDelete();
@@ -320,6 +321,7 @@ class AdminController extends Controller
     {
         $admins = Admin::onlyTrashed()->whereIn('id', $ids)->get();
         $this->ensureNoAuthoredPosts($admins->pluck('id')->all());
+        $this->ensureNoLeadAuditReferences($admins->pluck('id')->all());
 
         $admins->each(function (Admin $admin) {
             $this->mediaLibraryService->reassignLibraryMedia($admin, auth('admin')->user());
@@ -339,6 +341,39 @@ class AdminController extends Controller
         if (DB::table('posts')->whereIn('author_id', $adminIds)->exists()) {
             throw ValidationException::withMessages([
                 'admin' => 'One or more admins still own blog posts. Reassign those posts before permanently deleting the admin account.',
+            ]);
+        }
+    }
+
+    private function ensureNoLeadAuditReferences(array $adminIds): void
+    {
+        if ($adminIds === []) {
+            return;
+        }
+
+        $adminMorph = (new Admin())->getMorphClass();
+
+        if (
+            Schema::hasTable('lead_status_histories') &&
+            DB::table('lead_status_histories')
+            ->where('changed_by_type', $adminMorph)
+            ->whereIn('changed_by_id', $adminIds)
+            ->exists()
+        ) {
+            throw ValidationException::withMessages([
+                'admin' => 'One or more admins are referenced by Lead status history. Keep the account deactivated/soft-deleted to preserve audit history.',
+            ]);
+        }
+
+        if (
+            Schema::hasTable('lead_notes') &&
+            DB::table('lead_notes')
+            ->where('author_type', $adminMorph)
+            ->whereIn('author_id', $adminIds)
+            ->exists()
+        ) {
+            throw ValidationException::withMessages([
+                'admin' => 'One or more admins authored Lead notes. Keep the account deactivated/soft-deleted to preserve audit history.',
             ]);
         }
     }
