@@ -5,6 +5,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
@@ -67,6 +68,10 @@ class Page extends Model implements HasMedia
         $this->addMediaCollection('hero_mobile')->useDisk('public')->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
     }
 
+    public function contactTargets(): MorphMany
+    {
+        return $this->morphMany(ContactTarget::class, 'targetable');
+    }
     public function sections(): HasMany
     {
         return $this->hasMany(PageSection::class)->ordered();

@@ -1,10 +1,11 @@
 <?php
-
 namespace App\Models;
 
+use App\Models\ContactTarget;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ContactChannel extends Model
@@ -13,21 +14,21 @@ class ContactChannel extends Model
 
     public const TYPES = [
         'whatsapp' => 'WhatsApp',
-        'phone' => 'Phone',
-        'email' => 'Email',
-        'custom' => 'Custom URL',
+        'phone'    => 'Phone',
+        'email'    => 'Email',
+        'custom'   => 'Custom URL',
     ];
 
     /**
      * Controlled icon keys. The database stores the key, never arbitrary HTML.
      */
     public const ICON_OPTIONS = [
-        'whatsapp' => ['label' => 'WhatsApp', 'class' => 'fab fa-whatsapp'],
-        'phone' => ['label' => 'Phone', 'class' => 'fas fa-phone-alt'],
-        'email' => ['label' => 'Email', 'class' => 'fas fa-envelope'],
-        'link' => ['label' => 'Link', 'class' => 'fas fa-link'],
-        'comments' => ['label' => 'Comments', 'class' => 'fas fa-comments'],
-        'headset' => ['label' => 'Headset', 'class' => 'fas fa-headset'],
+        'whatsapp'   => ['label' => 'WhatsApp', 'class' => 'fab fa-whatsapp'],
+        'phone'      => ['label' => 'Phone', 'class' => 'fas fa-phone-alt'],
+        'email'      => ['label' => 'Email', 'class' => 'fas fa-envelope'],
+        'link'       => ['label' => 'Link', 'class' => 'fas fa-link'],
+        'comments'   => ['label' => 'Comments', 'class' => 'fas fa-comments'],
+        'headset'    => ['label' => 'Headset', 'class' => 'fas fa-headset'],
         'map-marker' => ['label' => 'Map Marker', 'class' => 'fas fa-map-marker-alt'],
     ];
 
@@ -35,15 +36,15 @@ class ContactChannel extends Model
      * Named colour tokens accepted in addition to #RRGGBB.
      */
     public const COLOR_TOKENS = [
-        'primary' => '#007bff',
+        'primary'   => '#007bff',
         'secondary' => '#6c757d',
-        'success' => '#28a745',
-        'danger' => '#dc3545',
-        'warning' => '#ffc107',
-        'info' => '#17a2b8',
-        'dark' => '#343a40',
-        'light' => '#f8f9fa',
-        'whatsapp' => '#25D366',
+        'success'   => '#28a745',
+        'danger'    => '#dc3545',
+        'warning'   => '#ffc107',
+        'info'      => '#17a2b8',
+        'dark'      => '#343a40',
+        'light'     => '#f8f9fa',
+        'whatsapp'  => '#25D366',
     ];
 
     protected $fillable = [
@@ -63,23 +64,28 @@ class ContactChannel extends Model
     ];
 
     protected $attributes = [
-        'is_default' => false,
-        'is_active' => true,
+        'is_default'   => false,
+        'is_active'    => true,
         'track_clicks' => true,
-        'sort_order' => 0,
+        'sort_order'   => 0,
     ];
 
     protected function casts(): array
     {
         return [
-            'is_default' => 'boolean',
-            'is_active' => 'boolean',
+            'is_default'   => 'boolean',
+            'is_active'    => 'boolean',
             'track_clicks' => 'boolean',
-            'sort_order' => 'integer',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-            'deleted_at' => 'datetime',
+            'sort_order'   => 'integer',
+            'created_at'   => 'datetime',
+            'updated_at'   => 'datetime',
+            'deleted_at'   => 'datetime',
         ];
+    }
+
+    public function targets(): HasMany
+    {
+        return $this->hasMany(ContactTarget::class);
     }
 
     public function scopeActive(Builder $query): Builder

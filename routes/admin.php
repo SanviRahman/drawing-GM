@@ -3,6 +3,7 @@
 use App\Http\Controllers\Backoffice\Admin\AdminController;
 use App\Http\Controllers\Backoffice\Admin\CategoryController;
 use App\Http\Controllers\Backoffice\Admin\ContactChannelController;
+use App\Http\Controllers\Backoffice\Admin\ContactTargetController;
 use App\Http\Controllers\Backoffice\Admin\DashboardController;
 use App\Http\Controllers\Backoffice\Admin\FaqController;
 use App\Http\Controllers\Backoffice\Admin\GalleryController;
@@ -365,6 +366,17 @@ Route::middleware('auth:admin')->group(function () {
         Route::post('{contactChannel}/toggle', [ContactChannelController::class, 'toggle'])->name('toggle');
         Route::post('{contactChannel}/set-default', [ContactChannelController::class, 'setDefault'])->name('set_default');
         Route::resource('/', ContactChannelController::class)->parameters(['' => 'contactChannel']);
+    });
+
+    // Contact Targets
+    Route::group(['prefix' => 'contact-targets', 'as' => 'contact_targets.'], function () {
+        Route::post('multiple-action', [ContactTargetController::class, 'multipleAction'])->name('multiple_action');
+        Route::get('trash', [ContactTargetController::class, 'trash'])->name('trashed');
+        Route::post('restore/{contactTarget}', [ContactTargetController::class, 'restore'])->name('restore');
+        Route::delete('force-delete/{contactTarget}', [ContactTargetController::class, 'forceDelete'])->name('force_delete');
+        Route::get('list', [ContactTargetController::class, 'list'])->name('list');
+        Route::get('ajax-search', [ContactTargetController::class, 'list'])->name('ajax_search');
+        Route::resource('/', ContactTargetController::class)->parameters(['' => 'contactTarget']);
     });
 
 });

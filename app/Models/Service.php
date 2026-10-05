@@ -1,10 +1,15 @@
 <?php
 namespace App\Models;
 
+use App\Models\ContactTarget;
+use App\Models\Faq;
+use App\Models\ServiceFeature;
+use App\Models\Testimonial;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
@@ -68,6 +73,10 @@ class Service extends Model implements HasMedia
         return $this->morphToMany(Testimonial::class, 'testimonialable')->withPivot('sort_order')->withTimestamps();
     }
 
+    public function contactTargets(): MorphMany
+    {
+        return $this->morphMany(ContactTarget::class, 'targetable');
+    }
     public function faqs(): MorphToMany
     {
         return $this->morphToMany(Faq::class, 'faqable')

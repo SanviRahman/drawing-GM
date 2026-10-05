@@ -337,6 +337,7 @@ return [
                 'admin/categories*',
                 'admin/posts*',
                 'admin/contact-channels*',
+                'admin/contact-targets*',
             ],
 
             'submenu' => [
@@ -360,6 +361,13 @@ return [
                     'icon'   => 'fas fa-fw fa-address-book',
                     'can'    => 'contact_channel_list',
                     'active' => ['admin/contact-channels*'],
+                ],
+                [
+                    'text'   => 'Contact Targets',
+                    'route'  => 'admin.contact_targets.index',
+                    'icon'   => 'fas fa-fw fa-crosshairs',
+                    'can'    => 'contact_target_list',
+                    'active' => ['admin/contact-targets*'],
                 ],
             ],
         ],

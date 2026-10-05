@@ -393,6 +393,17 @@ class RolePermissionSeeder extends Seeder
             'contact_message_reply',
         ],
 
+        'Contact Targets'         => [
+            'contact_target_list',
+            'contact_target_view',
+            'contact_target_create',
+            'contact_target_update',
+            'contact_target_delete',
+            'contact_target_trash',
+            'contact_target_restore',
+            'contact_target_force_delete',
+        ],
+
         'Leads'                   => [
             'lead_list',
             'lead_view',

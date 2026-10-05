@@ -14,15 +14,8 @@ return new class extends Migration
             $table->unsignedBigInteger('faqable_id');
             $table->integer('sort_order')->default(0);
             $table->timestamps();
-
-            $table->unique(
-                ['faq_id', 'faqable_type', 'faqable_id'],
-                'faqable_unique'
-            );
-            $table->index(
-                ['faqable_type', 'faqable_id', 'sort_order'],
-                'faqables_target_order_index'
-            );
+            $table->unique(['faq_id', 'faqable_type', 'faqable_id'],'faqable_unique');
+            $table->index(['faqable_type', 'faqable_id', 'sort_order'],'faqables_target_order_index');
         });
     }
 
