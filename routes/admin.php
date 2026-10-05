@@ -43,7 +43,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:admin')->group(function () {
 
     // Dashboard
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/', [DashboardController::class, 'index'])->middleware('can:dashboard_view')->name('dashboard');
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'profile'])->name('profile');
