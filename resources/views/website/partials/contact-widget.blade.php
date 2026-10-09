@@ -46,7 +46,8 @@
                         @endif
                     </div>
                     <a class="hp-contact-chat-button" href="{{ $url }}" target="_blank"
-                       rel="noopener noreferrer" aria-label="Chat with {{ $label }} on WhatsApp">
+                       rel="noopener noreferrer" aria-label="Chat with {{ $label }} on WhatsApp"
+                       data-contact-id="{{ $channel->id }}" data-contact-label="{{ $label }}" data-contact-scope="{{ $channel->region ?: 'general' }}">
                         <i class="bi bi-chat-left-text" aria-hidden="true"></i> Chat
                     </a>
                 </article>

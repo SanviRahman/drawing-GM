@@ -753,6 +753,7 @@ class ProjectDefaultSeeder extends Seeder
     private function seedTracking(): void
     {
         $providers = ['meta_pixel', 'meta_capi', 'ga4', 'gtm', 'tiktok'];
+        $events = ['page_view', 'view_content', 'view_pricing', 'contact', 'click_whatsapp', 'click_call', 'submit_quote', 'lead', 'scroll_depth'];
 
         foreach ($providers as $provider) {
             $providerId = $this->ensureRow('tracking_providers', ['provider' => $provider], [
@@ -763,23 +764,56 @@ class ProjectDefaultSeeder extends Seeder
                 'test_mode' => true,
             ]);
 
-            if ($providerId) {
+            if (! $providerId) {
+                continue;
+            }
+
+            foreach ($events as $event) {
                 $this->ensureRow('tracking_event_rules', [
                     'tracking_provider_id' => $providerId,
-                    'internal_event' => 'page_view',
+                    'internal_event' => $event,
                 ], [
-                    'provider_event' => match ($provider) {
-                        'meta_pixel', 'meta_capi' => 'PageView',
-                        'ga4', 'gtm' => 'page_view',
-                        'tiktok' => 'PageView',
-                        default => 'page_view',
-                    },
+                    'provider_event' => $this->defaultTrackingProviderEvent($provider, $event),
                     'parameter_map' => $this->json([]),
                     'requires_marketing_consent' => true,
-                    'is_enabled' => false,
+                    // Providers are disabled by default. Once an administrator explicitly
+                    // enables a provider, its standard event mapping should work immediately.
+                    'is_enabled' => true,
                 ]);
             }
         }
+    }
+
+    private function defaultTrackingProviderEvent(string $provider, string $event): string
+    {
+        return match ($provider) {
+            'meta_pixel', 'meta_capi' => match ($event) {
+                'page_view' => 'PageView',
+                'view_content' => 'ViewContent',
+                'contact' => 'Contact',
+                'lead' => 'Lead',
+                'view_pricing' => 'ViewPricing',
+                'click_whatsapp' => 'ClickWhatsApp',
+                'click_call' => 'ClickCall',
+                'submit_quote' => 'SubmitQuote',
+                'scroll_depth' => 'ScrollDepth',
+                default => $event,
+            },
+            'ga4' => match ($event) {
+                'view_content' => 'view_item',
+                'submit_quote', 'lead' => 'generate_lead',
+                'scroll_depth' => 'scroll',
+                default => $event,
+            },
+            'tiktok' => match ($event) {
+                'page_view' => 'PageView',
+                'view_content' => 'ViewContent',
+                'contact' => 'Contact',
+                'submit_quote', 'lead' => 'SubmitForm',
+                default => ucfirst(str_replace('_', '', $event)),
+            },
+            default => $event,
+        };
     }
 
     private function seedCampaign(?int $adminId, ?int $homeId): void
@@ -1722,10 +1756,10 @@ class ProjectDefaultSeeder extends Seeder
                 continue;
             }
             $this->ensureRow('tracking_event_rules', [
-                'tracking_provider_id' => $providerId, 'internal_event' => 'lead_submit',
+                'tracking_provider_id' => $providerId, 'internal_event' => 'submit_quote',
             ], [
-                'provider_event' => 'Lead', 'parameter_map' => $this->json([]),
-                'requires_marketing_consent' => true, 'is_enabled' => false,
+                'provider_event' => 'SubmitQuote', 'parameter_map' => $this->json([]),
+                'requires_marketing_consent' => true, 'is_enabled' => true,
             ]);
         }
 

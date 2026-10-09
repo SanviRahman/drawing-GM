@@ -21,6 +21,7 @@ class TrackingEventRule extends Model
         'click_call' => 'Click Call',
         'submit_quote' => 'Submit Quote',
         'lead' => 'Lead',
+        'scroll_depth' => 'Scroll Depth',
     ];
 
     protected $fillable = [

@@ -11,7 +11,7 @@
     </div>
     <div class="hp-quote-form-wrap"><form action="{{ route('website.enquiries.store') }}" method="POST" class="hp-quote-form" autocomplete="on">
         @csrf
-        @if(session('quote_success'))<div class="alert alert-success" role="status">{{ session('quote_success') }}</div>@endif
+        @if(session('quote_success'))<div class="alert alert-success" role="status" data-tracking-lead-success data-lead-reference="{{ session('quote_tracking.lead_reference') }}" data-service-id="{{ session('quote_tracking.service_id') }}">{{ session('quote_success') }}</div>@endif
         @if($errors->any())<div class="alert alert-danger" role="alert">Please check the highlighted information.</div>@endif
         <div class="visually-hidden" aria-hidden="true"><label for="companyWebsite">Company website</label><input type="text" id="companyWebsite" name="company_website" value="" autocomplete="off" tabindex="-1"></div>
         <div class="row g-3">

@@ -36,13 +36,13 @@ class QuoteController extends Controller
             throw \Illuminate\Validation\ValidationException::withMessages(['dynamic_answers' => 'One or more form fields are unavailable.']);
         }
 
-        $create->execute(
+        $lead = $create->execute(
             attributes: [
                 'name' => trim($data['name']),
                 'phone' => $phone,
                 'email' => $data['email'] ?? null,
                 'message' => $data['message'] ?? null,
-                'source_page_url' => '/',
+                'source_page_url' => $request->headers->get('referer') ?: $request->url(),
                 'status' => 'new',
                 'consent' => ['marketing' => false],
             ],
@@ -50,6 +50,11 @@ class QuoteController extends Controller
             serviceIds: ! empty($data['service_id']) ? [(int) $data['service_id']] : [],
         );
 
-        return back()->with('quote_success', 'Thank you. Your enquiry has been received.');
+        return back()
+            ->with('quote_success', 'Thank you. Your enquiry has been received.')
+            ->with('quote_tracking', [
+                'lead_reference' => $lead->reference,
+                'service_id' => ! empty($data['service_id']) ? (int) $data['service_id'] : null,
+            ]);
     }
 }

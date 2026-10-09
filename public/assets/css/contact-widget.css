@@ -225,3 +225,82 @@
     .hp-contact-float .contact-panel.hp-contact-panel { animation: none; }
     .hp-contact-float .contact-trigger.hp-contact-trigger { transition: none; }
 }
+
+/* ================================================================
+   2026-10-10 • Floating contact launcher continuous wave
+   Keeps the existing button size, position and click behaviour.
+   The wave runs only while the launcher is closed.
+   ================================================================ */
+.hp-contact-float .contact-trigger.hp-contact-trigger {
+    position: relative;
+    isolation: isolate;
+    overflow: visible;
+}
+
+.hp-contact-float .contact-trigger.hp-contact-trigger::before,
+.hp-contact-float .contact-trigger.hp-contact-trigger::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border: 2px solid rgba(25, 109, 98, .42);
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(1);
+    animation: hp-contact-wave-ring 2.6s cubic-bezier(.22, .61, .36, 1) infinite;
+}
+
+.hp-contact-float .contact-trigger.hp-contact-trigger::after {
+    animation-delay: 1.3s;
+}
+
+.hp-contact-float .contact-trigger.hp-contact-trigger > i {
+    position: relative;
+    z-index: 1;
+    transform-origin: 50% 55%;
+    animation: hp-contact-plus-wave 2.6s ease-in-out infinite;
+    will-change: transform;
+}
+
+/* Once the desk is open, keep the existing 45deg X-state calm. */
+.hp-contact-float .contact-trigger.hp-contact-trigger.is-open::before,
+.hp-contact-float .contact-trigger.hp-contact-trigger.is-open::after {
+    animation: none;
+    opacity: 0;
+}
+
+.hp-contact-float .contact-trigger.hp-contact-trigger.is-open > i {
+    animation: none;
+}
+
+@keyframes hp-contact-wave-ring {
+    0% {
+        opacity: .52;
+        transform: scale(.94);
+    }
+    62% {
+        opacity: .16;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(1.72);
+    }
+}
+
+@keyframes hp-contact-plus-wave {
+    0%, 58%, 100% { transform: rotate(0deg) scale(1); }
+    66% { transform: rotate(-10deg) scale(1.06); }
+    73% { transform: rotate(10deg) scale(1.08); }
+    80% { transform: rotate(-7deg) scale(1.05); }
+    87% { transform: rotate(5deg) scale(1.03); }
+    94% { transform: rotate(0deg) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hp-contact-float .contact-trigger.hp-contact-trigger::before,
+    .hp-contact-float .contact-trigger.hp-contact-trigger::after,
+    .hp-contact-float .contact-trigger.hp-contact-trigger > i {
+        animation: none !important;
+    }
+}

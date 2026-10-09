@@ -354,15 +354,16 @@
     '.hp-recap .hp-section-heading', '.hp-recap .hp-recap-panel',
     '.hp-faq-section .hp-section-heading', '.hp-faq-section .accordion-item',
     '.hp-quote-section .hp-quote-copy', '.hp-quote-section .hp-quote-form-wrap',
-    '.hp-regional-heading', '.hp-regional-card', '.hp-custom-card', '.hp-custom-media'
+    '.hp-regional-heading', '.hp-regional-card', '.hp-custom-card', '.hp-custom-media',
+    '.site-footer .footer-brand-panel', '.site-footer .footer-column', '.site-footer .footer-contact-column', '.site-footer .footer-bottom'
   ];
 
   const revealNodes = [...new Set(revealSelectors.flatMap((selector) => [...document.querySelectorAll(selector)]))];
   revealNodes.forEach((node, index) => {
     node.classList.add('hp-reveal');
-    if (node.matches('.hp-quote-form-wrap,.hp-guarantee-photo,.hp-custom-media')) node.classList.add('hp-reveal-right');
-    if (node.matches('.hp-quote-copy')) node.classList.add('hp-reveal-left');
-    if (node.matches('.hp-slider-slide,.hp-process-card,.hp-intro-benefit,.hp-guarantee-item,.accordion-item,.hp-regional-card')) {
+    if (node.matches('.hp-quote-form-wrap,.hp-guarantee-photo,.hp-custom-media,.site-footer .footer-contact-column')) node.classList.add('hp-reveal-right');
+    if (node.matches('.hp-quote-copy,.site-footer .footer-brand-panel')) node.classList.add('hp-reveal-left');
+    if (node.matches('.hp-slider-slide,.hp-process-card,.hp-intro-benefit,.hp-guarantee-item,.accordion-item,.hp-regional-card,.site-footer .footer-column')) {
       node.classList.add('hp-stagger-item');
       node.style.setProperty('--hp-stagger-delay', `${Math.min((index % 6) * 95, 475)}ms`);
     }
