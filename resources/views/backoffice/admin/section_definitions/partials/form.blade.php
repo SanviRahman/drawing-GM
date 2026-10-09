@@ -20,7 +20,9 @@
                         <input type="hidden" name="key" value="{{ $model->key }}">
                         <small class="form-text text-muted">The registry key is immutable after creation.</small>
                     @else
-                        <select name="key" id="section_key" class="form-control" required><option value="">Select section type</option>@foreach(\App\Models\SectionDefinition::ALLOWED_KEYS as $key => $label)<option value="{{ $key }}" data-name="{{ $label }}" @selected(old('key') === $key)>{{ $label }} ({{ $key }})</option>@endforeach</select>
+                        <input type="text" name="key" id="section_key" class="form-control" list="availableSectionKeys" value="{{ old('key') }}" pattern="[a-z][a-z0-9]*(?:_[a-z0-9]+)*" maxlength="100" placeholder="e.g. guarantee or our_work" required autocomplete="off">
+                        <datalist id="availableSectionKeys">@foreach(\App\Models\SectionDefinition::ALLOWED_KEYS as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach</datalist>
+                        <small class="form-text text-muted">Choose a suggested key or type a new unique lowercase key (letters, digits and underscores). Custom keys use the safe general section layout.</small>
                     @endif
                     <span class="invalid-feedback error-key d-block"></span>
                 </div>
@@ -28,7 +30,7 @@
                 <div class="form-group"><label for="section_name">Name <span class="text-danger">*</span></label><input type="text" name="name" id="section_name" class="form-control" maxlength="190" value="{{ old('name', $model?->name) }}" required><span class="invalid-feedback error-name d-block"></span></div>
                 <div class="form-group"><label for="is_active">Status <span class="text-danger">*</span></label><select name="is_active" id="is_active" class="form-control" required><option value="1" @selected((string) old('is_active', $isEdit ? (int) $model->is_active : 1) === '1')>Active</option><option value="0" @selected((string) old('is_active', $isEdit ? (int) $model->is_active : 1) === '0')>Inactive</option></select><span class="invalid-feedback error-is_active d-block"></span></div>
 
-                <div class="alert alert-info small mb-0"><i class="fas fa-shield-alt mr-1"></i>Only allowlisted keys from the database specification can be saved. Unknown dynamic component names are rejected.</div>
+                <div class="alert alert-info small mb-0"><i class="fas fa-shield-alt mr-1"></i>New keys use a safe text/cards/media layout, never arbitrary template or script execution.</div>
             </div></div>
         </div>
 
@@ -49,7 +51,7 @@
 (function() {
     const keySelect = document.getElementById('section_key');
     const nameInput = document.getElementById('section_name');
-    if (keySelect && nameInput) keySelect.addEventListener('change', function() { const option = this.options[this.selectedIndex]; if (option && option.dataset.name && nameInput.value.trim() === '') nameInput.value = option.dataset.name; });
+    if (keySelect && nameInput) keySelect.addEventListener('input', function() { if (nameInput.value.trim() === '') nameInput.value = this.value.replaceAll('_', ' ').replace(/\b\w/g, c => c.toUpperCase()); });
     const formatButton = document.getElementById('btnFormatSchema');
     const schemaTextarea = document.getElementById('schema_json');
     if (formatButton && schemaTextarea) formatButton.addEventListener('click', function() { try { schemaTextarea.value = JSON.stringify(JSON.parse(schemaTextarea.value), null, 4); schemaTextarea.classList.remove('is-invalid'); } catch (error) { schemaTextarea.classList.add('is-invalid'); if (window.Swal) Swal.fire('Invalid JSON', 'Fix the JSON syntax before formatting.', 'error'); } });

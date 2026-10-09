@@ -247,6 +247,8 @@ $(function() {
             refreshTable();
         }).fail(function(xhr) {
             if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                const firstError = Object.values(xhr.responseJSON.errors).flat()[0];
+                if (firstError) showToast('error', firstError, 5000);
                 Object.entries(xhr.responseJSON.errors).forEach(function([field, messages]) {
                     const baseField = field.split('.')[0];
                     const errorClass = field.replace(/\./g, '_');

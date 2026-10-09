@@ -13,6 +13,7 @@ class SectionDefinition extends Model
     public const ALLOWED_KEYS = [
         'hero'             => 'Hero',
         'rich_text'        => 'Rich Text',
+        'guarantee'        => 'Guarantee',
         'benefit_grid'     => 'Benefit Grid',
         'service_carousel' => 'Service Carousel',
         'pricing'          => 'Pricing',

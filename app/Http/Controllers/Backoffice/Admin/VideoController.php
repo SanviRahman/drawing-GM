@@ -223,7 +223,7 @@ class VideoController extends Controller
     }
     private function ensureSourcePermissions(Request $request, array $normalized): void
     {
-        if ($request->exists('youtube_input') || $request->exists('youtube_remove') || $request->exists('embed_input') || $request->exists('embed_remove')) {
+        if ($request->filled('youtube_input') || $request->boolean('youtube_remove') || $request->filled('embed_input') || $request->boolean('embed_remove')) {
             $this->ensurePermission('video_embed');
         }
 
@@ -234,11 +234,11 @@ class VideoController extends Controller
     }
     private function videoAttributes(array $validated, array $normalized): array
     {
-        $muted    = (bool) $validated['muted'];
         $autoplay = (bool) $validated['autoplay'];
+        // Browsers allow autoplay reliably only when muted. Persist the setting
+        // instead of silently discarding the user's selected Autoplay value.
+        $muted    = $autoplay ? true : (bool) $validated['muted'];
         $controls = (bool) $validated['controls'];
-        if ($autoplay && ! $muted) {$autoplay = false;
-            $controls                            = true;}
         $provider = $normalized['youtube_id'] ? 'youtube' : ($normalized['embed_url'] ? $this->detectEmbedProvider($normalized['embed_url']) : null);
         return ['title' => trim($validated['title']), 'caption' => $this->sanitizeRichText($validated['caption'] ?? null), 'source_type' => $normalized['source_type'] ?? 'upload', 'provider' => $provider, 'provider_video_id' => $normalized['youtube_id'], 'source_url' => $normalized['embed_url'], 'duration_seconds' => $validated['duration_seconds'] ?? null, 'autoplay' => $autoplay, 'muted' => $muted, 'controls' => $controls, 'loop' => (bool) $validated['loop'], 'processing_status' => 'ready', 'processing_error' => null, 'sort_order' => (int) ($validated['sort_order'] ?? 0), 'is_active' => (bool) $validated['is_active']];
     }

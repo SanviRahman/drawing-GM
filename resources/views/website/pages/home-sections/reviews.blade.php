@@ -1,4 +1,3 @@
-@if($textReviews->isNotEmpty())
 <section class="hp-section hp-reviews" id="hp-reviews" aria-labelledby="hpReviewsHeading">
     <div class="container">
         <div class="hp-section-heading hp-left-heading hp-heading-with-action">
@@ -7,8 +6,9 @@
                 <h2 id="hpReviewsHeading">{{ $reviewSection?->heading ?: 'Homeowners Who Trusted Our Clean Handover' }}</h2>
                 @if($reviewSection?->subheading)<p>{{ $reviewSection->subheading }}</p>@endif
             </div>
-            @if($chatReviews->isNotEmpty())<a href="#hp-chat-reviews" class="btn btn-outline-brand btn-sm">See WhatsApp Feedback <i class="bi bi-arrow-right"></i></a>@endif
+            @if($chatSlides->isNotEmpty())<a href="#hp-chat-reviews" class="btn btn-outline-brand btn-sm">See WhatsApp Feedback <i class="bi bi-arrow-right"></i></a>@endif
         </div>
+        @if($textReviews->isNotEmpty())
         <div class="hp-slider" data-hp-carousel aria-label="Customer testimonials carousel">
             <div class="hp-slider-viewport" data-hp-track id="hpReviewsTrack" tabindex="0" role="region" aria-roledescription="carousel" aria-label="Published customer testimonials">
                 @foreach($textReviews as $review)
@@ -19,9 +19,25 @@
                                     @for($i = 1; $i <= 5; $i++)<i class="bi {{ $i <= $review->rating ? 'bi-star-fill' : 'bi-star' }}" aria-hidden="true"></i>@endfor
                                 </div>
                             @endif
+                            @php
+                                // Source is explicitly managed in Admin → Testimonials.
+                                $isGoogleReview = $review->source === 'google';
+                                $hasSourceUrl = filled($review->source_url) && filter_var($review->source_url, FILTER_VALIDATE_URL);
+                            @endphp
+                            @if($isGoogleReview && $hasSourceUrl)
+                                <a class="hp-review-source" href="{{ $review->source_url }}" target="_blank" rel="noopener noreferrer">Google Verified <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
+                            @elseif($isGoogleReview)
+                                <span class="hp-review-source">Google Verified</span>
+                            @else
+                                <span class="hp-review-source hp-review-source-muted">Customer Review</span>
+                            @endif
                             <p>“{{ \Illuminate\Support\Str::limit(trim(strip_tags((string) $review->review)), 240) }}”</p>
                             <footer>
-                                <span class="hp-review-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr((string) ($review->customer_name ?: 'C'), 0, 1)) }}</span>
+                                @if($review->photo_url)
+                                    <img class="hp-review-avatar hp-review-avatar-image" src="{{ $review->photo_url }}" alt="" loading="lazy">
+                                @else
+                                    <span class="hp-review-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr((string) ($review->customer_name ?: 'C'), 0, 1)) }}</span>
+                                @endif
                                 <span><strong>{{ $review->customer_name ?: 'Customer' }}</strong>@if($review->customer_title)<small>{{ $review->customer_title }}</small>@endif</span>
                             </footer>
                         </blockquote>
@@ -38,6 +54,8 @@
                 </div>
             @endif
         </div>
+        @else
+            <div class="hp-editorial-empty">Verified customer reviews will appear here when you approve and activate them in Admin → Testimonials.</div>
+        @endif
     </div>
 </section>
-@endif

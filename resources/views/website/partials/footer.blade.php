@@ -24,5 +24,5 @@
             </ul></div>
         @endif
     </div>
-    <div class="footer-bottom"><span>{{ !empty($settings['footer.copyright']) ? trim(strip_tags((string) $settings['footer.copyright'])) : '© '.date('Y').' '.$siteName.'. All rights reserved.' }}</span><a href="#top">Back to top <i class="bi bi-arrow-up"></i></a></div>
+    <div class="footer-bottom"><span>{{ !empty($settings['footer.copyright']) ? trim(strip_tags((string) $settings['footer.copyright'])) : '© '.date('Y').' '.$siteName.'. All rights reserved.' }}</span></div>
 </div></footer>

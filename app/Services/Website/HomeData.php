@@ -4,11 +4,13 @@ namespace App\Services\Website;
 
 use App\Models\ContactChannel;
 use App\Models\Gallery;
+use App\Models\Location;
 use App\Models\LeadFormField;
 use App\Models\Menu;
 use App\Models\MenuItem;
 use App\Models\Page;
 use App\Models\PricingPackage;
+use App\Models\PricingAddon;
 use App\Models\Service;
 use App\Models\SiteSetting;
 use App\Models\Testimonial;
@@ -46,6 +48,8 @@ class HomeData
         }
 
         $packages = PricingPackage::query()->active()
+            ->where('name', 'not like', '[Draft]%')
+            ->where('name', 'not like', 'Reference ·%')
             ->whereHas('items', fn ($q) => $q->active())
             ->where(function ($q) {
                 $q->whereNull('service_id')->orWhereHas('service', fn ($s) => $s->published());
@@ -55,26 +59,48 @@ class HomeData
             })
             ->with([
                 'items' => fn ($query) => $query->active()->ordered(),
-                'pricingAddons' => fn ($query) => $query->active()->ordered(),
+                'pricingAddons' => fn ($query) => $query->active()->with('media')->ordered(),
             ])
-            ->ordered()->limit(16)->get();
+            ->orderByDesc('is_featured')->ordered()->limit(30)->get();
 
+        // Home also showcases published service portfolios. The old query excluded
+        // ALL service-attached galleries, so approved before/after media never appeared.
+        $publishedServiceIds = Service::query()->published()->pluck('id')->all();
+        $publishedLocationIds = Location::query()->published()->pluck('id')->all();
         $galleries = Gallery::query()->where('is_active', true)
-            ->where(function ($q) use ($page) {
-                $q->whereNull('attachable_type')
-                    ->when($page, fn ($q) => $q->orWhere(fn ($p) => $p
+            ->where(function ($q) use ($page, $publishedServiceIds, $publishedLocationIds) {
+                $q->whereNull('attachable_type');
+                if ($page) {
+                    $q->orWhere(fn ($p) => $p
                         ->where('attachable_type', $page->getMorphClass())
-                        ->where('attachable_id', $page->id)));
+                        ->where('attachable_id', $page->id));
+                }
+                if ($publishedServiceIds !== []) {
+                    $q->orWhere(fn ($p) => $p
+                        ->where('attachable_type', (new Service())->getMorphClass())
+                        ->whereIn('attachable_id', $publishedServiceIds));
+                }
+                if ($publishedLocationIds !== []) {
+                    $q->orWhere(fn ($p) => $p
+                        ->where('attachable_type', (new Location())->getMorphClass())
+                        ->whereIn('attachable_id', $publishedLocationIds));
+                }
             })
-            ->with(['items' => fn ($query) => $query->where('is_active', true)->with('media')->orderBy('sort_order')])
-            ->limit(8)->get();
+            ->with(['items' => fn ($query) => $query->where('is_active', true)
+                ->with('media')->orderBy('sort_order')])
+            ->orderBy('id')->limit(24)->get();
 
         $videos = Video::query()->active()
-            ->where(function ($q) use ($page) {
-                $q->whereNull('attachable_type')
-                    ->when($page, fn ($q) => $q->orWhere(fn ($p) => $p
-                        ->where('attachable_type', $page->getMorphClass())
-                        ->where('attachable_id', $page->id)));
+            ->where(function ($q) use ($page, $publishedServiceIds) {
+                $q->whereNull('attachable_type');
+                if ($page) {
+                    $q->orWhere(fn ($p) => $p->where('attachable_type', $page->getMorphClass())
+                        ->where('attachable_id', $page->id));
+                }
+                if ($publishedServiceIds !== []) {
+                    $q->orWhere(fn ($p) => $p->where('attachable_type', (new Service())->getMorphClass())
+                        ->whereIn('attachable_id', $publishedServiceIds));
+                }
             })
             ->ordered()->limit(16)->get()
             ->filter(function (Video $video): bool {
@@ -97,10 +123,13 @@ class HomeData
             'sections' => $sections,
             'services' => $services,
             'packages' => $packages,
+            // Every active add-on saved in Admin is available to the calculator.
+            // Package mappings can still override its price fields; inactive add-ons stay hidden.
+            'pricingAddons' => PricingAddon::query()->active()->with('media')->ordered()->limit(100)->get(),
             'galleries' => $galleries,
             'videos' => $videos,
             'faqs' => $faqs,
-            'testimonials' => Testimonial::query()->active()->orderBy('sort_order')->orderBy('id')->limit(24)->get(),
+            'testimonials' => Testimonial::query()->active()->with('media')->where('customer_name', 'not like', 'Demo Customer%')->orderBy('sort_order')->orderBy('id')->limit(48)->get(),
             'contacts' => ContactChannel::query()->active()->ordered()->get(),
             'fields' => LeadFormField::query()->active()->ordered()->get(),
         ];

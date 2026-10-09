@@ -142,11 +142,11 @@ body.website-body img{max-width:100%}
 .hp-guarantee-photo-pill{position:absolute;bottom:12px;left:12px;right:12px;background:#fff;border-radius:8px;padding:11px 13px;font-size:.82rem;display:flex;align-items:center;gap:10px;box-shadow:0 4px 12px #0002}
 .hp-guarantee-photo-pill i{color:#028766}
 .hp-warning{background:#f0eff2}
-.hp-warning-box{background:#fff;padding:24px 30px;border-radius:9px;max-width:690px;margin:auto}
+.hp-warning-box{background:#fff;padding:30px 34px;border-radius:9px;width:100%;max-width:none;margin:auto}
 .hp-warning-list li{display:flex;gap:13px;padding:6px 0;color:#657178;font-size:.87rem}
 .hp-warning-list li p{margin:0}
 .hp-warning-list span{display:grid;place-items:center;background:#eff0f2;width:24px;height:24px;border-radius:50%;flex:none;color:#899298;font-size:.63rem}
-.hp-warning-bottom{max-width:690px;margin:20px auto 0;display:flex;align-items:center;justify-content:space-between;gap:15px}
+.hp-warning-bottom{width:100%;max-width:none;margin:22px auto 0;display:flex;align-items:center;justify-content:space-between;gap:15px}
 .hp-warning-bottom p{color:#596a72;font-size:.85rem;margin:0}
 /* videos */
 .hp-videos{background:#f0f8f4}
@@ -240,7 +240,7 @@ body.website-body img{max-width:100%}
 .hp-chat-card figcaption{font-size:.78rem;color:#647578;padding:12px 15px}
 /* recap FAQ quote */
 .hp-recap{background:#f0f8f4}
-.hp-recap-panel{max-width:700px;background:#fff;padding:16px 25px;margin:auto;border-radius:10px;border:1px solid #e8eeea}
+.hp-recap-panel{width:100%;max-width:none;background:#fff;padding:20px 28px;margin:auto;border-radius:10px;border:1px solid #e8eeea}
 .hp-recap-panel li{display:flex;align-items:flex-start;gap:15px;padding:12px 4px;color:#68767e;font-size:.86rem}
 .hp-recap-panel li+li{border-top:1px solid #ebf0ec}
 .hp-recap-panel i{color:var(--hp-green);font-size:1rem;margin-top:2px}
@@ -439,3 +439,531 @@ body.website-body img{max-width:100%}
 .hp-regional-no-contacts p{font-size:.85rem;color:#617880}
 @media(max-width:1100px){.hp-regional-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.hp-regional-grid{grid-template-columns:1fr}.hp-regional-card{min-height:0}.hp-regional-no-contacts{flex-direction:column;text-align:center}}
+
+/* CMS content routes use the same Bootstrap/Rubik design as Home. */
+.cms-content-hero{padding:clamp(4rem,8vw,7rem) 0;background:#edf2ee;color:#203a46}
+.cms-content-hero h1{font-size:clamp(2.1rem,5vw,3.7rem);font-weight:700;letter-spacing:-.035em;max-width:880px;margin-bottom:1rem}
+.cms-content-hero p:not(.cms-content-eyebrow){max-width:780px;font-size:1.05rem;line-height:1.8}
+.cms-content-eyebrow{font-size:.8rem;color:#216d61;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+.cms-content-section{padding:clamp(3rem,6vw,5rem) 0}
+.cms-content-narrow{max-width:860px}
+.cms-content-section h2{font-size:clamp(1.5rem,3vw,2.2rem);font-weight:600}
+.cms-information-card{padding:1.5rem;background:#fff;border:1px solid #dce7e2;border-radius:16px;box-shadow:0 8px 25px rgba(10,41,40,.06)}
+.cms-information-card h3{font-size:1.15rem;line-height:1.35;font-weight:600}
+.cms-information-card p{color:#53645f}
+.cms-article-body{line-height:1.9;white-space:pre-line}
+.cms-content-faq{background:#f7faf8}
+
+/* Home screenshot fidelity corrections (Bootstrap 5.3 + Rubik). */
+.hp-quote-path{max-height:620px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.hp-quote-links{gap:9px}
+.hp-quote-link{min-height:58px}
+.hp-quote-link small{font-size:.76rem;line-height:1.35}
+.hp-benefit-grid{max-width:1200px}
+.hp-benefit-card.hp-benefit-image-only{min-height:390px;border-radius:13px;box-shadow:0 8px 20px rgba(11,35,43,.09)}
+.hp-benefit-image-only .hp-benefit-photo{position:absolute;inset:0}
+.hp-benefit-image-only .hp-benefit-photo img{width:100%;height:100%;object-fit:cover}
+.hp-benefit-image-only .hp-benefit-photo::after{display:none}
+.hp-calculator-panel{background:#eaf3ee;padding:42px 48px}
+.hp-calc-eyebrow{display:inline-block;background:#a6eee0;color:#004d43;padding:8px 17px;border-radius:22px}
+.hp-calc-grade-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.hp-calc-grade{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;background:#f4f8f5;border:1px solid #d4e1da;border-radius:9px;padding:14px 12px;cursor:pointer;min-height:102px}
+.hp-calc-grade:has(input:checked){background:#e1f7ee;border-color:#138b74}
+.hp-calc-grade input{position:absolute;opacity:0;width:1px;height:1px}
+.hp-calc-grade strong{display:block;color:#0a2e3a;font-size:.83rem}
+.hp-calc-grade small{display:block;color:#417268;margin-top:9px;font-size:.73rem}
+.hp-calc-grade i{color:#617d79;margin-top:3px}
+.hp-calc-grade:has(input:checked) i{color:#00856b}
+.hp-calc-grade:has(input:checked) i::before{content:'\f26a'}
+.hp-calc-grade:focus-within{outline:3px solid #58b7a4;outline-offset:2px}
+.hp-calc-addons-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hp-calc-addon{background:#f4f8f5;border:1px solid #dbe4df;border-radius:9px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:.83rem}
+.hp-calc-addon:has(input:checked){background:#e2f7ee;border-color:#148a70}
+.hp-calc-addon input{accent-color:#007e67;margin-top:4px}
+.hp-calc-addon small{display:block;font-size:.75rem;color:#4a726b;margin-top:3px}
+.hp-calc-grade[hidden],.hp-calc-addon[hidden],.hp-calc-quantity-wrap[hidden]{display:none!important}
+.hp-calc-quantity-wrap{display:flex;align-items:center;justify-content:space-between;background:#f4f8f5;border:1px solid #dbe4df;border-radius:9px;padding:16px;margin-top:12px;gap:14px}
+.hp-calc-quantity-wrap strong{display:block;font-size:.85rem}
+.hp-calc-quantity-wrap small{display:block;font-size:.75rem;color:#658079;margin-top:4px}
+.hp-calc-quantity-control{display:flex;align-items:center;gap:12px}
+.hp-calc-quantity-control button{background:#fff;border:1px solid #cfdbd5;border-radius:7px;width:35px;height:35px;font-size:1.1rem}
+.hp-calc-quantity-control output{min-width:20px;text-align:center;font-weight:700}
+.hp-calc-estimate-label{display:block;margin:5px 0 7px;color:#a8d8cf}
+.hp-calc-assurances{background:#1a4652;border-radius:9px;padding:14px 15px;text-align:left;display:grid;gap:9px;margin:19px 0 23px}
+.hp-calc-assurances div{display:flex;gap:9px;align-items:flex-start;font-size:.82rem}
+.hp-calc-assurances i{color:#7ddac6}
+.hp-calc-next-steps{padding-left:18px;margin-top:12px;color:#617779;font-size:.85rem}
+.hp-calc-next-steps li+li{margin-top:9px}
+@media(max-width:991px){.hp-benefit-card.hp-benefit-image-only{min-height:320px}.hp-calculator-panel{padding:26px}}
+@media(max-width:575px){.hp-benefit-card.hp-benefit-image-only{min-height:260px}.hp-calc-grade-grid{grid-template-columns:1fr 1fr}.hp-calc-addons-grid{grid-template-columns:1fr}.hp-calculator-panel{padding:20px 14px}}
+
+/* 2026-10-09 responsive CMS section & reference-inspired finishing */
+.hp-custom-section{background:#fffdf9}
+.hp-custom-card{display:flex;gap:14px;border:1px solid #dae4de;background:#f6faf7;padding:22px;border-radius:14px}
+.hp-custom-check{color:#087d65;display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:9px;background:#e0f0e8}
+.hp-custom-card h3{font-size:1.06rem;font-weight:600;color:#082b38;margin:0 0 7px}
+.hp-custom-card p{color:#597079;font-size:.9rem;line-height:1.6;margin:0}
+.hp-custom-media{border-radius:16px;overflow:hidden;background:#e6f1eb;border:1px solid #dbe8df}
+.hp-custom-media img{width:100%;height:380px;object-fit:cover}
+.hp-youtube-open{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.82rem;color:#087863;margin-top:10px}
+.hp-video-poster img{object-fit:cover}
+.hp-review-source{display:inline-flex;align-self:flex-start;border:1px solid #d2e4da;background:#fff;color:#08715c;font-size:.7rem;font-weight:600;border-radius:999px;padding:4px 9px;margin:0 0 10px}
+.hp-chat-card img{height:auto;max-height:460px;object-fit:contain;background:#f4f1ea}
+.hp-quote-section{background:#fffdf9;padding:64px 0 85px}
+.hp-quote-banner{grid-template-columns:minmax(0,1fr) minmax(0,.92fr);gap:44px;padding:48px 52px;border-radius:16px;box-shadow:0 16px 28px rgba(6,35,42,.09)}
+.hp-quote-form-wrap{padding:24px;border-radius:14px;box-shadow:0 10px 26px rgba(0,0,0,.09)}
+.hp-quote-form .form-label{text-transform:uppercase;letter-spacing:.025em;font-weight:600;color:#223944}
+.hp-quote-form .form-control,.hp-quote-form .form-select{background:#eef4f1;border-color:#d4e3dd;min-height:48px;padding:.72rem .85rem}
+.hp-quote-form textarea.form-control{min-height:100px}
+@media(max-width:991px){.hp-quote-banner{grid-template-columns:1fr;padding:30px 26px}}
+@media(max-width:575px){.hp-quote-banner{padding:20px 16px}.hp-quote-form-wrap{padding:15px}.hp-custom-media img{height:260px}}
+
+
+/* Genuine media galleries / reviews - reference-inspired taller cards, 2026-10-09 */
+.hp-guarantee-photo{height:560px;min-height:560px}
+.hp-guarantee-photo img{object-position:center center}
+.hp-slide-gallery .hp-gallery-image{aspect-ratio:auto;height:410px;min-height:410px}
+.hp-slide-gallery .hp-gallery-image>img{height:100%;width:100%;object-fit:cover}
+.hp-slide-gallery .hp-compare{height:100%}
+.hp-slide-chat .hp-chat-card img{height:480px;max-height:none;object-fit:contain;background:#eeeae3}
+.hp-slide-chat .hp-chat-card{min-height:560px}
+.hp-slide-review .hp-review-card{min-height:320px;position:relative}
+.hp-review-source{position:absolute;top:21px;right:18px;max-width:140px;margin:0;text-decoration:none}
+.hp-review-card .hp-review-stars{margin-right:135px}
+.hp-review-avatar-image{object-fit:cover;display:block}
+@media(max-width:991.98px){
+  .hp-guarantee-photo{height:440px;min-height:440px}
+  .hp-slide-gallery .hp-gallery-image{height:330px;min-height:330px}
+  .hp-slide-chat .hp-chat-card img{height:410px}
+  .hp-slide-chat .hp-chat-card{min-height:480px}
+}
+@media(max-width:575.98px){
+  .hp-guarantee-photo{height:400px;min-height:400px}
+  .hp-slide-gallery .hp-gallery-image{height:360px;min-height:360px}
+  .hp-slide-chat .hp-chat-card img{height:460px}
+  .hp-slide-chat .hp-chat-card{min-height:520px}
+  .hp-review-source{position:static;margin:0 0 12px}
+  .hp-review-card .hp-review-stars{margin-right:0}
+}
+
+/* Final CMS data fixes: review badges, admin-priced add-ons, reference-style before/after cards */
+.hp-review-source-muted{color:#536e67;background:#f7faf8;border-color:#d9e3de}
+
+.hp-before-after-pair{display:grid;grid-template-columns:1fr 1fr;height:100%;min-height:410px;background:#e9eee9}
+.hp-before-after-half{position:relative;min-width:0;overflow:hidden;background:#e6ece8}
+.hp-before-after-half+ .hp-before-after-half{border-left:1px solid rgba(255,255,255,.95)}
+.hp-before-after-half img{width:100%;height:100%;display:block;object-fit:cover}
+.hp-before-label,.hp-after-label{position:absolute;top:12px;z-index:2;padding:5px 9px;border-radius:4px;font-size:.68rem;line-height:1;font-weight:800;letter-spacing:.02em;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+.hp-before-label{left:12px;background:#26302d}
+.hp-after-label{right:12px;background:#047c68}
+.hp-gallery-topline{padding:16px 18px 13px;min-height:68px;align-items:flex-start}
+.hp-gallery-project-index{font-size:.7rem;text-transform:uppercase}
+.hp-gallery-media-type{background:#073443;color:#fff;font-weight:700}
+.hp-slide-gallery .hp-gallery-card figcaption{padding:17px 18px 19px}
+.hp-slide-gallery .hp-gallery-card h3{font-size:1.02rem;line-height:1.25}
+.hp-slide-gallery .hp-gallery-card p{font-size:.8rem;line-height:1.55}
+
+.hp-calc-addon{min-height:76px;align-items:center}
+.hp-calc-addon-thumb{width:56px;height:56px;flex:0 0 56px;border-radius:8px;object-fit:cover;border:1px solid #d6e3dd;background:#fff}
+.hp-calc-addon span{min-width:0}
+.hp-calc-addon strong{display:block;color:#0a2c37;line-height:1.25}
+.hp-calc-breakdown{margin:16px 0 0;border-top:1px solid rgba(116,222,203,.26);padding-top:10px;display:grid;gap:7px}
+.hp-calc-breakdown[hidden]{display:none!important}
+.hp-calc-breakdown>div{display:flex;justify-content:space-between;gap:18px;font-size:.78rem;color:#d8eeea}
+.hp-calc-breakdown>div span{min-width:0;text-align:left}
+.hp-calc-breakdown>div strong{font-size:.78rem;color:#fff;white-space:nowrap}
+
+@media(max-width:767.98px){
+  .hp-before-after-pair{min-height:360px}
+  .hp-gallery-topline{min-height:58px;padding:12px}
+  .hp-calc-addon-thumb{width:48px;height:48px;flex-basis:48px}
+}
+
+
+/* 2026-10-09 — Keep section dimensions/layout unchanged; center text only.
+   Applies to:
+   1) Before you get started
+   2) Let us recap what you can explore
+   3) Frequently Asked Questions
+*/
+
+/* BEFORE YOU GET STARTED */
+.hp-warning .hp-section-heading,
+.hp-warning .hp-section-heading h2,
+.hp-warning .hp-section-heading p {
+  text-align: center;
+}
+
+.hp-warning-list li {
+  justify-content: center;
+  text-align: center;
+}
+
+.hp-warning-list li p {
+  text-align: center;
+}
+
+.hp-warning-bottom p {
+  text-align: center;
+}
+
+/* LET US RECAP WHAT YOU CAN EXPLORE */
+.hp-recap .hp-section-heading,
+.hp-recap .hp-section-heading h2,
+.hp-recap .hp-section-heading p {
+  text-align: center;
+}
+
+.hp-recap-panel li {
+  justify-content: center;
+  text-align: center;
+}
+
+/* FREQUENTLY ASKED QUESTIONS */
+.hp-faq-section .hp-section-heading,
+.hp-faq-section .hp-section-heading h2,
+.hp-faq-section .hp-section-heading p {
+  text-align: center;
+}
+
+.hp-faq-accordion .accordion-button {
+  position: relative;
+  justify-content: center;
+  text-align: center;
+  padding-left: 52px;
+  padding-right: 52px;
+}
+
+.hp-faq-accordion .accordion-button::after {
+  position: absolute;
+  right: 20px;
+  margin-left: 0;
+}
+
+.hp-faq-accordion .accordion-body {
+  text-align: center;
+}
+
+/* ========================================================================
+   2026-10-09 • Homepage scale + polished motion layer
+   Reference target: larger editorial sections, quote banner typography,
+   subtle reveal/hover motion. No Tailwind/Vite; Bootstrap 5.3 + Rubik only.
+   ======================================================================== */
+
+/* Slightly larger desktop canvas, matching the supplied UI proportions. */
+@media (min-width:1200px){
+  .website-body .container{max-width:1260px}
+  .hp-section{padding-top:82px;padding-bottom:82px}
+  .hp-section-heading{margin-bottom:38px}
+  .hp-section-heading h2{font-size:clamp(2rem,2.9vw,2.85rem)}
+  .hp-section-heading p{font-size:1.03rem;line-height:1.7;max-width:790px}
+}
+
+/* Quote/booking block: typography and proportions from the supplied UI. */
+.hp-quote-section{padding-top:58px;padding-bottom:86px}
+.hp-quote-banner{min-height:570px;align-items:stretch}
+.hp-quote-copy{padding:22px 8px 22px 2px}
+.hp-quote-copy .hp-eyebrow{display:inline-flex;align-items:center;border-radius:999px;background:#163f4a;padding:7px 13px;color:#93e0cf;font-size:.78rem;letter-spacing:.035em;margin-bottom:24px}
+.hp-quote-copy h2{font-size:clamp(2.25rem,3.3vw,3rem);font-weight:600;line-height:1.16;margin-bottom:24px;max-width:560px}
+.hp-quote-copy>p{font-size:1.04rem;line-height:1.72;max-width:560px;margin-bottom:0;color:#d5e1e3}
+.hp-quote-points{gap:14px;margin-top:30px}
+.hp-quote-points li{font-size:.96rem;line-height:1.55;gap:12px;color:#e6eff0}
+.hp-quote-points i{font-size:1.05rem;margin-top:3px;color:#74e0c6}
+.hp-quote-form-wrap{display:flex;align-items:center}
+.hp-quote-form{width:100%}
+.hp-quote-form .form-label{font-size:.78rem;letter-spacing:.04em;color:#17323c}
+.hp-quote-form .form-control,.hp-quote-form .form-select{min-height:55px;font-size:.94rem;padding:.82rem .92rem}
+.hp-quote-form textarea.form-control{min-height:112px}
+.hp-quote-form .btn{min-height:54px;font-size:.96rem}
+.hp-form-privacy{font-size:.74rem;line-height:1.45}
+
+/* Consistent larger cards/media on desktop without changing CMS data flow. */
+@media (min-width:992px){
+  .hp-benefit-card{min-height:310px}
+  .hp-benefit-card.hp-benefit-image-only{min-height:420px}
+  .hp-guarantee-photo{height:590px;min-height:590px}
+  .hp-video-card{min-height:100%}
+  .hp-review-card{padding:28px;min-height:280px}
+  .hp-slide-review .hp-review-card{min-height:340px}
+  .hp-slide-gallery .hp-gallery-image{height:440px;min-height:440px}
+  .hp-slide-chat .hp-chat-card img{height:510px}
+  .hp-slide-chat .hp-chat-card{min-height:590px}
+  .hp-calculator-panel{padding:50px 54px}
+}
+
+/* Shared motion primitives. JS adds .is-visible when an element enters viewport. */
+.hp-reveal{opacity:0;transform:translate3d(0,34px,0);transition:opacity .68s ease,transform .68s cubic-bezier(.2,.72,.2,1);will-change:opacity,transform}
+.hp-reveal.hp-reveal-left{transform:translate3d(-38px,0,0)}
+.hp-reveal.hp-reveal-right{transform:translate3d(38px,0,0)}
+.hp-reveal.hp-reveal-scale{transform:scale(.965)}
+.hp-reveal.is-visible{opacity:1;transform:none}
+.hp-stagger-item{transition-delay:var(--hp-stagger-delay,0ms)}
+
+/* Page preloader (created by website.js; no Blade dependency). */
+.hp-page-loader{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;background:#fffdf9;opacity:1;visibility:visible;transition:opacity .35s ease,visibility .35s ease}
+.hp-page-loader.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
+.hp-loader-inner{display:grid;justify-items:center;gap:14px;color:#0b3540;font-size:.82rem;font-weight:600;letter-spacing:.04em}
+.hp-loader-spinner{width:42px;height:42px;border-radius:50%;border:4px solid #d9e9e2;border-top-color:#087c67;animation:hp-spin .8s linear infinite}
+@keyframes hp-spin{to{transform:rotate(360deg)}}
+
+/* Sticky header gains a subtle compact transition instead of jumping. */
+.site-header{transition:box-shadow .25s ease,transform .25s ease,background-color .25s ease}
+.site-header.site-header-sticky.is-scrolled{box-shadow:0 8px 24px rgba(7,39,47,.12)}
+.site-header.site-header-sticky.is-scrolled .site-navbar{min-height:66px;padding-top:8px;padding-bottom:8px;transition:min-height .25s ease,padding .25s ease}
+
+/* Hero slider: softer slide/fade and entrance for trust/content elements. */
+.hp-hero-carousel .carousel-item{transition:transform .85s cubic-bezier(.2,.7,.2,1),opacity .7s ease}
+.hp-hero-carousel .carousel-item img{transform:scale(1.018);transition:transform 5.5s ease}
+.hp-hero-carousel .carousel-item.active img{transform:scale(1)}
+.hp-hero-trust{animation:hp-hero-enter .72s .12s both cubic-bezier(.2,.72,.2,1)}
+@keyframes hp-hero-enter{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+
+/* Cards / images: small, professional hover lift + zoom. */
+.hp-benefit-card,.hp-video-card,.hp-review-card,.hp-gallery-card,.hp-chat-card,.hp-regional-card,.hp-custom-card,.hp-intro-benefit,.hp-process-card{transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease}
+.hp-benefit-card:hover,.hp-video-card:hover,.hp-review-card:hover,.hp-gallery-card:hover,.hp-chat-card:hover,.hp-regional-card:hover,.hp-custom-card:hover,.hp-intro-benefit:hover,.hp-process-card:hover{transform:translateY(-5px);box-shadow:0 18px 34px rgba(7,43,46,.11)}
+.hp-benefit-photo img,.hp-video-poster img,.hp-gallery-image img,.hp-before-after-half img,.hp-custom-media img,.hp-guarantee-photo img,.hp-chat-card img{transition:transform .5s cubic-bezier(.2,.72,.2,1),filter .35s ease}
+.hp-benefit-card:hover .hp-benefit-photo img,.hp-video-card:hover .hp-video-poster img,.hp-gallery-card:hover .hp-gallery-image>img,.hp-before-after-half:hover img,.hp-custom-media:hover img,.hp-guarantee-photo:hover img,.hp-chat-card:hover img{transform:scale(1.035)}
+.hp-gallery-image::after,.hp-custom-media::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(4,40,46,.12));opacity:0;pointer-events:none;transition:opacity .3s ease}
+.hp-gallery-image,.hp-custom-media{position:relative}
+.hp-gallery-card:hover .hp-gallery-image::after,.hp-custom-media:hover::after{opacity:1}
+
+/* Existing horizontal carousels feel draggable and polished. */
+.hp-slider-viewport{cursor:grab;scroll-behavior:smooth}
+.hp-slider-viewport.is-dragging{cursor:grabbing;scroll-snap-type:none;user-select:none}
+.hp-slider-viewport.is-dragging *{pointer-events:none}
+.hp-slider-slide{transition:opacity .35s ease,transform .35s ease}
+.hp-slider-slide:hover{z-index:2}
+
+/* Accordion: Bootstrap still owns state; CSS only smooths visual changes. */
+.hp-faq-accordion .accordion-item{transition:border-color .22s ease,box-shadow .22s ease,transform .22s ease}
+.hp-faq-accordion .accordion-item:has(.accordion-button:not(.collapsed)){border-color:#b9ddcf;box-shadow:0 8px 22px rgba(7,58,49,.08)}
+.hp-faq-accordion .accordion-collapse{transition:height .32s ease}
+
+/* Buttons/links: one consistent interaction language across the homepage. */
+.website-body .btn,.website-body a,.hp-quote-link,.hp-regional-chat,.hp-carousel-arrow{transition:transform .2s ease,box-shadow .2s ease,background-color .2s ease,color .2s ease,border-color .2s ease,filter .2s ease}
+.website-body .btn:hover,.hp-quote-link:hover,.hp-regional-chat:hover{transform:translateY(-2px)}
+.website-body .btn:active,.hp-quote-link:active,.hp-regional-chat:active{transform:translateY(0)}
+.site-navbar .nav-link{transition:color .2s ease,border-color .2s ease,transform .2s ease}
+.site-navbar .nav-link:hover{transform:translateY(-1px)}
+
+/* Count-up numbers stay stable while digits change. */
+[data-countup],.hp-countup,.hp-stat-number,.hp-experience-number{font-variant-numeric:tabular-nums}
+
+@media(max-width:991.98px){
+  .hp-quote-section{padding-top:44px;padding-bottom:62px}
+  .hp-quote-banner{min-height:0}
+  .hp-quote-copy{padding:8px 0 4px}
+  .hp-quote-copy h2{font-size:clamp(2rem,7vw,2.65rem)}
+  .hp-quote-copy>p{font-size:1rem}
+  .hp-quote-points li{font-size:.92rem}
+}
+@media(max-width:575.98px){
+  .hp-section{padding-top:52px;padding-bottom:52px}
+  .hp-quote-section{padding-top:36px;padding-bottom:54px}
+  .hp-quote-copy .hp-eyebrow{margin-bottom:18px}
+  .hp-quote-copy h2{font-size:2.05rem}
+  .hp-quote-form .form-control,.hp-quote-form .form-select{min-height:50px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .hp-page-loader{display:none!important}
+  .hp-reveal,.hp-reveal.is-visible,.hp-stagger-item,.hp-hero-trust,.hp-hero-carousel .carousel-item,.hp-hero-carousel .carousel-item img{opacity:1!important;transform:none!important;animation:none!important;transition:none!important}
+  .hp-slider-viewport{scroll-behavior:auto!important}
+}
+
+/* ========================================================================
+   2026-10-09 • Home visual scale v2 + slower professional motion
+   Scoped to .home-page so CMS content pages keep their existing proportions.
+   ======================================================================== */
+:root{
+  --hp-motion-ease:cubic-bezier(.16,1,.3,1);
+  --hp-motion-ease-soft:cubic-bezier(.22,.61,.36,1);
+  --hp-motion-fast:.38s;
+  --hp-motion-medium:.68s;
+  --hp-motion-slow:1.08s;
+}
+
+/* Match the quote form's visual weight across the rest of Home. */
+.home-page .hp-section{padding-top:clamp(4.75rem,7vw,6.4rem);padding-bottom:clamp(4.75rem,7vw,6.4rem)}
+.home-page .hp-section-heading{margin-bottom:clamp(2rem,3.4vw,2.9rem)}
+.home-page .hp-section-heading h2,
+.home-page .hp-heading-left,
+.home-page .hp-regional-heading h2{
+  font-size:clamp(2.2rem,3.35vw,3.05rem);
+  line-height:1.14;
+  font-weight:600;
+  letter-spacing:-.035em;
+}
+.home-page .hp-section-heading p,
+.home-page .hp-guarantee-lead,
+.home-page .hp-regional-description,
+.home-page .hp-custom-section>.container>.hp-muted{
+  font-size:clamp(.98rem,1.05vw,1.08rem);
+  line-height:1.72;
+}
+.home-page .hp-eyebrow{font-size:.8rem;letter-spacing:.14em;margin-bottom:12px}
+.home-page .hp-editorial-empty{font-size:.96rem;padding:34px}
+
+/* Intro/hero content: preserve the hero hierarchy while giving it the same generous rhythm. */
+.home-page .hp-intro{padding-top:clamp(4.5rem,6.6vw,6rem);padding-bottom:clamp(5rem,7vw,6.5rem)}
+.home-page .hp-intro-title{font-size:clamp(2.65rem,4.55vw,4.15rem);line-height:1.08;margin-bottom:24px}
+.home-page .hp-intro-lead{font-size:clamp(1.02rem,1.2vw,1.14rem);line-height:1.75;margin-bottom:30px}
+.home-page .hp-intro-benefit{padding:18px 18px;min-height:88px}
+.home-page .hp-intro-benefit strong{font-size:.98rem}
+.home-page .hp-intro-benefit small{font-size:.82rem;line-height:1.45}
+.home-page .hp-quote-path{padding:30px}
+.home-page .hp-quote-path h2{font-size:1.55rem}
+.home-page .hp-quote-path>p{font-size:.94rem;line-height:1.55}
+.home-page .hp-quote-link{min-height:66px;padding:14px 17px}
+.home-page .hp-quote-link strong{font-size:.96rem}
+.home-page .hp-quote-link small{font-size:.8rem}
+
+/* Cards and supporting copy scale up proportionally, not uniformly. */
+.home-page .hp-guarantee-item{gap:18px}
+.home-page .hp-guarantee-item strong{font-size:1rem;line-height:1.35}
+.home-page .hp-guarantee-item p{font-size:.93rem;line-height:1.6}
+.home-page .hp-check-square{width:38px;height:38px;font-size:1.3rem}
+.home-page .hp-warning-box{padding:38px 44px}
+.home-page .hp-warning-list li{font-size:.98rem;line-height:1.65;padding:9px 0;gap:15px}
+.home-page .hp-warning-list span{width:28px;height:28px}
+.home-page .hp-warning-bottom p{font-size:.94rem;line-height:1.55}
+.home-page .hp-video-info{padding:20px 21px 24px}
+.home-page .hp-video-info h3{font-size:1.08rem;line-height:1.35}
+.home-page .hp-video-info p{font-size:.92rem;line-height:1.6}
+.home-page .hp-tag{font-size:.7rem;padding:5px 10px}
+.home-page .hp-review-card{padding:30px}
+.home-page .hp-review-card>p{font-size:1rem;line-height:1.65}
+.home-page .hp-review-card footer strong{font-size:.95rem}
+.home-page .hp-review-card footer small{font-size:.83rem}
+.home-page .hp-gallery-topline{padding:18px 20px 16px}
+.home-page .hp-gallery-project-index{font-size:.76rem}
+.home-page .hp-gallery-media-type{font-size:.75rem;padding:6px 10px}
+.home-page .hp-slide-gallery .hp-gallery-card figcaption{padding:21px 20px 23px}
+.home-page .hp-slide-gallery .hp-gallery-card h3{font-size:1.12rem}
+.home-page .hp-slide-gallery .hp-gallery-card p{font-size:.9rem;line-height:1.62}
+.home-page .hp-chat-header{padding:17px 18px;font-size:.94rem}
+.home-page .hp-chat-card figcaption{font-size:.88rem;line-height:1.5;padding:15px 18px}
+.home-page .hp-recap-panel{padding:28px 36px}
+.home-page .hp-recap-panel li{font-size:.98rem;line-height:1.62;padding:15px 6px}
+.home-page .hp-faq-accordion .accordion-button{font-size:1rem;line-height:1.5;min-height:64px;padding-top:18px;padding-bottom:18px}
+.home-page .hp-faq-accordion .accordion-body{font-size:.96rem;line-height:1.7;padding-top:18px;padding-bottom:20px}
+.home-page .hp-regional-card{padding:23px;min-height:285px}
+.home-page .hp-regional-card h3{font-size:1.12rem}
+.home-page .hp-regional-card p{font-size:.9rem;line-height:1.6}
+.home-page .hp-regional-number{font-size:.94rem;padding:11px}
+.home-page .hp-regional-chat{font-size:.92rem;padding:13px}
+.home-page .hp-custom-card{padding:24px}
+
+/* Calculator uses the same readable weight as the booking form. */
+.home-page .hp-calculator-panel{padding:clamp(2.5rem,4vw,3.75rem)}
+.home-page .hp-calc-form{padding:32px}
+.home-page .hp-form-step-label{font-size:.78rem;margin-bottom:14px}
+.home-page .hp-calc-select{font-size:.94rem;min-height:52px;padding:.75rem .9rem}
+.home-page .hp-calc-grade,.home-page .hp-calc-addon{font-size:.88rem}
+.home-page .hp-calc-result{padding:34px 28px}
+.home-page .hp-calc-result>span{font-size:.76rem}
+.home-page .hp-calc-result>strong{font-size:clamp(2.35rem,4vw,3.35rem)}
+.home-page .hp-calc-result p{font-size:.88rem;line-height:1.55}
+.home-page .hp-calc-includes li{font-size:.86rem;line-height:1.5}
+
+/* Desktop media proportions closer to the supplied UI. */
+@media(min-width:992px){
+  .home-page .hp-benefit-card{min-height:350px}
+  .home-page .hp-benefit-card.hp-benefit-image-only{min-height:470px}
+  .home-page .hp-guarantee-photo{height:620px;min-height:620px}
+  .home-page .hp-slide-review .hp-review-card{min-height:365px}
+  .home-page .hp-slide-gallery .hp-gallery-image{height:470px;min-height:470px}
+  .home-page .hp-slide-chat .hp-chat-card img{height:550px}
+  .home-page .hp-slide-chat .hp-chat-card{min-height:635px}
+}
+@media(min-width:1200px){
+  .home-page .container{max-width:1280px}
+}
+
+/* Slow, calm motion: more time, less distance, softer acceleration. */
+.home-page .hp-reveal{
+  opacity:0;
+  transform:translate3d(0,46px,0);
+  transition-property:opacity,transform,filter;
+  transition-duration:1.02s,1.12s,.9s;
+  transition-timing-function:ease,var(--hp-motion-ease),ease;
+  filter:blur(1.2px);
+  will-change:opacity,transform;
+}
+.home-page .hp-reveal.hp-reveal-left{transform:translate3d(-48px,0,0)}
+.home-page .hp-reveal.hp-reveal-right{transform:translate3d(48px,0,0)}
+.home-page .hp-reveal.hp-reveal-scale{transform:scale(.972)}
+.home-page .hp-reveal.is-visible{opacity:1;transform:none;filter:none}
+
+.hp-page-loader{transition:opacity .62s var(--hp-motion-ease-soft),visibility .62s linear}
+.hp-loader-spinner{width:46px;height:46px;border-width:4px;animation-duration:1.05s}
+.site-header{transition:box-shadow .48s var(--hp-motion-ease-soft),transform .48s var(--hp-motion-ease-soft),background-color .48s ease}
+.site-header.site-header-sticky.is-scrolled .site-navbar{transition:min-height .48s var(--hp-motion-ease-soft),padding .48s var(--hp-motion-ease-soft)}
+.home-page .hp-hero-carousel .carousel-item{transition:transform 1.18s var(--hp-motion-ease-soft),opacity .98s ease}
+.home-page .hp-hero-carousel .carousel-item img{transition:transform 7.5s ease-out;transform:scale(1.028)}
+.home-page .hp-hero-carousel .carousel-item.active img{transform:scale(1)}
+.home-page .hp-hero-trust{animation-duration:1.05s;animation-timing-function:var(--hp-motion-ease)}
+.home-page .hp-hero-trust.hp-hero-replay{animation:hp-hero-reenter 1.05s var(--hp-motion-ease) both}
+@keyframes hp-hero-reenter{from{opacity:0;transform:translate3d(0,28px,0)}to{opacity:1;transform:none}}
+
+.home-page .hp-benefit-card,
+.home-page .hp-video-card,
+.home-page .hp-review-card,
+.home-page .hp-gallery-card,
+.home-page .hp-chat-card,
+.home-page .hp-regional-card,
+.home-page .hp-custom-card,
+.home-page .hp-intro-benefit,
+.home-page .hp-process-card{
+  transition:transform .5s var(--hp-motion-ease),box-shadow .5s ease,border-color .5s ease;
+}
+.home-page .hp-benefit-card:hover,
+.home-page .hp-video-card:hover,
+.home-page .hp-review-card:hover,
+.home-page .hp-gallery-card:hover,
+.home-page .hp-chat-card:hover,
+.home-page .hp-regional-card:hover,
+.home-page .hp-custom-card:hover,
+.home-page .hp-intro-benefit:hover,
+.home-page .hp-process-card:hover{transform:translateY(-7px);box-shadow:0 22px 44px rgba(7,43,46,.13)}
+.home-page .hp-benefit-photo img,
+.home-page .hp-video-poster img,
+.home-page .hp-gallery-image img,
+.home-page .hp-before-after-half img,
+.home-page .hp-custom-media img,
+.home-page .hp-guarantee-photo img,
+.home-page .hp-chat-card img{transition:transform .85s var(--hp-motion-ease),filter .6s ease}
+.home-page .hp-benefit-card:hover .hp-benefit-photo img,
+.home-page .hp-video-card:hover .hp-video-poster img,
+.home-page .hp-gallery-card:hover .hp-gallery-image>img,
+.home-page .hp-before-after-half:hover img,
+.home-page .hp-custom-media:hover img,
+.home-page .hp-guarantee-photo:hover img,
+.home-page .hp-chat-card:hover img{transform:scale(1.045)}
+.home-page .hp-gallery-image::after,.home-page .hp-custom-media::after{transition:opacity .55s ease}
+.home-page .hp-slider-slide{transition:opacity .62s ease,transform .62s var(--hp-motion-ease)}
+.home-page .hp-faq-accordion .accordion-item{transition:border-color .42s ease,box-shadow .42s ease,transform .42s var(--hp-motion-ease)}
+.home-page .hp-faq-accordion .accordion-collapse{transition:height .48s var(--hp-motion-ease-soft)}
+.website-body .btn,.website-body a,.hp-quote-link,.hp-regional-chat,.hp-carousel-arrow{transition:transform .36s var(--hp-motion-ease),box-shadow .36s ease,background-color .36s ease,color .36s ease,border-color .36s ease,filter .36s ease}
+.site-navbar .nav-link{transition:color .36s ease,border-color .36s ease,transform .36s var(--hp-motion-ease)}
+
+@media(max-width:991.98px){
+  .home-page .hp-section{padding-top:64px;padding-bottom:64px}
+  .home-page .hp-section-heading h2,.home-page .hp-heading-left,.home-page .hp-regional-heading h2{font-size:clamp(2rem,6vw,2.65rem)}
+  .home-page .hp-warning-box{padding:30px 26px}
+  .home-page .hp-recap-panel{padding:24px 24px}
+  .home-page .hp-calc-form{padding:25px}
+}
+@media(max-width:575.98px){
+  .home-page .hp-section{padding-top:54px;padding-bottom:54px}
+  .home-page .hp-section-heading h2,.home-page .hp-heading-left,.home-page .hp-regional-heading h2{font-size:2.05rem}
+  .home-page .hp-section-heading p,.home-page .hp-guarantee-lead,.home-page .hp-regional-description{font-size:.96rem}
+  .home-page .hp-warning-list li,.home-page .hp-recap-panel li{font-size:.92rem}
+  .home-page .hp-faq-accordion .accordion-button{font-size:.93rem;min-height:58px}
+  .home-page .hp-review-card>p{font-size:.94rem}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .home-page .hp-reveal,.home-page .hp-reveal.is-visible,.home-page .hp-hero-trust,.home-page .hp-hero-carousel .carousel-item,.home-page .hp-hero-carousel .carousel-item img{opacity:1!important;transform:none!important;filter:none!important;animation:none!important;transition:none!important}
+}
+

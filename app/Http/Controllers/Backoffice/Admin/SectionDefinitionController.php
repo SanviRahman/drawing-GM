@@ -183,7 +183,7 @@ class SectionDefinitionController extends Controller
     private function validateModel(Request $request, ?SectionDefinition $sectionDefinition = null): array
     {
         $validated = $request->validate([
-            'key' => ['required', 'string', 'max:100', 'regex:/^[a-z0-9]+(?:_[a-z0-9]+)*$/', Rule::in(array_keys(SectionDefinition::ALLOWED_KEYS)), Rule::unique('section_definitions', 'key')->ignore($sectionDefinition?->id)],
+            'key' => ['required', 'string', 'max:100', 'regex:/^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/', Rule::unique('section_definitions', 'key')->ignore($sectionDefinition?->id)],
             'name' => ['required', 'string', 'max:190'],
             'description' => ['nullable', 'string', 'max:60000'],
             'schema_json' => ['required', 'string', 'json', 'max:60000'],

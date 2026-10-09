@@ -1,7 +1,7 @@
 @php
     $heroPhotos = $home ? $home->getMedia('hero_desktop')->take(10) : collect();
     $mobilePhoto = $home ? $home->getFirstMediaUrl('hero_mobile') : null;
-    $fallbackPhoto = $galleriesItems->first()?->getFirstMediaUrl('image') ?: $galleriesItems->first()?->getFirstMediaUrl('after');
+    $fallbackPhoto = data_get($gallerySlides->first(), 'single') ?: data_get($gallerySlides->first(), 'after') ?: data_get($gallerySlides->first(), 'before');
     $heroHeading = $home?->heroValue('heading') ?: ($home?->title ?: ($settings['site.name'] ?? 'House Painting & Home Services'));
     $heroDescription = trim(strip_tags((string) ($home?->excerpt ?? '')));
     $cta = $home?->heroValue('cta', []);
@@ -79,12 +79,22 @@
             <h2>Get Your Painting Quote</h2><p>Tell us what you need and choose your preferred contact method.</p>
             <div class="hp-quote-links">
                 <a class="hp-quote-link hp-quote-green" href="#quote-form"><i class="bi bi-clipboard2-check"></i><span><strong>Painting Quotation</strong><small>Send a detailed enquiry</small></span><i class="bi bi-chevron-right"></i></a>
-                @if($whatsapps->isNotEmpty())
-                    @php($firstNumber = preg_replace('/\D+/', '', (string) $whatsapps->first()->value))
-                    <a class="hp-quote-link hp-quote-orange" href="https://wa.me/{{ $firstNumber }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-whatsapp"></i><span><strong>WhatsApp Consultation</strong><small>Message our active contact number</small></span><i class="bi bi-chevron-right"></i></a>
-                @endif
+                @foreach($whatsapps as $contact)
+                    @php
+                        $phoneDigits = preg_replace('/\D+/', '', (string) $contact->value);
+                        $message = $contact->message_template_text;
+                        $whatsappLink = 'https://wa.me/'.$phoneDigits.($message ? '?text='.rawurlencode($message) : '');
+                    @endphp
+                    @if(preg_match('/^[0-9]{7,15}$/', $phoneDigits))
+                        <a class="hp-quote-link {{ $loop->first ? 'hp-quote-green' : 'hp-quote-orange' }}" href="{{ $whatsappLink }}" target="_blank" rel="noopener noreferrer">
+                            <i class="bi bi-whatsapp" aria-hidden="true"></i>
+                            <span><strong>{{ $contact->label ?: ('WhatsApp '.($loop->iteration)) }}</strong><small>{{ $contact->region ? $contact->region.' · ' : '' }}{{ $contact->display_value ?: $contact->value }}</small></span>
+                            <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+                        </a>
+                    @endif
+                @endforeach
                 <a class="hp-quote-link hp-quote-coral" href="#quote-form"><i class="bi bi-house-check"></i><span><strong>Site Inspection Request</strong><small>Ask about an on-site assessment</small></span><i class="bi bi-chevron-right"></i></a>
-                <a class="hp-quote-link hp-quote-peach" href="#hp-process"><i class="bi bi-calendar-check"></i><span><strong>Confirm & Schedule</strong><small>See how the process works</small></span><i class="bi bi-chevron-right"></i></a>
+                <a class="hp-quote-link hp-quote-peach" href="#quote-form"><i class="bi bi-calendar-check"></i><span><strong>Confirm & Schedule</strong><small>See how the process works</small></span><i class="bi bi-chevron-right"></i></a>
                 <a class="hp-quote-link hp-quote-navy" href="#hp-gallery"><i class="bi bi-brush"></i><span><strong>Explore Our Work</strong><small>Browse project results</small></span><i class="bi bi-chevron-right"></i></a>
             </div>
             <div class="hp-quote-path-foot"><i class="bi bi-shield-check"></i> Quotations depend on project scope and site conditions.</div>

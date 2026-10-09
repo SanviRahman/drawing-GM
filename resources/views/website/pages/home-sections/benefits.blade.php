@@ -9,11 +9,11 @@
             <div class="row g-4 hp-benefit-grid">
                 @foreach($benefitCards as $card)
                     <div class="col-lg-6">
-                        <article class="hp-benefit-card">
+                        <article class="hp-benefit-card hp-benefit-image-only" aria-label="{{ $card['title'] }}" title="{{ $card['title'] }}">
                             <div class="hp-benefit-photo">
                                 @if($card['image'])<img src="{{ $card['image'] }}" alt="{{ $card['title'] }}" loading="lazy">@else<div class="hp-media-placeholder"><i class="bi bi-house-gear"></i></div>@endif
                             </div>
-                            <div class="hp-benefit-caption"><div class="hp-benefit-title"><span>{{ $loop->iteration }}</span><h3>{{ $card['title'] }}</h3><i class="bi bi-arrow-up-right"></i></div>@if($card['description'])<p>{{ \Illuminate\Support\Str::limit($card['description'], 200) }}</p>@endif</div>
+
                         </article>
                     </div>
                 @endforeach

@@ -40,7 +40,6 @@ class ProjectDefaultSeeder extends Seeder
             $serviceId = $this->seedService();
             $locationId = $this->seedLocation();
 
-            $this->seedServiceLocation($serviceId, $locationId);
             [$pricingPackageId, $pricingAddonId] = $this->seedPricing($serviceId, $locationId);
 
             $galleryId = $this->seedGallery($serviceId);
@@ -53,7 +52,8 @@ class ProjectDefaultSeeder extends Seeder
 
             $leadFormFieldId = $this->seedLeadFormField();
 
-            if (app()->environment(['local', 'testing'])) {
+            // Never insert a fake customer/lead unless explicitly requested in local/testing.
+            if (app()->environment(['local', 'testing']) && filter_var(env('WEBSITE_SEED_DEMO_OPERATIONS', false), FILTER_VALIDATE_BOOLEAN)) {
                 $this->seedDemoOperationalData(
                     adminId: $adminId,
                     locationId: $locationId,
@@ -81,6 +81,13 @@ class ProjectDefaultSeeder extends Seeder
             // Public-safe, image-free Home content and verified caller-supplied WhatsApp contacts.
             $this->seedPublicHomepageContent();
             $this->seedConfiguredWhatsAppContacts();
+            // Complete public-safe records after all legacy draft seed methods.
+            $this->seedPublicReadyContent($adminId);
+            $this->seedCompleteMenus();
+            $this->seedPublicFaqMappings();
+            // Reusable, idempotent property/paint-grade catalog. Amounts are only
+            // published when this business explicitly supplies approved values.
+            $this->seedApprovedCalculatorCatalog();
 
             // Runtime/binary-backed tables are intentionally not populated with fake data:
             // media, section_media, gallery_items, failed_jobs/jobs/sessions/cache.
@@ -97,6 +104,113 @@ class ProjectDefaultSeeder extends Seeder
                 $contactChannelId,
             );
         });
+    }
+
+    /**
+     * Screenshot-inspired calculator structure WITHOUT importing sample/competitor
+     * figures as this business' real prices. Environment overrides are optional.
+     * Admin can edit amounts/types later. Re-running never overwrites those edits.
+     */
+    private function seedApprovedCalculatorCatalog(): void
+    {
+        foreach (['pricing_packages', 'pricing_items', 'pricing_addons', 'pricing_package_addon'] as $table) {
+            if (! Schema::hasTable($table)) return;
+        }
+
+        $properties = [
+            ['HDB 2-Room Flat', 'HDB2'],
+            ['HDB 3-Room Flat', 'HDB3'],
+            ['HDB 4-Room Flat', 'HDB4'],
+            ['HDB 5-Room Flat', 'HDB5'],
+            ['Executive Apartment', 'EXEC'],
+            ['Condominium', 'CONDO'],
+            ['Landed Property', 'LANDED'],
+        ];
+        $grades = [
+            ['Standard Interior Painting', 'STANDARD'],
+            ['Low-Odour Interior Painting', 'LOW_ODOUR'],
+            ['Washable Interior Painting', 'WASHABLE'],
+        ];
+        $addons = [
+            ['Ceiling Touch-up', 'job'],
+            ['Door & Grille Painting', 'job'],
+            ['Feature Wall Painting', 'job'],
+            ['Minor Wall Surface Repair', 'job'],
+            ['Anti-Mould Ceiling Assessment', 'job'],
+        ];
+        // Explicit company-approved add-on rates; never copy reference-site prices.
+        $addonRateKeys = [
+            'Ceiling Touch-up' => 'WEBSITE_CALC_ADDON_CEILING',
+            'Door & Grille Painting' => 'WEBSITE_CALC_ADDON_DOOR_GRILLE',
+            'Feature Wall Painting' => 'WEBSITE_CALC_ADDON_FEATURE_WALL',
+            'Minor Wall Surface Repair' => 'WEBSITE_CALC_ADDON_WALL_REPAIR',
+            'Anti-Mould Ceiling Assessment' => 'WEBSITE_CALC_ADDON_ANTI_MOULD',
+        ];
+        $addonIds = [];
+        foreach ($addons as $index => [$name, $unit]) {
+            $approved = trim((string) env($addonRateKeys[$name], ''));
+            $hasApproved = $approved !== '' && is_numeric($approved) && (float) $approved > 0;
+            $addonIds[] = $this->ensureRow('pricing_addons', ['name' => $name], [
+                'description' => 'Optional work; inspect surfaces and approve the quotation first.',
+                'amount' => $hasApproved ? (float) $approved : null,
+                'amount_max' => null, 'price_type' => $hasApproved ? 'fixed' : 'call',
+                'unit' => $unit, 'is_active' => true, 'sort_order' => 200 + $index,
+            ]);
+            if ($hasApproved) {
+                $this->approveUnsetCalculatorAmount('pricing_addons', ['name' => $name], (float) $approved);
+            }
+        }
+        foreach ($properties as $index => [$name, $propertyCode]) {
+            // Null service/location ID avoids hiding this cross-service catalog
+            // when a particular service is still a Draft in the admin panel.
+            $packageId = $this->ensureRow('pricing_packages', [
+                'name' => $name, 'service_id' => null, 'location_id' => null,
+            ], [
+                'subtitle' => 'Choose a paint grade to request a tailored quote',
+                'badge' => 'Quotation options',
+                'description' => 'No fixed price is promised until approved by the business.',
+                'currency' => 'SGD', 'is_featured' => true, 'is_active' => true,
+                'sort_order' => 10 + $index,
+            ]);
+            if (! $packageId) continue;
+            foreach ($grades as $gradeIndex => [$gradeName, $gradeCode]) {
+                $envKey = 'WEBSITE_CALC_'.$propertyCode.'_'.$gradeCode;
+                $approved = trim((string) env($envKey, ''));
+                $hasApproved = $approved !== '' && is_numeric($approved) && (float) $approved > 0;
+                $priceIdentity = ['pricing_package_id' => $packageId, 'label' => $gradeName];
+                $this->ensureRow('pricing_items', $priceIdentity, [
+                    'amount' => $hasApproved ? (float) $approved : null,
+                    'amount_max' => null,
+                    'price_type' => $hasApproved ? 'fixed' : 'call',
+                    'unit' => 'property', 'prefix' => null, 'suffix' => null,
+                    'sort_order' => $gradeIndex, 'is_active' => true,
+                ]);
+                if ($hasApproved) {
+                    $this->approveUnsetCalculatorAmount('pricing_items', $priceIdentity, (float) $approved);
+                }
+            }
+            foreach ($addonIds as $addonId) {
+                if ($addonId) $this->ensurePivot('pricing_package_addon', [
+                    'pricing_package_id' => $packageId,
+                    'pricing_addon_id' => $addonId,
+                ], ['override_data' => null]);
+            }
+        }
+    }
+
+    /**
+     * Fill only empty, call-for-price rows from explicitly approved business rates.
+     * Never overwrite manually edited fixed, range, or existing numeric rates.
+     */
+    private function approveUnsetCalculatorAmount(string $table, array $identity, float $amount): void
+    {
+        if (! in_array($table, ['pricing_items', 'pricing_addons'], true) || $amount <= 0) return;
+        $query = DB::table($table)->whereNull('deleted_at')->whereNull('amount')
+            ->where('price_type', 'call');
+        foreach ($identity as $key => $value) {
+            $query = $value === null ? $query->whereNull($key) : $query->where($key, $value);
+        }
+        $query->update(['amount' => $amount, 'price_type' => 'fixed', 'updated_at' => now()]);
     }
 
     private function seedSiteSettings(): void
@@ -285,21 +399,6 @@ class ProjectDefaultSeeder extends Seeder
             'status' => 'draft',
             'sort_order' => 0,
             'published_at' => null,
-        ]);
-    }
-
-    private function seedServiceLocation(?int $serviceId, ?int $locationId): void
-    {
-        if (! $serviceId || ! $locationId || ! Schema::hasTable('service_location')) {
-            return;
-        }
-
-        $this->ensurePivot('service_location', [
-            'service_id' => $serviceId,
-            'location_id' => $locationId,
-        ], [
-            'override_data' => $this->json([]),
-            'is_active' => false,
         ]);
     }
 
@@ -1651,4 +1750,501 @@ class ProjectDefaultSeeder extends Seeder
         }
     }
 
+    /**
+     * Public-ready starter content. Existing hand-edited records are not rewritten:
+     * only recognisable text placeholders created by this seeder are completed.
+     * Truly unverifiable evidence/credentials/prices stay disabled.
+     */
+    private function seedPublicReadyContent(?int $adminId): void
+    {
+        // The pages in the primary navigation and footer need useful, published
+        // records; a published empty draft would mislead visitors.
+        $homepage = DB::table('pages')->where('is_homepage', true)->whereNull('deleted_at')->first();
+        if ($homepage && (string) $homepage->excerpt === 'Main website landing page.') {
+            DB::table('pages')->where('id', $homepage->id)->update([
+                'excerpt' => 'Explore painting, plastering and home-service options, project examples, practical planning guides and ways to request a quotation.',
+                'hero_config' => $this->json([
+                    'heading' => 'House Painting and Home Services',
+                    'subheading' => 'Explore the available services and request a quotation for your property.',
+                    'overlay' => 0.3,
+                    'cta' => ['label' => 'Request a Quote', 'url' => '#quote-form'],
+                ]),
+                'updated_at' => now(),
+            ]);
+        }
+
+        $pageCopy = [
+            'plastering' => ['Wall Plastering', 'Learn about wall preparation, plastering and the information needed to request a quotation.'],
+            'hacking' => ['Wall & Tile Hacking', 'Discuss the scope of planned removal work, site access, debris management and applicable approvals.'],
+            'false-ceiling' => ['False Ceiling', 'Discuss ceiling layouts, materials, access panels and coordination with licensed electrical works where required.'],
+            'pricing' => ['Painting Prices', 'Review published quotation options, or ask for a tailored price based on your work scope.'],
+            'contact' => ['Contact', 'Send an enquiry using the quotation form or the current contact channels listed on this website.'],
+            'blog' => ['Painting & Renovation Guides', 'Practical articles about planning, preparation and choosing materials for interior painting projects.'],
+            'cost-calculator' => ['Painting Cost Calculator', 'Explore available guide prices. A final price depends on the actual job scope.'],
+            'about' => ['About Us', 'Learn about the services listed on this website and request details of the work process.'],
+            'gallery' => ['Project Gallery', 'View approved project images and before-and-after photos when they are available.'],
+            'service-areas' => ['Service Areas', 'Explore Singapore locations and enquire about availability for your property.'],
+            'request-quote' => ['Request a Quote', 'Tell us your property type, location and proposed scope of work for a quotation.'],
+        ];
+        foreach ($pageCopy as $slug => [$title, $excerpt]) {
+            $existing = DB::table('pages')->where('slug', $slug)->whereNull('deleted_at')->first();
+            if (! $existing) {
+                $this->ensureRow('pages', ['slug' => $slug], [
+                    'title' => $title, 'excerpt' => $excerpt, 'template' => 'default',
+                    'hero_config' => $this->json(['heading' => $title]),
+                    'status' => 'published', 'published_at' => now(), 'is_homepage' => false,
+                    'show_header' => true, 'show_footer' => true,
+                    'created_by' => $adminId, 'updated_by' => $adminId,
+                ]);
+                continue;
+            }
+            if ($existing->status !== 'draft' || ! $this->seederPlaceholder((string) $existing->excerpt)) {
+                continue; // Respect intentional draft/archived and hand-edited content.
+            }
+            DB::table('pages')->where('id', $existing->id)->update([
+                'title' => $title, 'excerpt' => $excerpt,
+                'hero_config' => $this->json(['heading' => $title]),
+                'status' => 'published', 'published_at' => now(), 'updated_at' => now(),
+            ]);
+        }
+
+        // Generic, educational content rather than competitors' text or invented
+        // claims about staff count, workmanship guarantees or actual prices.
+        $services = [
+            'hdb-painting' => ['HDB Painting', 'Planning for painting rooms, ceilings and common surfaces in HDB flats.'],
+            'house-painting' => ['House Painting', 'Discuss the rooms, surfaces, preparation and finishes in your home painting project.'],
+            'wall-plastering' => ['Wall Plastering', 'Plastering, levelling and preparation for suitable wall surfaces.'],
+            'wall-hacking' => ['Wall & Tile Hacking', 'Discuss selected wall and tile removal, protection, approvals and debris handling.'],
+            'false-ceiling' => ['False Ceiling', 'Discuss materials, lighting coordination and access requirements for ceiling works.'],
+            'condo-painting' => ['Condo Painting', 'Painting planning for condominium interiors and shared-access restrictions.'],
+            'landed-house-painting' => ['Landed House Painting', 'Plan preparation and finishing work for landed property interiors and exteriors.'],
+            'office-painting' => ['Office Painting', 'Discuss commercial access, timing, surface protection and work scope.'],
+            'ceiling-painting' => ['Ceiling Painting', 'Consider ceiling condition, appropriate coatings, access and preparation.'],
+            'wall-repair' => ['Wall Repair', 'Assess cracks, holes and surface defects before choosing a repair method.'],
+            'waterproofing-consultation' => ['Waterproofing Consultation', 'Discuss moisture symptoms and suitable specialist assessment before repairs.'],
+            'door-painting' => ['Door Painting', 'Compare preparation, coating and finishing requirements for doors and frames.'],
+            'commercial-painting' => ['Commercial Painting', 'Discuss work stages, access and suitable coatings for commercial premises.'],
+        ];
+        foreach ($services as $slug => [$title, $summary]) {
+            $record = DB::table('services')->where('slug', $slug)->whereNull('deleted_at')->first();
+            $body = '<p>'.e($summary).'</p><p>Share photographs, measurements and existing surface conditions when requesting an assessment. Availability and scope are confirmed by the team.</p>';
+            if (! $record) {
+                $this->ensureRow('services', ['slug' => $slug], [
+                    'name' => $title, 'summary' => $summary, 'content' => $body,
+                    'icon' => 'paint-roller', 'hero_config' => $this->json([]),
+                    'status' => 'published', 'published_at' => now(),
+                    'is_featured' => in_array($slug, ['hdb-painting', 'house-painting', 'wall-plastering', 'wall-hacking', 'false-ceiling'], true),
+                    'sort_order' => array_search($slug, array_keys($services), true),
+                ]);
+                continue;
+            }
+            if ($record->status !== 'draft' || ! ($this->seederPlaceholder((string) $record->summary) || str_contains((string) $record->content, 'UNPUBLISHED REFERENCE'))) {
+                continue;
+            }
+            DB::table('services')->where('id', $record->id)->update([
+                'name' => $title, 'summary' => $summary, 'content' => $body,
+                'is_featured' => in_array($slug, ['hdb-painting', 'house-painting', 'wall-plastering', 'wall-hacking', 'false-ceiling'], true),
+                'status' => 'published', 'published_at' => now(), 'updated_at' => now(),
+            ]);
+        }
+
+        if (Schema::hasTable('locations')) {
+            foreach (DB::table('locations')->whereNull('deleted_at')->get() as $location) {
+                if ($location->status !== 'draft' || ! $this->seederPlaceholder((string) $location->summary)) {
+                    continue;
+                }
+                $summary = 'Location information for '.$location->name.'. Contact the team to confirm coverage and access requirements.';
+                DB::table('locations')->where('id', $location->id)->update([
+                    'summary' => $summary,
+                    'content' => '<p>'.e($summary).'</p>',
+                    'status' => 'published', 'published_at' => now(), 'updated_at' => now(),
+                ]);
+            }
+        }
+
+        // Enable useful, real configuration only. Existing unverifiable price
+        // amounts from the competitor reference must NOT be advertised as our rates.
+        foreach (['Starter Painting Package', 'Request a Custom Painting Quote'] as $name) {
+            DB::table('pricing_packages')->where('name', $name)->whereNull('deleted_at')
+                ->where('is_active', false)->update(['is_active' => true, 'updated_at' => now()]);
+        }
+        DB::table('pricing_packages')->where('name', 'like', '[Draft] % Enquiry')
+            ->whereNull('deleted_at')->where('is_active', false)->update(['is_active' => true, 'updated_at' => now()]);
+        DB::table('pricing_items')->where('price_type', 'call')->whereNull('amount')
+            ->whereNull('deleted_at')->where('is_active', false)->update(['is_active' => true, 'updated_at' => now()]);
+        DB::table('pricing_addons')->where('name', 'Ceiling Painting')->where('price_type', 'call')
+            ->whereNull('amount')->whereNull('deleted_at')->update(['is_active' => true, 'updated_at' => now()]);
+
+        // The previously seeded select questions are complete, useful UI data.
+        DB::table('lead_form_fields')->whereNull('deleted_at')
+            ->whereIn('field_key', [
+                'property_type_extra', 'room_count', 'work_scope', 'property_status',
+                'site_access', 'preferred_contact', 'wall_condition', 'paint_finish',
+                'ceiling_included', 'quotation_type',
+            ])->update(['is_active' => true, 'updated_at' => now()]);
+
+        if (Schema::hasTable('service_features')) {
+            DB::table('service_features')->where('title', 'like', '[Draft] %')
+                ->whereNull('deleted_at')->get(['id', 'title', 'description'])->each(function ($feature) {
+                    if (! str_contains((string) $feature->description, 'Example item only')) {
+                        return;
+                    }
+                    DB::table('service_features')->where('id', $feature->id)->update([
+                        'title' => substr($feature->title, 8),
+                        'description' => 'Confirm whether this preparation or finishing step is included in the agreed work scope.',
+                        'is_active' => true, 'updated_at' => now(),
+                    ]);
+                });
+        }
+
+        // Convert the ten old general FAQ placeholders into useful informational
+        // answers, without asserting unverified business policies or guarantees.
+        $generalFaqs = [
+            'How are room measurements assessed?' => 'Provide approximate room dimensions or a floor plan; ask which measurements are needed for the quotation.',
+            'Can you quote from photos?' => 'Photos are useful for a first discussion, but the final method and quote may require more information or a site review.',
+            'What should be prepared before a site visit?' => 'Identify the affected areas, existing defects, access arrangements and any reference photographs.',
+            'What materials should be confirmed?' => 'Check the proposed paint or plaster product, primer, surface preparation, finish and any optional materials.',
+            'Is there a minimum work scope?' => 'Minimum scope varies by service and scheduling. Ask the team to confirm when submitting your enquiry.',
+            'Do you include surface protection?' => 'Confirm flooring, furniture and fixture protection with the team and check what the written quotation includes.',
+            'Are colour samples available?' => 'Ask about paint-colour samples, testing on site and the colour-approval process before work begins.',
+            'What affects drying time?' => 'Product choice, substrate, room ventilation, temperature and humidity can all affect drying times.',
+            'How are change requests handled?' => 'Describe any additional work clearly and agree on scope, price and timing before proceeding.',
+            'What information is needed for a quote?' => 'Share your location, property type, rooms, surface condition and the proposed work in the enquiry form.',
+        ];
+        foreach ($generalFaqs as $question => $answer) {
+            $faq = DB::table('faqs')->where('question', '[Draft] '.$question)->whereNull('deleted_at')->first();
+            if (! $faq || ! str_contains((string) $faq->answer, 'Draft only. Your business must provide')) continue;
+            if (DB::table('faqs')->where('question', $question)->whereNull('deleted_at')->exists()) continue;
+            DB::table('faqs')->where('id', $faq->id)->update([
+                'question' => $question, 'answer' => '<p>'.e($answer).'</p>',
+                'is_active' => true, 'updated_at' => now(),
+            ]);
+        }
+
+        // One real, usable FAQ to replace the seed's incomplete draft.
+        DB::table('faqs')->where('question', 'Do you provide an on-site quotation?')
+            ->where('answer', 'like', '%Configure the correct business answer%')
+            ->whereNull('deleted_at')->update([
+                'answer' => '<p>Use the enquiry form to request a quotation and ask whether a site visit is needed for the work described.</p>',
+                'is_active' => true, 'updated_at' => now(),
+            ]);
+
+        if (Schema::hasTable('page_sections')) {
+            DB::table('page_sections')->where('heading', 'like', '[Draft] %')
+                ->get(['id', 'heading'])->each(function ($section) {
+                    DB::table('page_sections')->where('id', $section->id)->update([
+                        'heading' => substr($section->heading, 8),
+                        'subheading' => 'Explore this page and contact us for project details.',
+                        'is_active' => true, 'updated_at' => now(),
+                    ]);
+                });
+        }
+
+        // SEO records created as draft placeholders should match newly published
+        // pages. Never modify an administrator's curated SEO metadata.
+        if (Schema::hasTable('seo_metas')) {
+            DB::table('pages')->where('status', 'published')->whereNull('deleted_at')
+                ->get(['id', 'title', 'excerpt'])->each(function ($page) {
+                    DB::table('seo_metas')->where('seoable_type', Page::class)
+                        ->where('seoable_id', $page->id)
+                        ->where('meta_description', 'Draft SEO metadata')
+                        ->update([
+                            'meta_title' => $page->title,
+                            'meta_description' => Str::limit(strip_tags((string) $page->excerpt), 160),
+                            'robots' => 'index,follow', 'include_in_sitemap' => true,
+                            'updated_at' => now(),
+                        ]);
+                });
+        }
+
+        $this->seedRealEditorialGuides($adminId);
+        $this->seedApprovedContactChannels();
+    }
+
+    private function seederPlaceholder(string $text): bool
+    {
+        foreach (['Default service record', 'DRAFT service category', 'UNPUBLISHED', 'Review-only', 'Page placeholder',
+            'Add your company', 'Articles to be managed', 'A calculator requires',
+            'Default service area', 'DRAFT location only', 'Default draft post'] as $marker) {
+            if (str_contains($text, $marker)) return true;
+        }
+        return false;
+    }
+
+    /** 10 original educational articles — no invented customers, sources or claims. */
+    private function seedRealEditorialGuides(?int $adminId): void
+    {
+        $guides = [
+            'painting-guides' => ['Preparing a Room for Painting', 'Move loose items, discuss masking and protect furniture and flooring before the work begins.'],
+            'wall-preparation' => ['What to Check Before Wall Preparation', 'Identify cracking, peeling paint, uneven patches and moisture before choosing a preparation method.'],
+            'hdb-renovation' => ['Planning Painting Work in an HDB Flat', 'Discuss access, occupied rooms, drying time and relevant renovation restrictions before booking.'],
+            'condo-renovation' => ['Condo Painting Preparation Checklist', 'Check building management rules, permitted work times and lift or loading access.'],
+            'plastering-guides' => ['Understanding Wall Plastering', 'Plastering requirements depend on the surface condition, product system and desired finish.'],
+            'paint-selection' => ['Choosing a Suitable Paint Finish', 'Compare finish, durability, cleaning needs and manufacturer guidance for each room.'],
+            'renovation-checklists' => ['Questions to Ask Before Accepting a Quote', 'Confirm material specifications, included preparation, scope changes and cleanup responsibilities.'],
+            'colour-planning' => ['Planning Interior Paint Colours', 'Try colour samples in your room under daylight and evening lighting before final selection.'],
+            'surface-care' => ['Looking After Newly Painted Walls', 'Follow the paint manufacturer’s curing and cleaning instructions before washing surfaces.'],
+            'project-planning' => ['Planning a Smooth Home Painting Schedule', 'Coordinate room access, furnishings, occupants and any other renovation works before scheduling.'],
+        ];
+        foreach ($guides as $slug => [$title, $text]) {
+            $category = DB::table('categories')->where('slug', $slug)->whereNull('deleted_at')->first();
+            if (! $category) {
+                $categoryId = $this->ensureRow('categories', ['slug' => $slug], [
+                    'name' => Str::title(str_replace('-', ' ', $slug)),
+                    'description' => 'Painting and renovation planning information.', 'is_active' => true,
+                ]);
+            } else {
+                $categoryId = (int) $category->id;
+                if (! $category->is_active && str_contains((string) $category->description, 'Draft category')) {
+                    DB::table('categories')->where('id', $categoryId)->update([
+                        'description' => 'Painting and renovation planning information.',
+                        'is_active' => true, 'updated_at' => now(),
+                    ]);
+                }
+            }
+            if (! $adminId || ! $categoryId) continue;
+            $postSlug = $slug.'-starter';
+            $post = DB::table('posts')->where('slug', $postSlug)->whereNull('deleted_at')->first();
+            $body = '<p>'.e($text).'</p><p>For a specific home, ask the team to review the site conditions and provide an agreed written scope.</p>';
+            if (! $post) {
+                $this->ensureRow('posts', ['slug' => $postSlug], [
+                    'author_id' => $adminId, 'category_id' => $categoryId,
+                    'title' => $title, 'excerpt' => $text, 'body' => $body,
+                    'status' => 'published', 'published_at' => now(),
+                    'reading_minutes' => 1, 'allow_comments' => false,
+                ]);
+            } elseif ($post->status === 'draft' && $this->seederPlaceholder((string) $post->excerpt)) {
+                DB::table('posts')->where('id', $post->id)->update([
+                    'title' => $title, 'excerpt' => $text, 'body' => $body,
+                    'status' => 'published', 'published_at' => now(), 'updated_at' => now(),
+                ]);
+            }
+        }
+        $welcome = DB::table('posts')->where('slug', 'welcome-to-our-blog')->whereNull('deleted_at')->first();
+        if ($welcome && $welcome->status === 'draft' && $this->seederPlaceholder((string) $welcome->excerpt)) {
+            DB::table('posts')->where('id', $welcome->id)->update([
+                'title' => 'Painting & Plastering Planning Basics',
+                'excerpt' => 'An introduction to planning preparation, quotes and finishing work.',
+                'body' => '<p>Before requesting painting or plastering work, identify the rooms and surfaces involved, existing problems and desired finish. Compare the proposed scope and materials in a quotation.</p>',
+                'status' => 'published', 'published_at' => now(), 'updated_at' => now(),
+            ]);
+        }
+    }
+
+    /** Only valid values provided by the business may become contact links. */
+    private function seedApprovedContactChannels(): void
+    {
+        foreach ([
+            ['WEBSITE_CONTACT_EMAIL', 'email', 'Email our team', 'email'],
+            ['WEBSITE_CONTACT_PHONE', 'phone', 'Call our team', 'phone'],
+        ] as [$envKey, $type, $label, $icon]) {
+            $raw = trim((string) env($envKey, ''));
+            if ($raw === '') continue;
+            if ($type === 'email' && filter_var($raw, FILTER_VALIDATE_EMAIL) === false) continue;
+            if ($type === 'phone' && preg_match('/^\+?[0-9\s().-]{7,25}$/', $raw) !== 1) continue;
+            $alreadyExists = DB::table('contact_channels')->where('type', $type)->get(['value'])
+                ->contains(fn ($item) => $type === 'phone'
+                    ? preg_replace('/\D+/', '', (string) $item->value) === preg_replace('/\D+/', '', $raw)
+                    : strcasecmp((string) $item->value, $raw) === 0);
+            if ($alreadyExists) continue;
+            $this->ensureRow('contact_channels', ['type' => $type, 'value' => $raw], [
+                'label' => $label, 'region' => null, 'display_value' => $raw,
+                'message_template' => null, 'icon' => $icon, 'colour' => 'primary',
+                'availability_text' => null, 'is_default' => false, 'is_active' => true,
+                'track_clicks' => true, 'sort_order' => 20,
+            ]);
+        }
+    }
+
+    /** Populate all display slots while preserving the eight reference primary menu labels. */
+    private function seedCompleteMenus(): void
+    {
+        $definitions = [
+            'header-primary' => [
+                ['Home', '/', 0], ['Plastering', '/plastering', 10],
+                ['Hacking', '/hacking', 20], ['False Ceiling', '/false-ceiling', 30],
+                ['Pricing', '/pricing', 40], ['Contact', '/contact', 50],
+                ['Blog', '/blog', 60], ['Cost Calculator', '/cost-calculator', 70],
+            ],
+            'header-top' => [
+                ['Request a Quote', '/#quote-form', 0], ['Contact Us', '/contact', 10],
+            ],
+            'footer-company' => [
+                ['Home', '/', 0], ['About Us', '/about', 10],
+                ['Contact Us', '/contact', 20], ['Service Areas', '/service-areas', 30],
+                ['Project Gallery', '/gallery', 40], ['Request a Quote', '/request-quote', 50],
+                ['Blog', '/blog', 60],
+            ],
+            'footer-services' => [
+                ['HDB Painting', '/services/hdb-painting', 0],
+                ['House Painting', '/services/house-painting', 10],
+                ['Wall Plastering', '/plastering', 20],
+                ['Wall & Tile Hacking', '/hacking', 30],
+                ['False Ceiling', '/false-ceiling', 40],
+                ['Condo Painting', '/services/condo-painting', 50],
+                ['Landed House Painting', '/services/landed-house-painting', 60],
+                ['Ceiling Painting', '/services/ceiling-painting', 70],
+            ],
+        ];
+
+        // User screenshot shows /plastering mistakenly placed in Footer Legal.
+        // Repair precisely that default-looking link, without touching other edits.
+        $legalId = $this->value('menus', ['location' => 'footer-legal'], 'id');
+        $servicesId = $this->value('menus', ['location' => 'footer-services'], 'id');
+        if ($legalId && $servicesId) {
+            $misplaced = DB::table('menu_items')->where('menu_id', $legalId)
+                ->where('label', 'Our Service')->where('url', '/plastering')->whereNull('deleted_at')->first();
+            if ($misplaced && ! DB::table('menu_items')->where('menu_id', $servicesId)
+                ->where('label', 'Wall Plastering')->whereNull('deleted_at')->exists()) {
+                DB::table('menu_items')->where('id', $misplaced->id)->update([
+                    'menu_id' => $servicesId, 'label' => 'Wall Plastering',
+                    'sort_order' => 20, 'is_active' => true, 'updated_at' => now(),
+                ]);
+            } elseif ($misplaced) {
+                // Keep the admin-created record intact; warn rather than deleting it.
+                $this->command?->warn('Footer Legal contains "Our Service" → /plastering. Move or delete it in Menus; a Footer Services link already exists.');
+            }
+        }
+
+        foreach ($definitions as $location => $links) {
+            $menuId = $this->ensureRow('menus', ['location' => $location], [
+                'name' => Str::title(str_replace('-', ' ', $location)), 'is_active' => true,
+            ]);
+            if (! $menuId) continue;
+            DB::table('menus')->where('id', $menuId)->whereNull('deleted_at')
+                ->update(['is_active' => true, 'updated_at' => now()]);
+            foreach ($links as [$label, $url, $order]) {
+                $existing = DB::table('menu_items')->where('menu_id', $menuId)
+                    ->where('label', $label)->whereNull('deleted_at')->first();
+                if (! $existing) {
+                    $this->ensureRow('menu_items', ['menu_id' => $menuId, 'label' => $label], [
+                        'parent_id' => null, 'link_type' => 'url',
+                        'linkable_type' => null, 'linkable_id' => null,
+                        'url' => $url, 'icon' => null, 'target' => '_self',
+                        'css_class' => null, 'sort_order' => $order,
+                        'is_active' => true, 'faq_section_enabled' => true,
+                    ]);
+                    continue;
+                }
+                // Activate only standard known seed-generated URL links.
+                if ($existing->link_type === 'url' && $existing->url === $url && ! $existing->is_active) {
+                    DB::table('menu_items')->where('id', $existing->id)->update([
+                        'is_active' => true, 'faq_section_enabled' => true, 'updated_at' => now(),
+                    ]);
+                }
+            }
+        }
+
+        // Legal pages must be authored/approved by the business before publication.
+        // Create an editable menu scaffold, but do not advertise nonexistent policy text.
+        $legalMenuId = $this->ensureRow('menus', ['location' => 'footer-legal'], [
+            'name' => 'Footer Legal', 'is_active' => true,
+        ]);
+        foreach ([['Privacy Policy', '/privacy-policy', 0], ['Terms & Conditions', '/terms-and-conditions', 10], ['Cookie Policy', '/cookie-policy', 20]] as [$label, $url, $order]) {
+            $this->ensureRow('menu_items', ['menu_id' => $legalMenuId, 'label' => $label], [
+                'parent_id' => null, 'link_type' => 'url', 'linkable_type' => null,
+                'linkable_id' => null, 'url' => $url, 'icon' => null,
+                'target' => '_self', 'css_class' => null,
+                'sort_order' => $order, 'is_active' => false, 'faq_section_enabled' => false,
+            ]);
+        }
+
+        // Useful factual defaults for header/footer if these have not been edited.
+        $this->seedPublicSettings();
+    }
+
+    private function seedPublicSettings(): void
+    {
+        foreach ([
+            ['header.announcement', 'Contact our team for a quotation'],
+            ['footer.copyright', '© '.date('Y').' '.trim((string) env('WEBSITE_SITE_NAME', 'Painting Services')).'. All rights reserved.'],
+            ['contact.quote_heading', 'Request a Free Quote'],
+        ] as [$key, $value]) {
+            $row = DB::table('site_settings')->where('setting_key', $key)->whereNull('deleted_at')->first();
+            if (! $row) {
+                $this->ensureRow('site_settings', ['setting_key' => $key], [
+                    'group_name' => str_contains($key, 'footer.') ? 'footer' : (str_contains($key, 'header.') ? 'header' : 'contact'),
+                    'setting_value' => $value, 'value_type' => 'string', 'is_public' => true,
+                ]);
+            } elseif (trim((string) $row->setting_value) === '') {
+                DB::table('site_settings')->where('id', $row->id)->update([
+                    'setting_value' => $value, 'updated_at' => now(),
+                ]);
+            }
+        }
+        $brand = trim((string) env('WEBSITE_SITE_NAME', ''));
+        if ($brand !== '' && strlen($brand) <= 150) {
+            DB::table('site_settings')->where('setting_key', 'site.name')
+                ->where('setting_value', 'Painting Services')
+                ->whereNull('deleted_at')->update(['setting_value' => $brand, 'updated_at' => now()]);
+        }
+    }
+
+    /** Publish only questions that have complete, non-promissory answers. */
+    private function seedPublicFaqMappings(): void
+    {
+        $answers = [
+            'Home' => [
+                'Which paint grades are shown in the comparison?' => 'Available brands and finishes depend on the agreed quotation. Ask which products and grades are proposed for your rooms.',
+                'Does the painting price depend on flat size?' => 'The number of rooms, surface conditions, preparation work and paint choice all affect quotation amounts.',
+                'Is the calculator estimate a final quotation?' => 'No. Published guide figures are not a final quotation; confirm site conditions and work scope before accepting.',
+            ],
+            'Plastering' => [
+                'Should existing wall tiles be removed before plastering?' => 'An appropriate method depends on the substrate and bond. Ask for a site assessment before approving coating over tiles.',
+                'How long does plastering normally take?' => 'Duration depends on room size, substrate repairs, product cure times and site access.',
+                'How many coats of plaster are needed?' => 'The number of coats depends on the chosen system, surface flatness and manufacturer instructions.',
+                'When can a new coat be applied?' => 'Follow the selected product instructions and site conditions, especially temperature, ventilation and moisture.',
+            ],
+            'Hacking' => [
+                'Is approval necessary before wall or tile hacking?' => 'Certain works require permits or approvals. Check current HDB and building-management rules before starting.',
+                'Which rooms and fittings may need removal?' => 'Identify the exact wall, floor, tiling and fixture areas and ask for a written scope including debris removal.',
+                'Can hacking be scheduled on weekends?' => 'Work times depend on building rules and local restrictions. Ask the contractor to confirm permitted days.',
+            ],
+            'False Ceiling' => [
+                'Can the quotation include a false-ceiling design?' => 'Describe the room dimensions, desired layout, access needs and finishes when asking for a quotation.',
+                'Can lights and access panels be included?' => 'Specify light placement, access panels and electrical coordination before confirming the ceiling scope.',
+            ],
+        ];
+        foreach ($answers as $navbarLabel => $items) {
+            $navId = $this->value('menu_items', [
+                'menu_id' => $this->value('menus', ['location' => 'header-primary'], 'id'),
+                'label' => $navbarLabel,
+            ], 'id');
+            $slug = match ($navbarLabel) {
+                'Home' => 'home', 'Plastering' => 'plastering',
+                'Hacking' => 'hacking', 'False Ceiling' => 'false-ceiling',
+            };
+            $pageId = $navbarLabel === 'Home'
+                ? DB::table('pages')->where('is_homepage', true)->whereNull('deleted_at')->value('id')
+                : $this->value('pages', ['slug' => $slug], 'id');
+            foreach ($items as $question => $answer) {
+                $reference = DB::table('faqs')->where('question', '[Reference] '.$question)
+                    ->whereNull('deleted_at')->first();
+                $normal = DB::table('faqs')->where('question', $question)
+                    ->whereNull('deleted_at')->first();
+                if ($normal) {
+                    $id = (int) $normal->id;
+                } elseif ($reference) {
+                    $id = (int) $reference->id;
+                    DB::table('faqs')->where('id', $id)->update([
+                        'question' => $question,
+                        'answer' => '<p>'.e($answer).'</p>',
+                        'is_active' => true, 'updated_at' => now(),
+                    ]);
+                } else {
+                    $id = (int) $this->ensureRow('faqs', ['question' => $question], [
+                        'answer' => '<p>'.e($answer).'</p>', 'is_active' => true,
+                    ]);
+                }
+                if ($navId) $this->ensurePivot('faqables', [
+                    'faq_id' => $id, 'faqable_type' => MenuItem::class,
+                    'faqable_id' => (int) $navId,
+                ], ['sort_order' => 30]);
+                if ($pageId) $this->ensurePivot('faqables', [
+                    'faq_id' => $id, 'faqable_type' => Page::class,
+                    'faqable_id' => (int) $pageId,
+                ], ['sort_order' => 30]);
+            }
+        }
+    }
 }

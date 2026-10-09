@@ -1,6 +1,13 @@
 <section class="hp-section hp-quote-section" id="quote-form"><div class="container">
-    <div class="hp-quote-banner"><div class="hp-quote-copy"><span class="hp-eyebrow hp-eyebrow-light">Tell us about your project</span><h2>{{ $settings['contact.quote_heading'] ?? 'Request Your Site Inspection & Quote' }}</h2><p>Share your requirements and our team can review your enquiry. On-site appointments and pricing depend on availability and scope.</p>
-        <ul class="hp-quote-points list-unstyled mb-0"><li><i class="bi bi-check-circle-fill"></i> Describe your property and service needs</li><li><i class="bi bi-check-circle-fill"></i> Choose any applicable options</li><li><i class="bi bi-check-circle-fill"></i> Receive a response through your contact details</li></ul>
+    <div class="hp-quote-banner"><div class="hp-quote-copy">
+        @php
+            $quoteHeading = trim((string) ($settings['contact.quote_heading'] ?? ''));
+            if ($quoteHeading === '' || in_array(\Illuminate\Support\Str::lower($quoteHeading), ['request a quotation', 'request a free quote'], true)) {
+                $quoteHeading = 'Book Your Free Site Inspection & Quote';
+            }
+        @endphp
+        <span class="hp-eyebrow hp-eyebrow-light">NO OBLIGATION • 100% FREE</span><h2>{{ $quoteHeading }}</h2><p>Have our supervisor come down to assess hairline plaster cracks, measure high ceilings, verify water leaks, and provide a fixed written guarantee quotation on the spot.</p>
+        <ul class="hp-quote-points list-unstyled mb-0"><li><i class="bi bi-check-circle"></i> Available Monday to Sunday, 8:00 AM – 8:30 PM</li><li><i class="bi bi-check-circle"></i> Instant WhatsApp quote within 15 minutes if you send photos</li><li><i class="bi bi-check-circle"></i> Fixed quote pledge: The price you are quoted is the price you pay</li></ul>
     </div>
     <div class="hp-quote-form-wrap"><form action="{{ route('website.enquiries.store') }}" method="POST" class="hp-quote-form" autocomplete="on">
         @csrf
@@ -16,7 +23,7 @@
                 <div class="col-md-6"><label class="form-label" for="hpDynamic{{ $field->id }}">{{ $field->label }} @if($field->is_required)<span>*</span>@endif</label><select class="form-select @error('dynamic_answers.'.$field->field_key) is-invalid @enderror" name="dynamic_answers[{{ $field->field_key }}]" id="hpDynamic{{ $field->id }}" @required($field->is_required)><option value="" disabled @selected(!old('dynamic_answers.'.$field->field_key))>Select {{ \Illuminate\Support\Str::lower($field->label) }}</option>@foreach(($field->options ?? []) as $option)@if(is_scalar($option))<option value="{{ $option }}" @selected(old('dynamic_answers.'.$field->field_key)==$option)>{{ $option }}</option>@endif @endforeach</select>@error('dynamic_answers.'.$field->field_key)<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
             @endforeach
             <div class="col-12"><label for="hpLeadMessage" class="form-label">Your requirements (optional)</label><textarea id="hpLeadMessage" class="form-control @error('message') is-invalid @enderror" name="message" rows="3" maxlength="4000" placeholder="Describe the work needed, property type, preferred timing or special requirements...">{{ old('message') }}</textarea>@error('message')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-            <div class="col-12"><button type="submit" class="btn btn-brand w-100"><i class="bi bi-send me-2"></i>Submit My Quote Request <i class="bi bi-arrow-right ms-1"></i></button></div>
+            <div class="col-12"><button type="submit" class="btn btn-brand w-100"><i class="bi bi-calendar-check me-2"></i>Confirm Free Site Inspection <i class="bi bi-arrow-right ms-1"></i></button></div>
         </div><p class="hp-form-privacy"><i class="bi bi-lock"></i> Your information is used to respond to this enquiry.</p>
     </form></div></div>
 </div></section>

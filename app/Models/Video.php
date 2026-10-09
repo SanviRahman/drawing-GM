@@ -78,7 +78,7 @@ class Video extends Model implements HasMedia
     }
     public function getYoutubeEmbedUrlAttribute(): ?string
     {
-        if (! $this->provider_video_id) {
+        if (! preg_match('/^[a-zA-Z0-9_-]{11}$/', (string) $this->provider_video_id)) {
             return null;
         }
 
@@ -112,7 +112,10 @@ class Video extends Model implements HasMedia
     }
     public function getPosterUrlAttribute(): ?string
     {
-        return $this->getFirstMediaUrl(self::POSTER_COLLECTION) ?: null;
+        $uploaded = $this->getFirstMediaUrl(self::POSTER_COLLECTION);
+        if ($uploaded) return $uploaded;
+        $id = (string) $this->provider_video_id;
+        return preg_match('/^[a-zA-Z0-9_-]{11}$/', $id) ? 'https://i.ytimg.com/vi/' . $id . '/hqdefault.jpg' : null;
     }
     public function getHasPlayableSourceAttribute(): bool
     {

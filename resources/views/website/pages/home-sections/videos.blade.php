@@ -27,6 +27,9 @@
                                     <span class="hp-tag">Project video</span>
                                     <h3>{{ $video->title }}</h3>
                                     @if($video->caption)<p>{{ \Illuminate\Support\Str::limit(trim(strip_tags((string) $video->caption)), 130) }}</p>@endif
+                                    @if($video->resolved_source_type === 'youtube' && preg_match('/^[a-zA-Z0-9_-]{11}$/', (string) $video->provider_video_id))
+                                        <a class="hp-youtube-open" href="https://www.youtube.com/watch?v={{ $video->provider_video_id }}" target="_blank" rel="noopener noreferrer">Watch on YouTube <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i></a>
+                                    @endif
                                 </div>
                             </article>
                         </div>
