@@ -38,6 +38,7 @@
                                 <option value="page" {{ request('target_type') === 'page' ? 'selected' : '' }}>Pages</option>
                                 <option value="service" {{ request('target_type') === 'service' ? 'selected' : '' }}>Services</option>
                                 <option value="location" {{ request('target_type') === 'location' ? 'selected' : '' }}>Locations</option>
+                                <option value="menu_item" {{ request('target_type') === 'menu_item' ? 'selected' : '' }}>Primary Navbar</option>
                                 <option value="unassigned" {{ request('target_type') === 'unassigned' ? 'selected' : '' }}>Unassigned</option>
                             </select>
                         </div>

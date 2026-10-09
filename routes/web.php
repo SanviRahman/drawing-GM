@@ -2,9 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Keep public routes separate from the existing /admin area.
+require __DIR__.'/user.php';
 
 Route::prefix('admin')
     ->middleware('lte_context:admin')

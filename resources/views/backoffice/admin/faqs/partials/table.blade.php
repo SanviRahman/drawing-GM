@@ -18,7 +18,7 @@
         @forelse($faqs as $faq)
             @php
                 $questionText = trim(preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags((string) $faq->question), ENT_QUOTES | ENT_HTML5, 'UTF-8')) ?? '');
-                $mappingCount = (int) ($faq->pages_count ?? 0) + (int) ($faq->services_count ?? 0) + (int) ($faq->locations_count ?? 0);
+                $mappingCount = (int) ($faq->pages_count ?? 0) + (int) ($faq->services_count ?? 0) + (int) ($faq->locations_count ?? 0) + (int) ($faq->menu_items_count ?? 0);
             @endphp
             <tr>
                 <td data-label="Select" class="text-center align-middle">
@@ -35,6 +35,7 @@
                         @if(($faq->pages_count ?? 0) > 0)<span class="badge badge-primary mr-1">Pages {{ $faq->pages_count }}</span>@endif
                         @if(($faq->services_count ?? 0) > 0)<span class="badge badge-info mr-1">Services {{ $faq->services_count }}</span>@endif
                         @if(($faq->locations_count ?? 0) > 0)<span class="badge badge-warning mr-1">Locations {{ $faq->locations_count }}</span>@endif
+                        @if(($faq->menu_items_count ?? 0) > 0)<span class="badge badge-dark mr-1">Navbar {{ $faq->menu_items_count }}</span>@endif
                     @else
                         <span class="text-muted small">Global / unassigned</span>
                     @endif

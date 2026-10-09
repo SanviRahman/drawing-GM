@@ -14,6 +14,14 @@
 <div class="card bg-light border-0 shadow-sm mb-3">
     <div class="card-body">
         <h6 class="font-weight-bold text-primary border-bottom pb-2 mb-3"><i class="fas fa-link mr-1"></i>Mapped Targets</h6>
+        <div class="mb-3">
+            <div class="font-weight-bold mb-2">Primary Navbar</div>
+            @forelse($faq->menuItems as $menuItem)
+                <span class="badge badge-dark mr-1 mb-1">{{ $menuItem->label }} #{{ $menuItem->pivot->sort_order }}</span>
+            @empty
+                <span class="text-muted small">No navbar section mapping</span>
+            @endforelse
+        </div>
         <div class="row">
             <div class="col-md-4 mb-3 mb-md-0">
                 <div class="font-weight-bold mb-2">Pages</div>

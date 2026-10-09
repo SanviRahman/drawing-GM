@@ -56,6 +56,14 @@ class Faq extends Model
             ->orderByPivot('sort_order');
     }
 
+    public function menuItems(): MorphToMany
+    {
+        return $this->morphedByMany(MenuItem::class, 'faqable')
+            ->withPivot('sort_order')
+            ->withTimestamps()
+            ->orderByPivot('sort_order');
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);

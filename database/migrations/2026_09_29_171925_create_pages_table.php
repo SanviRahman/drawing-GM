@@ -22,6 +22,7 @@ return new class extends Migration
             $table->boolean('show_footer')->default(true);
             $table->foreignId('created_by')->nullable()->constrained('admins')->nullOnDelete();
             $table->foreignId('updated_by')->nullable()->constrained('admins')->nullOnDelete();
+            $table->boolean('faq_section_enabled')->default(true);
             $table->timestamps();
             $table->softDeletes();
 

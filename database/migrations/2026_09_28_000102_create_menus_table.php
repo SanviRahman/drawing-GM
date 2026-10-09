@@ -30,6 +30,7 @@ return new class extends Migration
             $table->string('target', 10)->default('_self');
             $table->string('css_class', 150)->nullable();
             $table->integer('sort_order')->default(0);
+            $table->boolean('faq_section_enabled')->default(true);
             $table->boolean('is_active')->default(true)->index();
             $table->timestamps();
             $table->softDeletes();

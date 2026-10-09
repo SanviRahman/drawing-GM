@@ -304,7 +304,13 @@ $(function() {
     }
 
     $('#btnAddRecord').on('click', function() {
-        openModal($page.data('create-url'), 'Create New FAQ');
+        const navId = $('#filter_menu_item_id').val();
+        const pageId = $('#filter_page_id').val();
+        const params = new URLSearchParams();
+        if (navId) params.set('menu_item_id', navId);
+        if (pageId) params.set('page_id', pageId);
+        const url = $page.data('create-url') + (params.toString() ? '?' + params.toString() : '');
+        openModal(url, 'Create New FAQ');
     });
 
     $(document).on('click', '.btn-edit', function() {
@@ -313,6 +319,55 @@ $(function() {
 
     $(document).on('click', '.btn-show', function() {
         openModal($(this).data('url'), 'FAQ Details');
+    });
+
+    function setSelectedTarget(type, id, label) {
+        $('#filter_menu_item_id').val(type === 'nav' ? id : '');
+        $('#filter_page_id').val(type === 'page' ? id : '');
+        $('#faq-target-selection-label').text(label || 'Selected');
+        $('#faq-target-selection').prop('hidden', false);
+        $('#faq-nav-sections .btn-nav-filter, #faq-page-sections .btn-page-filter')
+            .removeClass('btn-primary').addClass('btn-outline-primary');
+        $('#faq-nav-sections .faq-nav-card, #faq-page-sections .faq-page-card')
+            .removeClass('border-primary bg-light');
+        loadData();
+    }
+
+    $(document).on('click', '.btn-nav-filter', function() {
+        setSelectedTarget('nav', String($(this).data('id')), $(this).closest('.faq-nav-card').find('strong').first().text());
+        $(this).closest('.faq-nav-card').addClass('border-primary bg-light');
+        $(this).removeClass('btn-outline-primary').addClass('btn-primary');
+    });
+
+    $(document).on('click', '.btn-page-filter', function() {
+        setSelectedTarget('page', String($(this).data('id')), String($(this).data('label')));
+        $(this).closest('.faq-page-card').addClass('border-primary bg-light');
+        $(this).removeClass('btn-outline-primary').addClass('btn-primary');
+    });
+
+    function clearTargetSelection() {
+        $('#filter_menu_item_id, #filter_page_id').val('');
+        $('#faq-target-selection').prop('hidden', true);
+        $('#faq-nav-sections .btn-nav-filter, #faq-page-sections .btn-page-filter')
+            .removeClass('btn-primary').addClass('btn-outline-primary');
+        $('#faq-nav-sections .faq-nav-card, #faq-page-sections .faq-page-card')
+            .removeClass('border-primary bg-light');
+    }
+
+    $(document).on('click', '#btnClearTarget', function() {
+        clearTargetSelection();
+        loadData();
+    });
+
+    $(document).on('click', '.btn-faq-section-toggle', function() {
+        const $btn = $(this);
+        $btn.prop('disabled', true);
+        $.post($btn.data('url'), {_token:'{{ csrf_token() }}'}).done(function(res) {
+            showToast('success', res.message);
+            $btn.text(res.enabled ? 'Section ON' : 'Section OFF')
+                .toggleClass('btn-outline-success', !!res.enabled)
+                .toggleClass('btn-outline-secondary', !res.enabled);
+        }).fail(function(xhr) { requestError(xhr); }).always(function() { $btn.prop('disabled', false); });
     });
 
     $(document).on('submit', '#filterForm', function(e) {
@@ -333,6 +388,7 @@ $(function() {
         const form = $('#filterForm')[0];
         if (form) form.reset();
         $('#filter_status, #filter_target_type, #table_search').val('');
+        clearTargetSelection();
         loadData();
     });
 

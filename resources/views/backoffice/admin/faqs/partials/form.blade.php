@@ -1,9 +1,10 @@
 @php
     $isEdit = isset($faq) && $faq instanceof \App\Models\Faq;
     $actionUrl = $isEdit ? route('admin.faqs.update', $faq->id) : route('admin.faqs.store');
-    $selectedPages = collect(old('page_ids', $isEdit ? $faq->pages->pluck('id')->all() : []))->map(fn($id) => (string) $id)->all();
+    $selectedPages = collect(old('page_ids', $isEdit ? $faq->pages->pluck('id')->all() : array_filter([(int) ($preselectedPageId ?? 0)])))->map(fn($id) => (string) $id)->all();
     $selectedServices = collect(old('service_ids', $isEdit ? $faq->services->pluck('id')->all() : []))->map(fn($id) => (string) $id)->all();
     $selectedLocations = collect(old('location_ids', $isEdit ? $faq->locations->pluck('id')->all() : []))->map(fn($id) => (string) $id)->all();
+    $selectedNavItems = collect(old('menu_item_ids', $isEdit ? $faq->menuItems->pluck('id')->all() : array_filter([(int) ($preselectedMenuItemId ?? 0)])))->map(fn($id) => (string) $id)->all();
 @endphp
 
 <form id="ajax-form" action="{{ $actionUrl }}" method="POST">
@@ -43,8 +44,21 @@
                         <h6 class="font-weight-bold text-primary mb-1">
                             <i class="fas fa-link mr-1"></i>Reusable FAQ Mapping
                         </h6>
-                        <small class="text-muted">Assign this FAQ to one or more pages, services or locations.</small>
+                        <small class="text-muted">Assign to navbar sections and/or existing pages, services and locations.</small>
                     </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="font-weight-bold mb-1" for="faq_menu_item_ids">
+                        <i class="fas fa-bars text-info mr-1"></i>Primary Navbar Sections
+                    </label>
+                    <select id="faq_menu_item_ids" name="menu_item_ids[]" class="form-control faq-select2" multiple data-placeholder="Choose Home, Plastering, Hacking, etc.">
+                        @foreach($navOptions as $id => $label)
+                            <option value="{{ $id }}" {{ in_array((string) $id, $selectedNavItems, true) ? 'selected' : '' }}>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <div class="invalid-feedback error-menu_item_ids"></div>
+                    <small class="text-muted">Selecting a navbar item assigns this FAQ to that specific destination. You can share a FAQ across several menu items.</small>
                 </div>
 
                 <div class="row">

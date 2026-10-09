@@ -333,6 +333,8 @@ Route::middleware('auth:admin')->group(function () {
         Route::get('list', [FaqController::class, 'list'])->name('list');
         Route::get('ajax-search', [FaqController::class, 'list'])->name('ajax_search');
         Route::post('reorder', [FaqController::class, 'reorderMappings'])->name('reorder');
+        Route::post('menu-items/{menuItem}/toggle-section', [FaqController::class, 'toggleMenuSection'])->name('menu_section_toggle');
+        Route::post('pages/{page}/toggle-section', [FaqController::class, 'togglePageSection'])->name('page_section_toggle');
         Route::post('{faq}/toggle', [FaqController::class, 'toggle'])->name('toggle');
         Route::resource('/', FaqController::class)->parameters(['' => 'faq']);
     });

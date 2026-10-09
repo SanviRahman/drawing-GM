@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Backoffice\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Faq;
 use App\Models\Location;
+use App\Models\MenuItem;
+use App\Services\Frontend\NavbarFaqs;
 use App\Models\Page;
 use App\Models\Service;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,9 +22,13 @@ class FaqController extends Controller
     {
         $this->ensurePermission('faq_list');
 
-        $query = Faq::query()->withCount(['pages', 'services', 'locations']);
+        $query = Faq::query()->withCount(['pages', 'services', 'locations', 'menuItems']);
         $this->applyFilters($query, $request);
         $faqs = $query->latest('id')->paginate(15)->withQueryString();
+        $navItems = app(NavbarFaqs::class)->navigationItems(includeInactive: true);
+        $pageItems = Page::query()->withCount('faqs')->orderByDesc('is_homepage')->orderBy('title')->get();
+        $selectedPageId = (int) $request->query('page_id', 0);
+        $selectedNavId = (int) $request->query('menu_item_id', 0);
 
         if ($request->ajax()) {
             return response()->json([
@@ -39,7 +45,7 @@ class FaqController extends Controller
             ['text' => 'FAQs', 'url' => route('admin.faqs.index')],
         ];
 
-        return view('backoffice.admin.faqs.index', compact('faqs', 'title', 'breadcrumb'));
+        return view('backoffice.admin.faqs.index', compact('faqs', 'title', 'breadcrumb', 'navItems', 'selectedNavId', 'pageItems', 'selectedPageId'));
     }
 
     public function list(Request $request)
@@ -77,7 +83,10 @@ class FaqController extends Controller
         abort_unless($request->ajax(), 404);
 
         return response()->json([
-            'html' => view('backoffice.admin.faqs.partials.form', $this->targetOptions())->render(),
+            'html' => view('backoffice.admin.faqs.partials.form', array_merge($this->targetOptions(), [
+                'preselectedMenuItemId' => (int) $request->query('menu_item_id', 0),
+                'preselectedPageId' => (int) $request->query('page_id', 0),
+            ]))->render(),
         ]);
     }
 
@@ -109,6 +118,7 @@ class FaqController extends Controller
             'pages:id,title',
             'services:id,name',
             'locations:id,name',
+            'menuItems:id,label',
         ]);
 
         return response()->json([
@@ -125,6 +135,7 @@ class FaqController extends Controller
             'pages:id,title',
             'services:id,name',
             'locations:id,name',
+            'menuItems:id,label',
         ]);
 
         return response()->json([
@@ -177,7 +188,7 @@ class FaqController extends Controller
     {
         $this->ensurePermission('faq_trash');
 
-        $query = Faq::onlyTrashed()->withCount(['pages', 'services', 'locations']);
+        $query = Faq::onlyTrashed()->withCount(['pages', 'services', 'locations', 'menuItems']);
         $this->applyFilters($query, $request);
         $faqs = $query->latest('deleted_at')->paginate(15)->withQueryString();
 
@@ -258,7 +269,7 @@ class FaqController extends Controller
         $this->ensurePermission('faq_reorder');
 
         $validated = $request->validate([
-            'target_type' => ['required', Rule::in(['page', 'service', 'location'])],
+            'target_type' => ['required', Rule::in(['page', 'service', 'location', 'menu_item'])],
             'target_id' => ['required', 'integer'],
             'faq_ids' => ['required', 'array', 'min:1'],
             'faq_ids.*' => ['required', 'integer', 'distinct', Rule::exists('faqs', 'id')->whereNull('deleted_at')],
@@ -270,6 +281,13 @@ class FaqController extends Controller
         if (! $target) {
             throw ValidationException::withMessages([
                 'target_id' => "The selected {$targetLabel} is unavailable.",
+            ]);
+        }
+
+        if ($validated['target_type'] === 'menu_item'
+            && ! app(NavbarFaqs::class)->navigationItems(includeInactive: true)->contains('id', $target->getKey())) {
+            throw ValidationException::withMessages([
+                'target_id' => 'The chosen navigation destination is not an internal primary menu item.',
             ]);
         }
 
@@ -310,6 +328,33 @@ class FaqController extends Controller
         ]);
     }
 
+    public function toggleMenuSection(MenuItem $menuItem)
+    {
+        $this->ensurePermission('faq_toggle');
+        abort_unless(app(NavbarFaqs::class)->navigationItems(includeInactive: true)->contains('id', $menuItem->id), 404);
+
+        $menuItem->update(['faq_section_enabled' => ! $menuItem->faq_section_enabled]);
+
+        return response()->json([
+            'success' => true,
+            'enabled' => (bool) $menuItem->faq_section_enabled,
+            'message' => $menuItem->faq_section_enabled ? 'Navigation FAQ section enabled.' : 'Navigation FAQ section disabled.',
+        ]);
+    }
+
+    public function togglePageSection(Page $page)
+    {
+        $this->ensurePermission('faq_toggle');
+
+        $page->update(['faq_section_enabled' => ! $page->faq_section_enabled]);
+
+        return response()->json([
+            'success' => true,
+            'enabled' => (bool) $page->faq_section_enabled,
+            'message' => $page->faq_section_enabled ? 'Page FAQ section enabled.' : 'Page FAQ section disabled.',
+        ]);
+    }
+
     private function validateFaq(Request $request): array
     {
         $validated = $request->validate([
@@ -322,6 +367,8 @@ class FaqController extends Controller
             'service_ids.*' => ['integer', 'distinct', Rule::exists('services', 'id')->whereNull('deleted_at')],
             'location_ids' => ['nullable', 'array'],
             'location_ids.*' => ['integer', 'distinct', Rule::exists('locations', 'id')->whereNull('deleted_at')],
+            'menu_item_ids' => ['nullable', 'array'],
+            'menu_item_ids.*' => ['integer', 'distinct', Rule::in(app(NavbarFaqs::class)->navigationItems(includeInactive: true)->pluck('id')->all())],
         ]);
 
         if (! $this->hasRichTextContent($validated['question'])) {
@@ -354,6 +401,7 @@ class FaqController extends Controller
             'pageOptions' => Page::query()->orderBy('title')->pluck('title', 'id'),
             'serviceOptions' => Service::query()->orderBy('name')->pluck('name', 'id'),
             'locationOptions' => Location::query()->orderBy('name')->pluck('name', 'id'),
+            'navOptions' => app(NavbarFaqs::class)->navigationItems(includeInactive: true)->pluck('label', 'id'),
         ];
     }
 
@@ -376,12 +424,24 @@ class FaqController extends Controller
                 'page' => $query->whereHas('pages'),
                 'service' => $query->whereHas('services'),
                 'location' => $query->whereHas('locations'),
+                'menu_item' => $query->whereHas('menuItems'),
                 'unassigned' => $query
                     ->whereDoesntHave('pages')
                     ->whereDoesntHave('services')
-                    ->whereDoesntHave('locations'),
+                    ->whereDoesntHave('locations')
+                    ->whereDoesntHave('menuItems'),
                 default => null,
             };
+        }
+
+        if ($request->filled('page_id')) {
+            $pageId = (int) $request->input('page_id');
+            $query->whereHas('pages', fn (Builder $builder) => $builder->whereKey($pageId));
+        }
+
+        if ($request->filled('menu_item_id')) {
+            $menuItemId = (int) $request->input('menu_item_id');
+            $query->whereHas('menuItems', fn (Builder $builder) => $builder->whereKey($menuItemId));
         }
     }
 
@@ -390,6 +450,24 @@ class FaqController extends Controller
         $this->syncTargetMappings($faq, Page::class, $validated['page_ids'] ?? []);
         $this->syncTargetMappings($faq, Service::class, $validated['service_ids'] ?? []);
         $this->syncTargetMappings($faq, Location::class, $validated['location_ids'] ?? []);
+
+        // Preserve assignments to navbar destinations that are temporarily inactive,
+        // or hidden from the editor. Editing the FAQ must not silently erase them.
+        $morphType = (new MenuItem())->getMorphClass();
+        $existingMenuIds = DB::table('faqables')
+            ->where('faq_id', $faq->id)
+            ->where('faqable_type', $morphType)
+            ->pluck('faqable_id')
+            ->map(fn ($id) => (int) $id);
+        $editableMenuIds = app(NavbarFaqs::class)->navigationItems(includeInactive: true)->pluck('id')
+            ->map(fn ($id) => (int) $id);
+        $keepUnavailableMenuIds = $existingMenuIds->diff($editableMenuIds)->all();
+
+        $this->syncTargetMappings(
+            $faq,
+            MenuItem::class,
+            array_merge($validated['menu_item_ids'] ?? [], $keepUnavailableMenuIds)
+        );
     }
 
     /**
@@ -457,6 +535,7 @@ class FaqController extends Controller
             'page' => [Page::class, 'page'],
             'service' => [Service::class, 'service'],
             'location' => [Location::class, 'location'],
+            'menu_item' => [MenuItem::class, 'navigation item'],
             default => throw ValidationException::withMessages([
                 'target_type' => 'Unsupported FAQ target type.',
             ]),

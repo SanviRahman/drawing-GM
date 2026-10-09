@@ -39,6 +39,7 @@ class Page extends Model implements HasMedia
         'is_homepage',
         'show_header',
         'show_footer',
+        'faq_section_enabled',
         'created_by',
         'updated_by',
     ];
@@ -48,6 +49,7 @@ class Page extends Model implements HasMedia
         'is_homepage' => false,
         'show_header' => true,
         'show_footer' => true,
+        'faq_section_enabled' => true,
     ];
 
     protected function casts(): array
@@ -58,6 +60,7 @@ class Page extends Model implements HasMedia
             'is_homepage'  => 'boolean',
             'show_header'  => 'boolean',
             'show_footer'  => 'boolean',
+            'faq_section_enabled' => 'boolean',
             'created_at'   => 'datetime',
             'updated_at'   => 'datetime',
             'deleted_at'   => 'datetime',

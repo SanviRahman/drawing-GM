@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 
@@ -46,6 +47,7 @@ class MenuItem extends Model
         'css_class',
         'sort_order',
         'is_active',
+        'faq_section_enabled',
     ];
 
     /**
@@ -56,6 +58,7 @@ class MenuItem extends Model
         'target'     => '_self',
         'sort_order' => 0,
         'is_active'  => true,
+        'faq_section_enabled' => true,
     ];
 
     protected function casts(): array
@@ -66,6 +69,7 @@ class MenuItem extends Model
             'linkable_id' => 'integer',
             'sort_order'  => 'integer',
             'is_active'   => 'boolean',
+            'faq_section_enabled' => 'boolean',
             'created_at'  => 'datetime',
             'updated_at'  => 'datetime',
             'deleted_at'  => 'datetime',
@@ -82,6 +86,7 @@ class MenuItem extends Model
     {
         static::deleting(function (MenuItem $item): void {
             if ($item->isForceDeleting()) {
+                $item->faqs()->detach();
                 $item->children()->withTrashed()->get()->each->forceDelete();
 
                 return;
@@ -147,6 +152,15 @@ class MenuItem extends Model
     public function linkable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    /** FAQ assignments for this navigation destination, ordered independently. */
+    public function faqs(): MorphToMany
+    {
+        return $this->morphToMany(Faq::class, 'faqable')
+            ->withPivot('sort_order')
+            ->withTimestamps()
+            ->orderByPivot('sort_order');
     }
 
     /*
