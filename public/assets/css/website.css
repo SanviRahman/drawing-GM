@@ -1027,3 +1027,132 @@ body.website-body img{max-width:100%}
   .site-footer .hp-reveal,.site-footer .hp-reveal.is-visible{opacity:1!important;transform:none!important;filter:none!important;transition:none!important}
   .footer-links a,.footer-contacts li,.footer-action,.footer-back-link{transition:none!important}
 }
+
+
+/* WHY CHOOSE: preserve the entire Admin-uploaded image instead of cropping it.
+   Match the reference's simpler, almost-square card corners. */
+.hp-benefit-card.hp-benefit-image-only {
+  border-radius: 5px;
+  background: #f2f5f2;
+}
+.hp-benefit-image-only .hp-benefit-photo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f2f5f2;
+}
+.hp-benefit-card.hp-benefit-image-only .hp-benefit-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  transform: none;
+}
+.hp-benefit-card.hp-benefit-image-only:hover .hp-benefit-photo img {
+  transform: none;
+}
+
+/* Show the actual Admin testimonial source consistently for every published text review. */
+.hp-review-source-google{color:#08715c;border-color:#cfe5d8;background:#f9fffc}
+.hp-review-source-facebook{color:#2058a7;border-color:#d3e0f3;background:#f5f9ff}
+.hp-review-source-whatsapp{color:#087653;border-color:#ccebdc;background:#f5fff9}
+.hp-review-source-direct{color:#536e67;border-color:#dce5df;background:#f7faf8}
+
+/* 2026-10-10 — Mobile hero image visibility and calculator width correction.
+   Mobile media is fully visible, with its CTA outside the photo viewport. */
+@media (max-width: 767.98px) {
+  .home-page .hp-hero-carousel {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    background: #e9f2ed;
+  }
+  .home-page .hp-hero-carousel .carousel-inner {
+    order: 0;
+    height: clamp(218px, 60vw, 370px);
+    background: #dbe6e3;
+  }
+  .home-page .hp-hero-carousel .carousel-item {
+    height: 100%;
+    background: #dbe6e3;
+  }
+  .home-page .hp-hero-carousel .carousel-item picture,
+  .home-page .hp-hero-carousel .carousel-item picture img,
+  .home-page .hp-hero-carousel .carousel-item > img {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .home-page .hp-hero-carousel .carousel-item img {
+    object-fit: contain;
+    object-position: center center !important;
+    transform: none !important;
+    transition: opacity .55s ease !important;
+  }
+  .home-page .hp-hero-carousel .hp-hero-overlay {
+    inset: 0 0 auto 0;
+    height: clamp(218px, 60vw, 370px);
+  }
+  .home-page .hp-hero-carousel .hp-hero-indicators {
+    order: 1;
+    position: relative;
+    inset: auto;
+    margin: 0;
+    padding: 9px 0 0;
+    background: #e9f2ed;
+    display: flex;
+    justify-content: center;
+  }
+  .home-page .hp-hero-carousel .hp-hero-banner-inner {
+    order: 2;
+    position: relative;
+    inset: auto;
+    display: block;
+    width: 100%;
+    padding: 10px 0 15px;
+    background: #e9f2ed;
+  }
+  .home-page .hp-hero-carousel .hp-hero-trust {
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+  }
+  /* Use the same almost-full-width mobile content canvas as reviews. */
+  .home-page #hp-calculator > .container {
+    width: 100%;
+    max-width: none;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+  .home-page #hp-calculator .hp-calculator-panel {
+    padding: 26px 12px;
+    border-radius: 12px;
+  }
+  .home-page #hp-calculator .hp-calculator-panel > .row {
+    --bs-gutter-x: 0;
+  }
+  .home-page #hp-calculator .hp-calc-form {
+    padding: 20px 15px;
+    width: 100%;
+  }
+  .home-page #hp-calculator .hp-calc-grade-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+  .home-page #hp-calculator .hp-calc-grade {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    padding: 12px 10px;
+  }
+  .home-page #hp-calculator .hp-calc-result {
+    padding: 26px 18px;
+  }
+}
+@media (max-width: 359.98px) {
+  .home-page #hp-calculator .hp-calc-grade-grid {grid-template-columns: 1fr;}
+}
+/* Autoplay video poster shares the same 16:9 viewport as manual players. */
+.hp-video-auto-host { position: absolute; inset: 0; background: #093540; }
+.hp-video-auto-host > img { width: 100%; height: 100%; object-fit: cover; }
+.hp-video-auto-host > iframe { width: 100%; height: 100%; border: 0; display: block; }

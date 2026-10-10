@@ -15,7 +15,13 @@
                             <article class="hp-video-card h-100">
                                 <div class="hp-video-poster">
                                     @if($video->resolved_source_type === 'upload')
-                                        <video controls preload="none" poster="{{ $video->poster_url }}" playsinline title="{{ $video->title }}"><source src="{{ $video->playback_url }}"></video>
+                                        <video @if($video->controls || $video->autoplay) controls @endif preload="none" @if($video->poster_url) poster="{{ $video->poster_url }}" @endif @if($video->autoplay) muted data-video-autoplay-upload @elseif($video->muted) muted @endif @if($video->loop) loop @endif playsinline title="{{ $video->title }}"><source src="{{ $video->playback_url }}"></video>
+                                    @elseif($video->autoplay)
+                                        {{-- Autoplay is initialized when this slide becomes visible; muted to satisfy browser policy. --}}
+                                        <div class="hp-video-auto-host" data-video-autoplay data-video-url="{{ $video->playback_url }}" data-video-title="{{ $video->title }}">
+                                            @if($video->poster_url)<img src="{{ $video->poster_url }}" alt="Thumbnail: {{ $video->title }}" loading="lazy">@endif
+                                            <button type="button" class="{{ $video->poster_url ? 'hp-play-button' : 'hp-video-empty-play' }}" data-video-load data-video-url="{{ $video->playback_url }}" data-video-title="{{ $video->title }}" aria-label="Play {{ $video->title }}"><i class="bi bi-play-circle-fill" aria-hidden="true"></i>@unless($video->poster_url)<span>Play project video</span>@endunless</button>
+                                        </div>
                                     @elseif($video->poster_url)
                                         <img src="{{ $video->poster_url }}" alt="Thumbnail: {{ $video->title }}" loading="lazy">
                                         <button type="button" class="hp-play-button" data-video-load data-video-url="{{ $video->playback_url }}" data-video-title="{{ $video->title }}" aria-label="Play {{ $video->title }}"><i class="bi bi-play-fill" aria-hidden="true"></i></button>

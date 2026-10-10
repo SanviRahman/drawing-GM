@@ -82,7 +82,7 @@ class Video extends Model implements HasMedia
             return null;
         }
 
-        $query = ['autoplay' => $this->autoplay ? 1 : 0, 'mute' => $this->muted ? 1 : 0, 'controls' => $this->controls ? 1 : 0, 'rel' => 0];
+        $query = ['autoplay' => $this->autoplay ? 1 : 0, 'mute' => ($this->autoplay || $this->muted) ? 1 : 0, 'playsinline' => 1, 'controls' => $this->controls ? 1 : 0, 'rel' => 0];
         if ($this->loop) {
             $query['loop']     = 1;
             $query['playlist'] = $this->provider_video_id;
@@ -99,10 +99,10 @@ class Video extends Model implements HasMedia
         $separator = str_contains($url, '?') ? '&' : '?';
         $host      = strtolower((string) parse_url($url, PHP_URL_HOST));
         if (str_contains($host, 'vimeo.com')) {
-            return $url . $separator . http_build_query(['autoplay' => $this->autoplay ? 1 : 0, 'muted' => $this->muted ? 1 : 0, 'controls' => $this->controls ? 1 : 0, 'loop' => $this->loop ? 1 : 0]);
+            return $url . $separator . http_build_query(['autoplay' => $this->autoplay ? 1 : 0, 'muted' => ($this->autoplay || $this->muted) ? 1 : 0, 'controls' => $this->controls ? 1 : 0, 'loop' => $this->loop ? 1 : 0]);
         }
         if (str_contains($host, 'youtube.com') || str_contains($host, 'youtube-nocookie.com')) {
-            return $url . $separator . http_build_query(['autoplay' => $this->autoplay ? 1 : 0, 'mute' => $this->muted ? 1 : 0, 'controls' => $this->controls ? 1 : 0, 'loop' => $this->loop ? 1 : 0]);
+            return $url . $separator . http_build_query(['autoplay' => $this->autoplay ? 1 : 0, 'mute' => ($this->autoplay || $this->muted) ? 1 : 0, 'playsinline' => 1, 'controls' => $this->controls ? 1 : 0, 'loop' => $this->loop ? 1 : 0]);
         }
         return $url;
     }

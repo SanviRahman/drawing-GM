@@ -20,16 +20,24 @@
                                 </div>
                             @endif
                             @php
-                                // Source is explicitly managed in Admin → Testimonials.
-                                $isGoogleReview = $review->source === 'google';
-                                $hasSourceUrl = filled($review->source_url) && filter_var($review->source_url, FILTER_VALIDATE_URL);
+                                // Active text testimonials appear regardless of the source selected in Admin.
+                                // Labels describe the source; a source selection alone is not independent verification.
+                                $sourceKey = strtolower(trim((string) $review->source));
+                                $sourceLabel = match ($sourceKey) {
+                                    'google' => 'Google Review',
+                                    'facebook' => 'Facebook Review',
+                                    'whatsapp' => 'WhatsApp Review',
+                                    default => 'Customer Review',
+                                };
+                                $sourceUrl = trim((string) $review->source_url);
+                                $canLinkSource = in_array($sourceKey, ['google', 'facebook'], true)
+                                    && filter_var($sourceUrl, FILTER_VALIDATE_URL)
+                                    && in_array(strtolower((string) parse_url($sourceUrl, PHP_URL_SCHEME)), ['http', 'https'], true);
                             @endphp
-                            @if($isGoogleReview && $hasSourceUrl)
-                                <a class="hp-review-source" href="{{ $review->source_url }}" target="_blank" rel="noopener noreferrer">Google Verified <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
-                            @elseif($isGoogleReview)
-                                <span class="hp-review-source">Google Verified</span>
+                            @if($canLinkSource)
+                                <a class="hp-review-source hp-review-source-{{ $sourceKey }}" href="{{ $sourceUrl }}" target="_blank" rel="noopener noreferrer" title="View original {{ $sourceLabel }}">{{ $sourceLabel }} <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
                             @else
-                                <span class="hp-review-source hp-review-source-muted">Customer Review</span>
+                                <span class="hp-review-source hp-review-source-{{ in_array($sourceKey, ['google','facebook','whatsapp'], true) ? $sourceKey : 'direct' }}">{{ $sourceLabel }}</span>
                             @endif
                             <p>“{{ \Illuminate\Support\Str::limit(trim(strip_tags((string) $review->review)), 240) }}”</p>
                             <footer>
@@ -55,7 +63,7 @@
             @endif
         </div>
         @else
-            <div class="hp-editorial-empty">Verified customer reviews will appear here when you approve and activate them in Admin → Testimonials.</div>
+            <div class="hp-editorial-empty">Active customer text reviews will appear here after you save them in Admin → Testimonials.</div>
         @endif
     </div>
 </section>

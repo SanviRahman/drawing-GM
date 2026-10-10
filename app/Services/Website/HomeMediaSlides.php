@@ -81,6 +81,7 @@ class HomeMediaSlides
             ->values();
 
         foreach ($pairable->chunk(2) as $pair) {
+            $pair = $pair->values();
             if ($pair->count() < 2) {
                 continue; // never invent an After image from a single upload
             }

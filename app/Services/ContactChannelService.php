@@ -14,7 +14,9 @@ class ContactChannelService
 
         if (in_array($type, ['whatsapp', 'phone'], true)) {
             $value = preg_replace('/^tel:/i', '', $value) ?? $value;
-            $value = preg_replace('/[\s\-().]/', '', $value) ?? $value;
+            // Let users enter any country's number with spaces, brackets or hyphens.
+            // Keep '+' only if entered; WhatsApp wa.me links later use digits.
+            $value = preg_replace('/[\s\-().]/u', '', $value) ?? $value;
 
             if (str_starts_with($value, '00')) {
                 $value = '+' . substr($value, 2);
@@ -26,10 +28,16 @@ class ContactChannelService
 
     public function assertValueIsValid(string $type, string $value): void
     {
+        // The value field is optional so channels can be saved before contact details
+        // are available. Blank channels are always kept inactive by the controller.
+        if ($value === '') {
+            return;
+        }
+
         if (in_array($type, ['whatsapp', 'phone'], true)) {
-            if (! preg_match('/^\+[1-9][0-9]{7,14}$/', $value)) {
+            if (! preg_match('/^\+?[0-9]{4,20}$/', $value)) {
                 throw ValidationException::withMessages([
-                    'value' => 'Phone and WhatsApp values must be normalized E.164 numbers, for example +6591234567.',
+                    'value' => 'Enter a phone number from any country (4–20 digits). Spaces, hyphens, brackets and an optional + are accepted.',
                 ]);
             }
 
@@ -69,6 +77,10 @@ class ContactChannelService
                 ->whereKey($channel->getKey())
                 ->lockForUpdate()
                 ->firstOrFail();
+
+            if (trim((string) $record->value) === '') {
+                throw ValidationException::withMessages(['value' => 'Add a contact value before setting this channel as default.']);
+            }
 
             ContactChannel::withTrashed()
                 ->where('id', '!=', $record->id)

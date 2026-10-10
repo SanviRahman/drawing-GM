@@ -39,25 +39,95 @@
     else window.addEventListener('resize', updateSize, { passive: true });
   });
 
-  // Lazy-play validated, supported embed providers only after a deliberate click.
+  // Respect Admin > Videos > Autoplay. Load muted YouTube/Vimeo embeds only
+  // when visible, avoiding offscreen autoplay and preserving click-to-play for others.
+  const makeVideoEmbed = (source, title, forceMuted = false) => {
+    try {
+      const url = new URL(source || '');
+      const allow = ['www.youtube.com', 'www.youtube-nocookie.com', 'youtube-nocookie.com', 'player.vimeo.com'];
+      if (url.protocol !== 'https:' || !allow.includes(url.hostname)) return null;
+      url.searchParams.set('autoplay', '1');
+      if (url.hostname === 'player.vimeo.com') {
+        if (forceMuted) url.searchParams.set('muted', '1');
+      } else {
+        if (forceMuted) url.searchParams.set('mute', '1');
+        url.searchParams.set('playsinline', '1');
+        url.searchParams.set('enablejsapi', '1');
+      }
+      const iframe = document.createElement('iframe');
+      iframe.src = url.toString();
+      iframe.title = title || 'Project video';
+      iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+      iframe.allowFullscreen = true;
+      iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+      iframe.loading = 'eager';
+      return iframe;
+    } catch (_) { return null; }
+  };
+
   document.querySelectorAll('[data-video-load]').forEach((button) => {
     button.addEventListener('click', () => {
-      try {
-        const url = new URL(button.dataset.videoUrl || '');
-        const allow = ['www.youtube.com', 'www.youtube-nocookie.com', 'youtube-nocookie.com', 'player.vimeo.com'];
-        if (url.protocol !== 'https:' || !allow.includes(url.hostname)) return;
-        url.searchParams.set('autoplay', '1');
-        const iframe = document.createElement('iframe');
-        iframe.src = url.toString();
-        iframe.title = button.dataset.videoTitle || 'Project video';
-        iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
-        iframe.allowFullscreen = true;
-        iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
-        iframe.setAttribute('loading', 'eager');
-        button.parentNode.replaceChildren(iframe);
-      } catch (error) { /* Keep existing preview if URL is not valid. */ }
+      const iframe = makeVideoEmbed(button.dataset.videoUrl, button.dataset.videoTitle, !!button.closest('[data-video-autoplay]'));
+      if (iframe) button.parentNode.replaceChildren(iframe);
     });
   });
+
+  const autoHosts = [...document.querySelectorAll('[data-video-autoplay]')];
+  const autoUploads = [...document.querySelectorAll('video[data-video-autoplay-upload]')];
+  const activateAutoplay = (node) => {
+    if (document.hidden) return;
+    if (node.matches('video')) {
+      node.muted = true;
+      node.playsInline = true;
+      const attempt = node.play();
+      // Mobile/browser autoplay is policy-controlled; keep native controls as fallback.
+      if (attempt && typeof attempt.catch === 'function') attempt.catch(() => {});
+      return;
+    }
+    if (node.querySelector('iframe')) return; // Already loaded by click or observer.
+    const iframe = makeVideoEmbed(node.dataset.videoUrl, node.dataset.videoTitle, true);
+    if (iframe) node.replaceChildren(iframe);
+  };
+  const signalEmbeddedPlayer = (host, action) => {
+    const frame = host.querySelector('iframe');
+    if (!frame?.contentWindow) return;
+    try {
+      const origin = new URL(frame.src).origin;
+      if (origin === 'https://player.vimeo.com') {
+        frame.contentWindow.postMessage({ method: action }, origin);
+      } else if (['https://www.youtube-nocookie.com', 'https://youtube-nocookie.com', 'https://www.youtube.com'].includes(origin)) {
+        frame.contentWindow.postMessage(JSON.stringify({ event: 'command', func: action === 'pause' ? 'pauseVideo' : 'playVideo', args: [] }), origin);
+      }
+    } catch (_) { /* An unavailable embed must not block the rest of the page. */ }
+  };
+  const configuredAutoplay = [...autoHosts, ...autoUploads];
+  if (configuredAutoplay.length) {
+    if ('IntersectionObserver' in window) {
+      const videoObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          const node = entry.target;
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.45) {
+            const alreadyLoaded = node.matches('[data-video-autoplay]') && !!node.querySelector('iframe');
+            activateAutoplay(node);
+            if (alreadyLoaded) signalEmbeddedPlayer(node, 'play');
+          } else if (node.matches('video')) {
+            node.pause();
+          } else {
+            signalEmbeddedPlayer(node, 'pause');
+          }
+        });
+      }, { threshold: [0, 0.45, 0.75] });
+      configuredAutoplay.forEach((node) => videoObserver.observe(node));
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          autoUploads.forEach((video) => video.pause());
+          autoHosts.forEach((host) => signalEmbeddedPlayer(host, 'pause'));
+        }
+      });
+    } else {
+      configuredAutoplay.forEach(activateAutoplay);
+    }
+  }
 
   // All visible review, YouTube and gallery cards share the same accessible carousel.
   // Scroll-snap + scrollBy keep mobile swipes native and don't interfere with media players.

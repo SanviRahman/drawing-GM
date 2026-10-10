@@ -52,18 +52,17 @@
         </div>
 
         <div class="col-md-8 mb-3">
-            <label class="font-weight-bold">Value <span class="text-danger">*</span></label>
+            <label class="font-weight-bold">Value (optional)</label>
             <input type="text"
                    name="value"
                    id="contact_channel_value"
                    class="form-control"
                    maxlength="255"
-                   required
                    value="{{ old('value', $isEdit ? $contactChannel->value : '') }}"
                    placeholder="+6591234567">
             <div class="invalid-feedback error-value"></div>
             <small class="text-muted" id="contact-value-help">
-                Phone/WhatsApp values must use E.164 format, e.g. <code>+6591234567</code>.
+                Any country's phone number is accepted, e.g. <code>+880 1712-345678</code>, <code>+65 9123 4567</code> or <code>01712 345678</code>. For WhatsApp, include the country calling code so chat links work. Empty values are saved as inactive.
             </small>
         </div>
 
@@ -225,13 +224,13 @@
 
         if (type === 'whatsapp' || type === 'phone') {
             $value.attr('placeholder', '+6591234567');
-            $help.html('Phone/WhatsApp values must use E.164 format, e.g. <code>+6591234567</code>.');
+            $help.html('Use any country number, e.g. <code>+880 1712-345678</code> or <code>+65 9123 4567</code>. The + is optional. WhatsApp links need the country calling code. Empty values save as inactive.');
         } else if (type === 'email') {
             $value.attr('placeholder', 'sales@example.com');
-            $help.text('Enter a valid email address.');
+            $help.text('Enter an email address, or leave blank to save an inactive draft.');
         } else {
             $value.attr('placeholder', 'https://example.com/contact');
-            $help.text('Custom values must be full http:// or https:// URLs.');
+            $help.text('Enter a full http:// or https:// URL, or leave blank to save an inactive draft.');
         }
     }
 

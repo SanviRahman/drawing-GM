@@ -89,6 +89,12 @@ class ProjectDefaultSeeder extends Seeder
             // published when this business explicitly supplies approved values.
             $this->seedApprovedCalculatorCatalog();
 
+            // Bring previously inserted but COMPLETE records online, including header/footer.
+            // Intentionally exclude unverified competitor prices, dummy contacts/reviews,
+            // missing media, unpublished policies and tracking providers without real IDs.
+            $this->seedHeaderFooterPresentation();
+            $this->activateCompleteSeedRecords();
+
             // Runtime/binary-backed tables are intentionally not populated with fake data:
             // media, section_media, gallery_items, failed_jobs/jobs/sessions/cache.
             // Their owning records are seeded above so the Admin UI is immediately usable.
@@ -1441,7 +1447,9 @@ class ProjectDefaultSeeder extends Seeder
             $navId = $items[$label] ?? null;
             if (! $navId) continue;
             foreach ($faqs as $position => [$question, $answer]) {
-                // FAQ record is inactive by design until the company verifies the answer.
+                // Do not reintroduce an unreviewed reference FAQ once the safer
+                // public-ready version has already been seeded and approved.
+                if (Schema::hasTable('faqs') && DB::table('faqs')->where('question', $question)->whereNull('deleted_at')->exists()) continue;
                 $faqId = $this->referenceInsertMissing('faqs', ['question' => '[Reference] '.$question], [
                     'answer' => '<p>'.htmlspecialchars($answer, ENT_QUOTES, 'UTF-8').'</p>',
                     'is_active' => false,
@@ -1555,6 +1563,8 @@ class ProjectDefaultSeeder extends Seeder
                 'Primer evaluation', 'Paint selection', 'Coat application', 'Edge detailing',
                 'Final inspection', 'Post-work cleanup',
             ] as $i => $title) {
+                if (Schema::hasTable('service_features') && DB::table('service_features')->where('service_id', $primaryServiceId)
+                    ->where('title', $title)->whereNull('deleted_at')->exists()) continue;
                 $this->ensureRow('service_features', ['service_id' => $primaryServiceId, 'title' => '[Draft] '.$title], [
                     'description' => 'Example item only: confirm whether your service includes this step.',
                     'icon' => 'check-circle', 'sort_order' => $i + 1, 'is_active' => false,
@@ -1707,6 +1717,7 @@ class ProjectDefaultSeeder extends Seeder
             'How are change requests handled?', 'What information is needed for a quote?',
         ];
         foreach ($generalQuestions as $i => $question) {
+            if (Schema::hasTable('faqs') && DB::table('faqs')->where('question', $question)->whereNull('deleted_at')->exists()) continue;
             $faqId = $this->ensureRow('faqs', ['question' => '[Draft] '.$question], [
                 'answer' => '<p>Draft only. Your business must provide and approve its own answer.</p>',
                 'is_active' => false,
@@ -2281,4 +2292,297 @@ class ProjectDefaultSeeder extends Seeder
             }
         }
     }
+
+
+    /**
+     * Complete the five header/footer menu slots and the editable presentation
+     * settings. These settings are data only: Blade must read a key to display it.
+     * Re-seeding does not replace client-edited text or uploaded logos.
+     */
+    private function seedHeaderFooterPresentation(): void
+    {
+        if (Schema::hasTable('menus')) {
+            foreach ([
+                'header-primary' => 'Header Primary',
+                'header-top' => 'Header Top',
+                'footer-company' => 'Footer Company',
+                'footer-services' => 'Footer Services',
+                'footer-legal' => 'Footer Legal',
+            ] as $location => $name) {
+                $this->ensureRow('menus', ['location' => $location], [
+                    'name' => $name, 'is_active' => true,
+                ]);
+                $row = DB::table('menus')->where('location', $location)->first();
+                if ($row && (! property_exists($row, 'deleted_at') || $row->deleted_at === null)) {
+                    $this->enableId('menus', (int) $row->id);
+                }
+            }
+        }
+
+        if (! Schema::hasTable('site_settings')) return;
+        $settings = [
+            ['header', 'header.announcement', 'Contact our team for a quotation', 'string'],
+            ['header', 'header.sticky', '1', 'boolean'],
+            ['header', 'header.cta_label', 'Get a Free Quote', 'string'],
+            ['header', 'header.cta_url', '/#quote-form', 'string'],
+            ['header', 'header.top_contact_label', 'Contact Us', 'string'],
+            ['footer', 'footer.description', 'Professional painting and home-service solutions.', 'string'],
+            ['footer', 'footer.company_heading', 'Quick Links', 'string'],
+            ['footer', 'footer.services_heading', 'Popular Services', 'string'],
+            ['footer', 'footer.legal_heading', 'Legal', 'string'],
+            ['footer', 'footer.contact_heading', 'Contact Information', 'string'],
+            ['footer', 'footer.cta_label', 'Get a Free Quote', 'string'],
+            ['footer', 'footer.cta_url', '/#quote-form', 'string'],
+            ['footer', 'footer.copyright', '© '.date('Y').' '.trim((string) env('WEBSITE_SITE_NAME', 'Painting Services')).'. All rights reserved.', 'string'],
+        ];
+        foreach ($settings as [$group, $key, $value, $type]) {
+            $this->ensureRow('site_settings', ['setting_key' => $key], [
+                'group_name' => $group, 'setting_value' => $value,
+                'value_type' => $type, 'is_public' => true,
+            ]);
+        }
+
+        // Legal links are clickable only when the corresponding policy page is
+        // genuinely written and published. No fabricated legal policy is seeded.
+        if (! Schema::hasTable('menu_items') || ! Schema::hasTable('pages')) return;
+        $legalMenu = $this->value('menus', ['location' => 'footer-legal'], 'id');
+        if (! $legalMenu) return;
+        foreach ([
+            ['Privacy Policy', 'privacy-policy', 0],
+            ['Terms & Conditions', 'terms-and-conditions', 10],
+            ['Cookie Policy', 'cookie-policy', 20],
+        ] as [$label, $slug, $order]) {
+            $this->ensureRow('menu_items', [
+                'menu_id' => $legalMenu, 'label' => $label,
+            ], [
+                'parent_id' => null, 'link_type' => 'url', 'linkable_type' => null,
+                'linkable_id' => null, 'url' => '/'.$slug, 'icon' => null,
+                'target' => '_self', 'css_class' => null, 'sort_order' => $order,
+                'is_active' => false, 'faq_section_enabled' => false,
+            ]);
+        }
+    }
+
+    /**
+     * The earlier insert-if-missing methods cannot reactivate EXISTING rows.
+     * Turn on completed configured content while leaving placeholders and
+     * invalid/unapproved third-party data offline. Never restore Trash.
+     */
+    private function activateCompleteSeedRecords(): void
+    {
+        // Page sections and section registry are reusable CMS configuration,
+        // not claims about customer results or supplied images.
+        foreach (['section_definitions', 'page_sections'] as $table) {
+            if (! Schema::hasTable($table) || ! Schema::hasColumn($table, 'is_active')) continue;
+            $query = DB::table($table);
+            if (Schema::hasColumn($table, 'deleted_at')) $query->whereNull('deleted_at');
+            foreach ($query->get() as $row) {
+                if ($table === 'page_sections') {
+                    if (trim((string) ($row->heading ?? '')) === '') continue;
+                    if (str_starts_with((string) $row->heading, '[Draft]')) continue;
+                }
+                $this->enableId($table, (int) $row->id);
+            }
+        }
+
+        // Publish authored site pages, services, locations and articles. The
+        // seeder's draft placeholders and unreviewed campaigns remain drafts.
+        foreach (['pages', 'services', 'locations', 'posts', 'campaigns'] as $table) {
+            if (! Schema::hasTable($table) || ! Schema::hasColumn($table, 'status')) continue;
+            $query = DB::table($table);
+            if (Schema::hasColumn($table, 'deleted_at')) $query->whereNull('deleted_at');
+            foreach ($query->get() as $row) {
+                $title = trim((string) ($row->title ?? $row->name ?? ''));
+                $summary = trim(strip_tags((string) ($row->excerpt ?? $row->summary ?? '')));
+                $body = trim(strip_tags((string) ($row->body ?? $row->content ?? '')));
+                $description = trim((string) ($row->summary ?? ''));
+                $text = $title.' '.$summary.' '.$body;
+                if (preg_match('/\[Draft\]|\bUNPUBLISHED\b|\bUNVERIFIED\b|placeholder|draft only|demo customer|reference only|not your business|confirm before publication/i', $text)) continue;
+                if ($table === 'campaigns') {
+                    // Campaign activation is an explicit marketing decision;
+                    // never launch campaigns (or change their schedule) via seed.
+                    continue;
+                }
+                if ($table === 'posts' && mb_strlen($body) < 80) continue;
+                if (in_array($table, ['services', 'locations'], true) && mb_strlen($summary) < 30) continue;
+                if ($table === 'pages' && mb_strlen($summary) < 30) continue;
+                if ($table === 'posts' && ! empty($row->author_id) && empty($row->category_id)) continue;
+                if ($table === 'services' && str_contains($description, 'Verify whether')) continue;
+                if ((string) $row->status !== 'published') $this->publishId($table, (int) $row->id);
+            }
+        }
+
+        // All currently usable configuration modules can be switched on.
+        foreach (['menus', 'service_features', 'lead_form_fields', 'categories', 'faqs'] as $table) {
+            if (! Schema::hasTable($table) || ! Schema::hasColumn($table, 'is_active')) continue;
+            $query = DB::table($table);
+            if (Schema::hasColumn($table, 'deleted_at')) $query->whereNull('deleted_at');
+            foreach ($query->get() as $row) {
+                if ($table === 'service_features' && (
+                    str_starts_with((string) $row->title, '[Draft]') ||
+                    str_contains((string) $row->description, 'Example item only')
+                )) continue;
+                if ($table === 'faqs' && (
+                    preg_match('/^\[Draft\]|^\[Reference\]/i', (string) $row->question) ||
+                    preg_match('/Draft only|Configure the correct business answer|placeholder/i', (string) $row->answer)
+                )) continue;
+                if ($table === 'lead_form_fields') {
+                    $options = is_string($row->options ?? null)
+                        ? json_decode($row->options, true) : ($row->options ?? []);
+                    if (! is_array($options) || count($options) === 0) continue;
+                }
+                $this->enableId($table, (int) $row->id);
+            }
+        }
+
+        // Header, header-top and footer link groups. Legal policies need real
+        // published policy pages; bad/special/suspicious URLs are not enabled.
+        if (Schema::hasTable('menu_items') && Schema::hasTable('menus')) {
+            $locations = DB::table('menus')->pluck('location', 'id')->all();
+            $query = DB::table('menu_items');
+            if (Schema::hasColumn('menu_items', 'deleted_at')) $query->whereNull('deleted_at');
+            foreach ($query->get() as $item) {
+                $location = $locations[$item->menu_id] ?? '';
+                if (! in_array($location, ['header-primary', 'header-top', 'footer-company', 'footer-services', 'footer-legal'], true)) continue;
+                if (($item->link_type ?? '') !== 'url') continue;
+                $url = trim((string) ($item->url ?? ''));
+                if ($url === '' || preg_match('~^(javascript:|data:)~i', $url)) continue;
+                if (! str_starts_with($url, '/') && ! str_starts_with($url, '#') &&
+                    ! preg_match('~^https://~i', $url)) continue;
+                if ($location === 'footer-legal') {
+                    $slug = trim(parse_url($url, PHP_URL_PATH) ?: '', '/');
+                    $page = DB::table('pages')->where('slug', $slug)->first();
+                    if (! $page || ($page->deleted_at ?? null) !== null ||
+                        ($page->status ?? '') !== 'published' ||
+                        mb_strlen(trim(strip_tags((string) ($page->excerpt ?? '')))) < 30) continue;
+                }
+                $this->enableId('menu_items', (int) $item->id);
+            }
+        }
+
+        // Business-entered price records, including Call for Price, may be
+        // shown. Unverified competitor 'Reference ·' rows must NOT become rates.
+        if (Schema::hasTable('pricing_packages')) {
+            $query = DB::table('pricing_packages');
+            if (Schema::hasColumn('pricing_packages', 'deleted_at')) $query->whereNull('deleted_at');
+            foreach ($query->get() as $package) {
+                if (str_starts_with((string) $package->name, 'Reference ·')) continue;
+                $this->enableId('pricing_packages', (int) $package->id);
+            }
+        }
+        if (Schema::hasTable('pricing_items') && Schema::hasTable('pricing_packages')) {
+            $query = DB::table('pricing_items');
+            if (Schema::hasColumn('pricing_items', 'deleted_at')) $query->whereNull('deleted_at');
+            foreach ($query->get() as $item) {
+                $package = DB::table('pricing_packages')->where('id', $item->pricing_package_id)->first();
+                if (! $package || str_starts_with((string) $package->name, 'Reference ·') ||
+                    ! (bool) ($package->is_active ?? false)) continue;
+                $valid = (string) ($item->price_type ?? '') === 'call' ||
+                    (is_numeric($item->amount ?? null) && (float) $item->amount >= 0);
+                if ($valid) $this->enableId('pricing_items', (int) $item->id);
+            }
+        }
+        if (Schema::hasTable('pricing_addons')) {
+            $query = DB::table('pricing_addons');
+            if (Schema::hasColumn('pricing_addons', 'deleted_at')) $query->whereNull('deleted_at');
+            foreach ($query->get() as $addon) {
+                if (str_starts_with((string) $addon->name, 'Reference ·')) continue;
+                $valid = (string) ($addon->price_type ?? '') === 'call' ||
+                    (is_numeric($addon->amount ?? null) && (float) $addon->amount >= 0);
+                if ($valid) $this->enableId('pricing_addons', (int) $addon->id);
+            }
+        }
+
+        // No fabricated reviews or WhatsApp numbers: only filled-in data.
+        if (Schema::hasTable('testimonials')) {
+            $query = DB::table('testimonials');
+            if (Schema::hasColumn('testimonials', 'deleted_at')) $query->whereNull('deleted_at');
+            foreach ($query->get() as $review) {
+                $text = trim(strip_tags((string) ($review->review ?? '')));
+                if (mb_strlen($text) < 20 || preg_match('/UNVERIFIED EMPTY SLOT|Inactive demo testimonial|Replace this record/i', $text)) continue;
+                if (preg_match('/^Demo Customer/i', (string) ($review->customer_name ?? ''))) continue;
+                $this->enableId('testimonials', (int) $review->id);
+            }
+        }
+        if (Schema::hasTable('contact_channels')) {
+            $query = DB::table('contact_channels');
+            if (Schema::hasColumn('contact_channels', 'deleted_at')) $query->whereNull('deleted_at');
+            foreach ($query->get() as $contact) {
+                $value = trim((string) ($contact->value ?? ''));
+                $type = (string) ($contact->type ?? '');
+                if (preg_match('/example\.(com|invalid)|not-configured|demo/i', $value)) continue;
+                $valid = match ($type) {
+                    'email' => (bool) filter_var($value, FILTER_VALIDATE_EMAIL),
+                    'phone', 'whatsapp' => (bool) preg_match('/^\+?[0-9\s().-]{7,25}$/', $value),
+                    default => false,
+                };
+                if ($valid) $this->enableId('contact_channels', (int) $contact->id);
+            }
+        }
+
+        // Videos with a genuine source can be enabled, but not empty slots.
+        if (Schema::hasTable('videos')) {
+            $query = DB::table('videos');
+            if (Schema::hasColumn('videos', 'deleted_at')) $query->whereNull('deleted_at');
+            foreach ($query->get() as $video) {
+                $providerId = trim((string) ($video->provider_video_id ?? ''));
+                $url = trim((string) ($video->source_url ?? ''));
+                $youtube = preg_match('/^[A-Za-z0-9_-]{11}$/', $providerId) === 1 ||
+                    preg_match('~^https://(www\.)?(youtube\.com|youtu\.be)/~i', $url) === 1;
+                if ($youtube) $this->enableId('videos', (int) $video->id);
+            }
+        }
+
+        // A gallery without an associated real image may not be visible. The
+        // seeder cannot produce/bind binary media; don't publish empty drafts.
+        if (Schema::hasTable('galleries') && Schema::hasTable('gallery_items') &&
+            Schema::hasTable('media')) {
+            $query = DB::table('galleries');
+            if (Schema::hasColumn('galleries', 'deleted_at')) $query->whereNull('deleted_at');
+            foreach ($query->get() as $gallery) {
+                if (str_starts_with((string) $gallery->name, '[Draft]') ||
+                    (string) $gallery->name === 'Demo Portfolio') continue;
+                $items = DB::table('gallery_items')->where('gallery_id', $gallery->id)->get();
+                foreach ($items as $item) {
+                    if (($item->deleted_at ?? null) !== null ||
+                        str_starts_with((string) ($item->title ?? ''), '[Draft]')) continue;
+                    // GalleryItem may own the actual Spatie upload; verify it.
+                    $media = DB::table('media')->where('model_id', $item->id)
+                        ->whereIn('model_type', ['App\\Models\\GalleryItem', 'App\\Models\\Gallery\\GalleryItem'])
+                        ->exists();
+                    if ($media) {
+                        $this->enableId('gallery_items', (int) $item->id);
+                        $this->enableId('galleries', (int) $gallery->id);
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Tracking providers require a company-owned, real identifier or token.
+        // The event mapping rules were already enabled by seedTracking().
+        // Campaigns and redirects are intentionally not mass-published.
+    }
+
+    private function enableId(string $table, int $id): void
+    {
+        if ($id < 1 || ! Schema::hasTable($table) || ! Schema::hasColumn($table, 'is_active')) return;
+        $query = DB::table($table)->where('id', $id)->where('is_active', false);
+        if (Schema::hasColumn($table, 'deleted_at')) $query->whereNull('deleted_at');
+        $changes = ['is_active' => true];
+        if (Schema::hasColumn($table, 'updated_at')) $changes['updated_at'] = now();
+        $query->update($changes);
+    }
+
+    private function publishId(string $table, int $id): void
+    {
+        if ($id < 1 || ! Schema::hasTable($table)) return;
+        $query = DB::table($table)->where('id', $id)->where('status', 'draft');
+        if (Schema::hasColumn($table, 'deleted_at')) $query->whereNull('deleted_at');
+        $changes = ['status' => 'published'];
+        if (Schema::hasColumn($table, 'published_at')) $changes['published_at'] = now();
+        if (Schema::hasColumn($table, 'updated_at')) $changes['updated_at'] = now();
+        $query->update($changes);
+    }
+
 }

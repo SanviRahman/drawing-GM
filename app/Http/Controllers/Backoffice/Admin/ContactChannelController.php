@@ -121,7 +121,7 @@ class ContactChannelController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Contact channel created successfully.',
+            'message' => $validated['value'] === '' ? 'Contact channel saved as inactive (add a value to activate).' : 'Contact channel created successfully.',
             'data' => ['id' => $contactChannel->id],
         ]);
     }
@@ -174,7 +174,7 @@ class ContactChannelController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Contact channel updated successfully.',
+            'message' => $validated['value'] === '' ? 'Contact channel saved as inactive (add a value to activate).' : 'Contact channel updated successfully.',
         ]);
     }
 
@@ -196,6 +196,10 @@ class ContactChannelController extends Controller
     public function toggle(ContactChannel $contactChannel)
     {
         $this->ensurePermission('contact_channel_toggle');
+
+        if (! $contactChannel->is_active && trim((string) $contactChannel->value) === '') {
+            throw ValidationException::withMessages(['value' => 'Add a contact value before activating this channel.']);
+        }
 
         DB::transaction(function () use ($contactChannel): void {
             if ($contactChannel->is_active && $contactChannel->is_default) {
@@ -372,7 +376,7 @@ class ContactChannelController extends Controller
             'type' => ['required', 'string', Rule::in(array_keys(ContactChannel::TYPES))],
             'label' => ['required', 'string', 'max:120'],
             'region' => ['nullable', 'string', 'max:120'],
-            'value' => ['required', 'string', 'max:255'],
+            'value' => ['nullable', 'string', 'max:255'],
             'display_value' => ['nullable', 'string', 'max:120'],
             'message_template' => ['nullable', 'string', 'max:60000'],
             'icon' => ['required', 'string', 'max:100', Rule::in(array_keys(ContactChannel::ICON_OPTIONS))],
@@ -399,13 +403,20 @@ class ContactChannelController extends Controller
 
         $validated['value'] = $this->contactChannelService->normalizeValue(
             (string) $validated['type'],
-            (string) $validated['value']
+            (string) ($validated['value'] ?? '')
         );
 
         $this->contactChannelService->assertValueIsValid(
             (string) $validated['type'],
             (string) $validated['value']
         );
+
+        // Blank contact details are allowed for draft setup, never as clickable
+        // active/default channels. No migration: the existing value column is NOT NULL.
+        if ($validated['value'] === '') {
+            $validated['is_active'] = false;
+            $validated['is_default'] = false;
+        }
 
         if ((bool) $validated['is_default'] && ! (bool) $validated['is_active']) {
             throw ValidationException::withMessages([
@@ -485,11 +496,14 @@ class ContactChannelController extends Controller
             return 'Selected contact channels deactivated.';
         }
 
-        ContactChannel::query()
+        $eligible = ContactChannel::query()
             ->whereIn('id', $ids)
-            ->update(['is_active' => true]);
+            ->whereNotNull('value')
+            ->where('value', '<>', '');
+        $activated = (clone $eligible)->count();
+        $eligible->update(['is_active' => true]);
 
-        return 'Selected contact channels activated.';
+        return "{$activated} contact channel(s) activated. Blank values were skipped.";
     }
 
     private function bulkDelete(array $ids): string
