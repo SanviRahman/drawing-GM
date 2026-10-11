@@ -1,13 +1,19 @@
 <section class="hp-section hp-quote-section" id="quote-form"><div class="container">
     <div class="hp-quote-banner"><div class="hp-quote-copy">
         @php
-            $quoteHeading = trim((string) ($settings['contact.quote_heading'] ?? ''));
-            if ($quoteHeading === '' || in_array(\Illuminate\Support\Str::lower($quoteHeading), ['request a quotation', 'request a free quote'], true)) {
+            $quoteHeading = trim((string) ($quoteHeadingOverride ?? $settings['contact.quote_heading'] ?? ''));
+            if (!isset($quoteHeadingOverride) && ($quoteHeading === '' || in_array(\Illuminate\Support\Str::lower($quoteHeading), ['request a quotation', 'request a free quote'], true))) {
                 $quoteHeading = 'Book Your Free Site Inspection & Quote';
             }
         @endphp
-        <span class="hp-eyebrow hp-eyebrow-light">NO OBLIGATION • 100% FREE</span><h2>{{ $quoteHeading }}</h2><p>Have our supervisor come down to assess hairline plaster cracks, measure high ceilings, verify water leaks, and provide a fixed written guarantee quotation on the spot.</p>
-        <ul class="hp-quote-points list-unstyled mb-0"><li><i class="bi bi-check-circle"></i> Available Monday to Sunday, 8:00 AM – 8:30 PM</li><li><i class="bi bi-check-circle"></i> Instant WhatsApp quote within 15 minutes if you send photos</li><li><i class="bi bi-check-circle"></i> Fixed quote pledge: The price you are quoted is the price you pay</li></ul>
+        <span class="hp-eyebrow hp-eyebrow-light">NO OBLIGATION • 100% FREE</span><h2>{{ $quoteHeading }}</h2><p>{{ $quoteDescriptionOverride ?? 'Have our supervisor come down to assess hairline plaster cracks, measure high ceilings, verify water leaks, and provide a fixed written guarantee quotation on the spot.' }}</p>
+        <ul class="hp-quote-points list-unstyled mb-0">
+        @if(isset($quotePointsOverride))
+            @foreach($quotePointsOverride as $point)<li><i class="bi bi-check-circle" aria-hidden="true"></i> {{ $point }}</li>@endforeach
+        @else
+            <li><i class="bi bi-check-circle"></i> Available Monday to Sunday, 8:00 AM – 8:30 PM</li><li><i class="bi bi-check-circle"></i> Instant WhatsApp quote within 15 minutes if you send photos</li><li><i class="bi bi-check-circle"></i> Fixed quote pledge: The price you are quoted is the price you pay</li>
+        @endif
+        </ul>
     </div>
     <div class="hp-quote-form-wrap"><form action="{{ route('website.enquiries.store') }}" method="POST" class="hp-quote-form" autocomplete="on">
         @csrf
@@ -18,7 +24,8 @@
             <div class="col-md-6"><label for="hpLeadName" class="form-label">Your Name <span>*</span></label><input id="hpLeadName" class="form-control @error('name') is-invalid @enderror" type="text" name="name" maxlength="190" required autocomplete="name" placeholder="Enter your full name" value="{{ old('name') }}">@error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
             <div class="col-md-6"><label for="hpLeadPhone" class="form-label">Your Contact Number <span>*</span></label><input id="hpLeadPhone" class="form-control @error('phone') is-invalid @enderror" type="tel" name="phone" maxlength="32" required autocomplete="tel" placeholder="e.g. +65 9123 4567" value="{{ old('phone') }}">@error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
             <div class="col-md-6"><label for="hpLeadEmail" class="form-label">Email (optional)</label><input id="hpLeadEmail" class="form-control @error('email') is-invalid @enderror" type="email" name="email" maxlength="190" autocomplete="email" placeholder="you@example.com" value="{{ old('email') }}">@error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-            @if($services->isNotEmpty())<div class="col-md-6"><label for="hpLeadService" class="form-label">Service (optional)</label><select id="hpLeadService" name="service_id" class="form-select @error('service_id') is-invalid @enderror"><option value="" disabled @selected(!old('service_id'))>Select the service you need</option>@foreach($services as $service)<option value="{{ $service->id }}" @selected(old('service_id') == $service->id)>{{ $service->name }}</option>@endforeach</select>@error('service_id')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>@endif
+            @php($selectedQuoteServiceId = old('service_id', $quoteServiceIdOverride ?? null))
+            @if($services->isNotEmpty())<div class="col-md-6"><label for="hpLeadService" class="form-label">Service (optional)</label><select id="hpLeadService" name="service_id" class="form-select @error('service_id') is-invalid @enderror"><option value="" disabled @selected(!$selectedQuoteServiceId)>Select the service you need</option>@foreach($services as $service)<option value="{{ $service->id }}" @selected($selectedQuoteServiceId == $service->id)>{{ $service->name }}</option>@endforeach</select>@error('service_id')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>@endif
             @foreach($fields as $field)
                 <div class="col-md-6"><label class="form-label" for="hpDynamic{{ $field->id }}">{{ $field->label }} @if($field->is_required)<span>*</span>@endif</label><select class="form-select @error('dynamic_answers.'.$field->field_key) is-invalid @enderror" name="dynamic_answers[{{ $field->field_key }}]" id="hpDynamic{{ $field->id }}" @required($field->is_required)><option value="" disabled @selected(!old('dynamic_answers.'.$field->field_key))>Select {{ \Illuminate\Support\Str::lower($field->label) }}</option>@foreach(($field->options ?? []) as $option)@if(is_scalar($option))<option value="{{ $option }}" @selected(old('dynamic_answers.'.$field->field_key)==$option)>{{ $option }}</option>@endif @endforeach</select>@error('dynamic_answers.'.$field->field_key)<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
             @endforeach

@@ -30,6 +30,9 @@ class ContentController extends Controller
         if ($slug === 'plastering') {
             return $this->plasteringPage($page, $viewData);
         }
+        if ($slug === 'hacking') {
+            return $this->hackingPage($page, $viewData);
+        }
 
         $viewData['articles'] = $slug === 'blog'
             ? Post::query()->published()->ordered()->limit(24)->get()
@@ -125,6 +128,81 @@ class ContentController extends Controller
         $viewData['home'] = $page; // Shared layout header/footer visibility and metadata.
 
         return view('website.pages.plastering', $viewData);
+    }
+
+    /**
+     * Hacking landing page: scope/hero belongs to /hacking, while published
+     * review, video, contact and form components are reused from Home.
+     * No Home hero is used for the Hacking banner.
+     */
+    private function hackingPage(Page $page, array $viewData): View
+    {
+        $sections = $page->sections()->currentlyVisible()
+            ->whereHas('sectionDefinition', fn ($query) => $query->active())
+            ->with(['sectionDefinition', 'mediaItems.media'])->ordered()->get();
+
+        $service = Service::query()->published()->where('slug', 'wall-hacking')->first();
+        $serviceId = $service?->id;
+        $pageMorph = $page->getMorphClass();
+        $serviceMorph = (new Service())->getMorphClass();
+
+        // Only Hacking-specific galleries, not unrelated painting projects.
+        $viewData['galleries'] = Gallery::query()->where('is_active', true)
+            ->where(function ($query) use ($page, $pageMorph, $serviceId, $serviceMorph) {
+                $query->where(fn ($q) => $q->whereNull('attachable_type')->where('name', 'like', '%hack%'))
+                    ->orWhere(fn ($q) => $q->where('attachable_type', $pageMorph)->where('attachable_id', $page->id));
+                if ($serviceId !== null) {
+                    $query->orWhere(fn ($q) => $q->where('attachable_type', $serviceMorph)->where('attachable_id', $serviceId));
+                }
+            })
+            ->with(['items' => fn ($query) => $query->where('is_active', true)->with('media')->orderBy('sort_order')])
+            ->orderBy('id')->limit(20)->get();
+
+        // Prefer hacking video records. When absent, reuse Home's published
+        // videos as 'related work' rather than fabricate a hacking project.
+        $hackingVideos = Video::query()->active()
+            ->where(function ($query) use ($page, $pageMorph, $serviceId, $serviceMorph) {
+                $query->where(fn ($q) => $q->whereNull('attachable_type')->where('title', 'like', '%hack%'))
+                    ->orWhere(fn ($q) => $q->where('attachable_type', $pageMorph)->where('attachable_id', $page->id));
+                if ($serviceId !== null) {
+                    $query->orWhere(fn ($q) => $q->where('attachable_type', $serviceMorph)->where('attachable_id', $serviceId));
+                }
+            })->ordered()->limit(20)->get()
+            ->filter(fn (Video $video) => $video->has_playable_source
+                && ($video->resolved_source_type === 'upload'
+                    || in_array(strtolower((string) parse_url((string) $video->playback_url, PHP_URL_HOST)),
+                        ['www.youtube.com', 'www.youtube-nocookie.com', 'youtube-nocookie.com', 'player.vimeo.com'], true)))
+            ->values();
+        if ($hackingVideos->isNotEmpty()) {
+            $viewData['videos'] = $hackingVideos;
+        }
+
+        $pageFaqs = $page->faq_section_enabled ? $page->faqs()->active()->get() : collect();
+        $serviceFaqs = $service && $page->faq_section_enabled ? $service->faqs()->active()->get() : collect();
+        $viewData['faqs'] = $pageFaqs->isNotEmpty() ? $pageFaqs : $serviceFaqs;
+        $viewData['hackingPackages'] = PricingPackage::query()->active()
+            ->where('name', 'not like', '[Draft]%')
+            ->where('name', 'not like', 'Reference ·%')
+            ->where('service_id', $serviceId ?? 0)
+            ->where(function ($query) {
+                $query->whereNull('location_id')->orWhereHas('location', fn ($location) => $location->published());
+            })
+            ->with(['items' => fn ($items) => $items->active()->ordered()])
+            ->orderByDesc('is_featured')->ordered()->limit(12)->get();
+
+        $viewData['hackingSections'] = $sections;
+        $viewData['hackingService'] = $service;
+        // Ensure Hacking is selectable by the shared quotation form, even
+        // when HomeData's six featured services omit it.
+        if ($service && ! collect($viewData['services'] ?? [])->contains('id', $service->id)) {
+            $viewData['services'] = collect($viewData['services'] ?? [])->push($service);
+        }
+        $viewData['hackingRelatedServices'] = Service::query()->published()
+            ->whereIn('slug', ['wall-hacking', 'wall-plastering', 'house-painting'])
+            ->ordered()->get();
+        $viewData['home'] = $page;
+
+        return view('website.pages.hacking', $viewData);
     }
 
     public function service(string $slug, HomeData $data): View
