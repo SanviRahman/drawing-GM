@@ -1,0 +1,91 @@
+/* Dedicated Plastering Page. Reuses website.css and Home carousel components. */
+.plastering-page{overflow-x:clip;background:#fff}
+.plastering-page .hp-section{padding-block:clamp(4rem,6vw,6.5rem)}
+.plastering-page .hp-section-heading{margin-bottom:clamp(2rem,4vw,3rem)}
+.plastering-page .hp-section-heading h2{font-size:clamp(1.9rem,3.15vw,2.8rem);font-weight:600}
+.plastering-page .hp-section-heading p{font-size:1rem;line-height:1.72}
+.plaster-hero{position:relative;min-height:clamp(480px,48vw,680px);display:flex;align-items:flex-end;isolation:isolate;color:#fff;background:linear-gradient(140deg,#164b50,#062b36)}
+.plaster-hero-media,.plaster-hero-gradient{position:absolute;inset:0;z-index:-1}
+.plaster-hero-media picture,.plaster-hero-media picture img{display:block;width:100%;height:100%}
+.plaster-hero-media img{object-fit:cover;object-position:center 48%}
+.plaster-hero-gradient{z-index:1;pointer-events:none}
+.plaster-hero-gradient{background:linear-gradient(90deg,rgba(3,33,42,.78),rgba(4,38,48,.3) 58%,rgba(4,38,48,.12)),linear-gradient(0deg,rgba(3,29,38,.64),transparent 65%)}
+.plaster-hero-placeholder{height:100%;display:grid;place-items:center;background:radial-gradient(circle at 78% 25%,#46827a,transparent 45%),linear-gradient(140deg,#1c5c5b,#072a37);color:#c5ede0}
+.plaster-hero-placeholder i{font-size:clamp(6rem,18vw,15rem);opacity:.25}
+.plaster-hero-content{padding-top:105px;padding-bottom:clamp(3.25rem,6vw,5.75rem)}
+.plaster-kicker{display:inline-flex;align-items:center;gap:9px;letter-spacing:.13em;font-size:.76rem;font-weight:600;color:#b8ead7;text-transform:uppercase;margin-bottom:18px}
+.plaster-hero h1{font-size:clamp(2.6rem,5.1vw,4.65rem);max-width:810px;font-weight:700;line-height:1.09;margin:0 0 22px;letter-spacing:-.035em;color:#fff}
+.plaster-hero-content>p{max-width:670px;font-size:clamp(1rem,1.4vw,1.2rem);line-height:1.68;color:#f0f6f4;margin-bottom:26px}
+.plaster-hero-actions{display:flex;flex-wrap:wrap;gap:13px;align-items:center}
+.website-body .plaster-hero-actions .btn{font-size:.94rem;padding:14px 21px}
+.website-body .plaster-hero-outline{border:1px solid rgba(255,255,255,.7);color:#fff;background:rgba(255,255,255,.12);backdrop-filter:blur(10px)}
+.website-body .plaster-hero-outline:hover{color:#102937;background:#fff}
+.plaster-hero-content>*{animation:plaster-hero-entrance .85s both cubic-bezier(.16,1,.3,1)}
+.plaster-hero-content>*:nth-child(2){animation-delay:.12s}.plaster-hero-content>*:nth-child(3){animation-delay:.22s}.plaster-hero-content>*:nth-child(4){animation-delay:.3s}
+@keyframes plaster-hero-entrance{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:translateY(0)}}
+.plaster-intro{background:#fff}
+.plaster-intro h2{font-size:clamp(2rem,3vw,2.9rem);line-height:1.18;font-weight:600;margin:0 0 18px}
+.plaster-intro-lead{font-size:1.08rem;line-height:1.8;color:var(--hp-muted);max-width:730px;margin-bottom:28px}
+.plaster-benefit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.plaster-intro-card{background:#f1f8f4;border:1px solid #dfebe5;border-radius:12px;display:flex;gap:13px;padding:19px 17px;transition:box-shadow .35s ease,transform .35s ease}
+.plaster-intro-card:hover{box-shadow:0 14px 25px rgba(5,47,49,.09);transform:translateY(-4px)}
+.plaster-intro-icon{width:35px;height:35px;border-radius:9px;flex:none;display:grid;place-items:center;background:#d9f1e7;color:#007b65;font-size:1.14rem}
+.plaster-intro-card h3{font-size:1rem;line-height:1.38;font-weight:600;margin:2px 0 7px}
+.plaster-intro-card p{font-size:.85rem;line-height:1.57;color:#637780;margin:0}
+.plaster-intro-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+.plaster-contact-panel{background:#eff6f2;border:1px solid #d7e4dd;padding:clamp(23px,3vw,37px);border-radius:16px;box-shadow:0 18px 45px rgba(7,39,41,.07)}
+.plaster-contact-eyebrow{color:#137b69;font-size:.76rem;letter-spacing:.08em;font-weight:600;display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.plaster-contact-panel h2{font-size:clamp(1.45rem,2vw,1.9rem);line-height:1.25;font-weight:600;margin-bottom:12px}
+.plaster-contact-panel>p{font-size:.92rem;color:#697d81;line-height:1.6}
+.plaster-contact-options{display:grid;gap:10px;padding-top:12px}
+.plaster-contact-link{min-width:0;display:flex;align-items:center;gap:13px;padding:13px 14px;border-radius:10px;color:#fff;background:linear-gradient(95deg,#ec7742,#fb945c);transition:transform .3s ease,box-shadow .3s ease}
+.plaster-contact-link.is-primary{background:linear-gradient(95deg,#007c61,#0aa47c)}
+.plaster-contact-link.is-quote{background:#0a303c}
+.plaster-contact-link:hover{color:#fff;transform:translateX(4px);box-shadow:0 8px 20px rgba(0,55,49,.16)}
+.plaster-contact-link>i:first-child{font-size:1.24rem}.plaster-contact-link>i:last-child{margin-left:auto}
+.plaster-contact-link span{display:flex;flex-direction:column;min-width:0;gap:2px}
+.plaster-contact-link strong{font-size:.88rem;font-weight:600;line-height:1.4}
+.plaster-contact-link small{font-size:.75rem;color:rgba(255,255,255,.92)}
+.plaster-contact-panel .plaster-contact-note{border-top:1px solid #d7e3dd;padding-top:17px;margin-top:20px;font-size:.79rem;display:flex;align-items:flex-start;gap:8px}
+.plaster-pricing{background:#eef6f2}
+.plaster-pricing-card{background:#fff;border:1px solid #d8e6df;border-radius:14px;padding:29px;display:flex;flex-direction:column;box-shadow:0 6px 20px rgba(3,44,43,.035);transition:transform .35s ease,box-shadow .35s ease}
+.plaster-pricing-card:hover{transform:translateY(-5px);box-shadow:0 20px 35px rgba(5,44,45,.11)}
+.plaster-pricing-overline{font-size:.71rem;letter-spacing:.12em;color:#168777;font-weight:700;margin-bottom:12px}
+.plaster-pricing-card h3{font-size:1.45rem;font-weight:600;margin-bottom:10px}
+.plaster-pricing-card>p{font-size:.9rem;color:var(--hp-muted)}
+.plaster-price-list{flex:1;margin:10px 0 24px}
+.plaster-price-list li{display:flex;justify-content:space-between;gap:20px;padding:12px 0;border-bottom:1px solid #e4eee8;font-size:.88rem}
+.plaster-price-list strong{text-align:right;color:#006e5b;white-space:nowrap}
+.plaster-pricing-notice{max-width:850px;margin:auto;padding:30px 33px;border-radius:14px;display:flex;align-items:center;justify-content:space-between;gap:24px;background:#fff;border:1px solid #d8e6df}
+.plaster-pricing-notice h3{font-size:1.35rem;font-weight:600;margin-top:10px}.plaster-pricing-notice p{color:var(--hp-muted);margin-bottom:0;font-size:.94rem;line-height:1.65}
+.plaster-pricing-notice>div>i{font-size:1.7rem;color:var(--hp-green)}
+.plaster-pricing-foot{margin:24px auto 0;text-align:center;font-size:.84rem;color:#697d7c}
+.plastering-page .hp-reviews{background:#fff}.plastering-page .hp-videos{background:#eff7f3}.plastering-page .hp-gallery{background:#eff7f3}
+.plastering-page .hp-chat-section{background:#fff}.plastering-page .hp-regional-desks{background:#eff7f3}
+.plastering-page .hp-faq-section{background:#f7fbf8}
+.plastering-page .hp-slide-review .hp-review-card{min-height:390px}
+.plastering-page .hp-slide-gallery .hp-gallery-image{height:430px;min-height:430px}
+.plastering-page .hp-slide-chat .hp-chat-card img{height:500px}
+@media(max-width:991.98px){.plaster-intro .col-lg-5{margin-top:10px}.plaster-hero{min-height:500px}.plaster-benefit-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:767.98px){
+ .plastering-page .hp-section{padding-block:54px}
+ .plaster-hero{display:block;min-height:0;background:#082d36}
+ .plaster-hero-media{position:relative;height:auto;z-index:auto}
+ .plaster-hero-media picture,.plaster-hero-media picture img{height:auto;max-height:none}
+ .plaster-hero-media img{object-fit:contain;width:100%;height:auto}
+ .plaster-hero-placeholder{min-height:230px}
+ .plaster-hero-gradient{display:none}
+ .plaster-hero-content{padding-top:30px;padding-bottom:38px}
+ .plaster-hero h1{font-size:clamp(2.05rem,8vw,3rem)}
+ .plaster-hero-content>p{font-size:.96rem}
+ .plaster-hero-actions .btn{width:100%;justify-content:center}
+ .plaster-benefit-grid{grid-template-columns:1fr}
+ .plaster-contact-panel{padding:22px}
+ .plaster-intro h2{font-size:2rem}
+ .plastering-page .hp-section-heading h2{font-size:clamp(1.65rem,6vw,2.2rem)}
+ .plaster-pricing-notice{flex-direction:column;align-items:flex-start;padding:23px}
+ .plaster-pricing-notice .btn{width:100%}
+ .plastering-page .hp-slide-gallery .hp-gallery-image{height:350px;min-height:350px}
+ .plastering-page .hp-slide-chat .hp-chat-card img{height:440px}
+}
+@media(prefers-reduced-motion:reduce){.plaster-hero-content>*{animation:none!important}.plaster-intro-card,.plaster-contact-link,.plaster-pricing-card{transition:none!important}}

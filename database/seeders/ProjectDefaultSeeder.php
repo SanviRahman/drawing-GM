@@ -95,6 +95,9 @@ class ProjectDefaultSeeder extends Seeder
             $this->seedHeaderFooterPresentation();
             $this->activateCompleteSeedRecords();
 
+            // Editable Plastering landing sections; reruns preserve Admin changes.
+            $this->call(PlasteringPageSeeder::class);
+
             // Runtime/binary-backed tables are intentionally not populated with fake data:
             // media, section_media, gallery_items, failed_jobs/jobs/sessions/cache.
             // Their owning records are seeded above so the Admin UI is immediately usable.

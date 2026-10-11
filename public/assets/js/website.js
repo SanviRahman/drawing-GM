@@ -425,6 +425,7 @@
     '.hp-faq-section .hp-section-heading', '.hp-faq-section .accordion-item',
     '.hp-quote-section .hp-quote-copy', '.hp-quote-section .hp-quote-form-wrap',
     '.hp-regional-heading', '.hp-regional-card', '.hp-custom-card', '.hp-custom-media',
+    '.plaster-intro-card', '.plaster-contact-panel', '.plaster-pricing-card', '.plaster-pricing-notice',
     '.site-footer .footer-brand-panel', '.site-footer .footer-column', '.site-footer .footer-contact-column', '.site-footer .footer-bottom'
   ];
 
