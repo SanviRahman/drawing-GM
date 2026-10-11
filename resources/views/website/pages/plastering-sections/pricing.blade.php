@@ -13,11 +13,15 @@
                             <span class="plaster-pricing-overline">PUBLISHED PACKAGE</span>
                             <h3>{{ $package->name }}</h3>
                             @if($package->subtitle)<p>{{ $package->subtitle }}</p>@endif
-                            <ul class="plaster-price-list list-unstyled">
-                                @foreach($package->items as $item)
-                                    <li><span>{{ $item->label }}</span><strong>{{ $item->display_price }}</strong></li>
-                                @endforeach
-                            </ul>
+                            @if($package->items->isNotEmpty())
+                                <ul class="plaster-price-list list-unstyled">
+                                    @foreach($package->items as $item)
+                                        <li><span>{{ $item->label }}</span><strong>{{ $item->display_price }}</strong></li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <p class="plaster-price-list">Pricing details are available on request.</p>
+                            @endif
                             <a class="btn btn-brand w-100" href="#quote-form">Request a Detailed Quote <i class="bi bi-arrow-right"></i></a>
                         </article>
                     </div>

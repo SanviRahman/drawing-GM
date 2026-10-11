@@ -8,6 +8,7 @@ use App\Models\Gallery;
 use App\Models\Video;
 use App\Models\Post;
 use App\Models\Service;
+use App\Models\PricingPackage;
 use App\Services\Website\HomeData;
 use Illuminate\Contracts\View\View;
 
@@ -67,7 +68,7 @@ class ContentController extends Controller
                 }
             })
             ->with(['items' => fn ($query) => $query->where('is_active', true)->with('media')->orderBy('sort_order')])
-            ->orderBy('id')->limit(24)->get();
+            ->orderBy('id')->limit(20)->get();
 
         // Shared/unattached project videos may be shown, along with those linked
         // specifically to the plastering Page/Service. Exclude unrelated services.
@@ -78,7 +79,7 @@ class ContentController extends Controller
                 if ($serviceId) {
                     $query->orWhere(fn ($q) => $q->where('attachable_type', $serviceMorph)->where('attachable_id', $serviceId));
                 }
-            })->ordered()->limit(24)->get()
+            })->ordered()->limit(20)->get()
             ->filter(fn (Video $video) => $video->has_playable_source
                 && ($video->resolved_source_type === 'upload'
                     || in_array(strtolower((string) parse_url((string) $video->playback_url, PHP_URL_HOST)),
@@ -91,13 +92,33 @@ class ContentController extends Controller
         $viewData['faqs'] = ! $page->faq_section_enabled ? collect()
             : ($pageFaqs->isNotEmpty() ? $pageFaqs : collect($viewData['faqs'] ?? []));
 
-        // Do not leak reference-site pricing; HomeData already excludes Draft/Reference
-        // packages. Only packages linked to plastering or deliberately global qualify.
-        $viewData['plasterPackages'] = collect($viewData['packages'] ?? [])
-            ->filter(fn ($package) => $serviceId
-                ? ($package->service_id === null || (int) $package->service_id === (int) $serviceId)
-                : $package->service_id === null)
-            ->values();
+        // Query the Admin Pricing Packages source directly. HomeData::load() has a
+        // homepage-specific whereHas('items') constraint and a global row limit:
+        // either can silently discard ACTIVE, FEATURED global packages before this
+        // page gets to apply its service filter. A package's publication status is
+        // independent of whether a pricing item has been entered/published yet.
+        //
+        // Only global or Wall Plastering-linked packages belong on this page.
+        // Never show draft/reference competitor entries or unrelated services.
+        $viewData['plasterPackages'] = PricingPackage::query()
+            ->active()
+            ->where('name', 'not like', '[Draft]%')
+            ->where('name', 'not like', 'Reference ·%')
+            ->where(function ($query) use ($serviceId) {
+                $query->whereNull('service_id');
+                if ($serviceId !== null) {
+                    $query->orWhere('service_id', $serviceId);
+                }
+            })
+            ->where(function ($query) {
+                $query->whereNull('location_id')
+                    ->orWhereHas('location', fn ($location) => $location->published());
+            })
+            ->with(['items' => fn ($items) => $items->active()->ordered()])
+            ->orderByDesc('is_featured')
+            ->ordered()
+            ->limit(20)
+            ->get();
 
         $viewData['plasterSections'] = $pageSections;
         $viewData['plasterService'] = $plastering;
