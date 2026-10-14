@@ -1,7 +1,11 @@
 <section class="plaster-hero" aria-labelledby="plasterHeroTitle">
     <div class="plaster-hero-media">
         @if($plasterHeroDesktop || $plasterHeroMobile)
-            <picture>
+            <picture class="mobile-hero-backdrop" aria-hidden="true">
+                @if($plasterHeroMobile)<source srcset="{{ $plasterHeroMobile }}" media="(max-width: 767px)">@endif
+                <img src="{{ $plasterHeroDesktop ?: $plasterHeroMobile }}" alt="" loading="lazy">
+            </picture>
+            <picture class="plaster-hero-main">
                 @if($plasterHeroMobile)<source media="(max-width: 767px)" srcset="{{ $plasterHeroMobile }}">@endif
                 <img src="{{ $plasterHeroDesktop ?: $plasterHeroMobile }}" alt="Wall plastering project" fetchpriority="high">
             </picture>

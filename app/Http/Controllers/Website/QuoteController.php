@@ -29,7 +29,7 @@ class QuoteController extends Controller
         if (! empty($data['service_id']) && ! Service::query()->published()->whereKey($data['service_id'])->exists()) {
             throw \Illuminate\Validation\ValidationException::withMessages(['service_id' => 'This service is not published.']);
         }
-        $phone = $workflow->normalizePhone($data['phone']);
+        $phone = $workflow->normalizePublicEnquiryPhone($data['phone']);
         $answers = (array) ($data['dynamic_answers'] ?? []);
         $allowed = LeadFormField::query()->active()->pluck('field_key')->all();
         if (array_diff(array_keys($answers), $allowed)) {

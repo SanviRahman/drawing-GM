@@ -30,3 +30,15 @@
 @media(max-width:991.98px){.hack-hero{min-height:500px}.hack-contact-card{margin-top:10px}}
 @media(max-width:767.98px){.hacking-page .hp-section{padding-block:54px}.hacking-page .hp-section-heading h2{font-size:clamp(1.7rem,7vw,2.25rem)}.hack-hero{min-height:0;display:block;background:#082d39}.hack-hero-picture{position:relative;z-index:0;height:auto}.hack-hero-picture picture,.hack-hero-picture img{width:100%;height:auto}.hack-hero-picture img{object-fit:contain}.hack-hero-placeholder{min-height:240px}.hack-hero-overlay{display:none}.hack-hero-inner{padding-block:32px 42px}.hack-hero h1{font-size:clamp(2.05rem,8vw,3.1rem)}.hack-hero-actions{flex-direction:column}.hack-hero-actions .btn{width:100%;justify-content:center}.hack-benefits{grid-template-columns:1fr}.hack-contact-card{padding:22px}.hack-related-photo{height:235px}.hack-quote-prompt{flex-direction:column;align-items:stretch}.hack-quote-prompt .btn{width:100%}.hacking-page .hp-slide-chat .hp-chat-card img{height:430px}}
 @media(prefers-reduced-motion:reduce){.hack-hero-copy>*{animation:none!important}.hack-benefit,.hack-work-card,.hack-related-card,.hack-contact-action{transition:none!important}}
+
+/* 2026-10-14: Complete mobile hero image, with a blurred fill behind the
+   uncropped foreground. Desktop remains unchanged. */
+.hack-hero-picture > .mobile-hero-backdrop{display:none}
+@media (max-width:767.98px) {
+  .hack-hero-picture{height:clamp(360px,104vw,540px);min-height:360px;position:relative;overflow:hidden;background:#123842}
+  .hack-hero-picture > .mobile-hero-backdrop{display:block!important;position:absolute;inset:-16px;z-index:0;width:auto!important;height:auto!important;overflow:hidden;filter:blur(17px) brightness(.7) saturate(.8);transform:scale(1.045);pointer-events:none}
+  .hack-hero-picture > .mobile-hero-backdrop img{display:block;width:100%;height:100%!important;object-fit:cover!important}
+  .hack-hero-picture > .hack-hero-main{display:grid!important;place-items:center;position:relative;z-index:1;width:100%;height:100%!important;min-height:0}
+  .hack-hero-picture > .hack-hero-main img{width:100%;height:100%!important;max-height:none!important;object-fit:contain!important;object-position:center!important;display:block}
+}
+@media (max-width:359.98px) { .hack-hero-picture{height:350px;min-height:350px} }

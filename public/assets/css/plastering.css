@@ -89,3 +89,15 @@
  .plastering-page .hp-slide-chat .hp-chat-card img{height:440px}
 }
 @media(prefers-reduced-motion:reduce){.plaster-hero-content>*{animation:none!important}.plaster-intro-card,.plaster-contact-link,.plaster-pricing-card{transition:none!important}}
+
+/* 2026-10-14: Complete mobile hero image, with a blurred fill behind the
+   uncropped foreground. Desktop remains unchanged. */
+.plaster-hero-media > .mobile-hero-backdrop{display:none}
+@media (max-width:767.98px) {
+  .plaster-hero-media{height:clamp(360px,104vw,540px);min-height:360px;position:relative;overflow:hidden;background:#123842}
+  .plaster-hero-media > .mobile-hero-backdrop{display:block!important;position:absolute;inset:-16px;z-index:0;width:auto!important;height:auto!important;overflow:hidden;filter:blur(17px) brightness(.7) saturate(.8);transform:scale(1.045);pointer-events:none}
+  .plaster-hero-media > .mobile-hero-backdrop img{display:block;width:100%;height:100%!important;object-fit:cover!important}
+  .plaster-hero-media > .plaster-hero-main{display:grid!important;place-items:center;position:relative;z-index:1;width:100%;height:100%!important;min-height:0}
+  .plaster-hero-media > .plaster-hero-main img{width:100%;height:100%!important;max-height:none!important;object-fit:contain!important;object-position:center!important;display:block}
+}
+@media (max-width:359.98px) { .plaster-hero-media{height:350px;min-height:350px} }

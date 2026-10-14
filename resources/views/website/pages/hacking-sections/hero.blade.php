@@ -1,7 +1,11 @@
 <section class="hack-hero" aria-labelledby="hackingHeroHeading">
     <div class="hack-hero-picture">
         @if($hackHeroDesktop || $hackHeroMobile)
-            <picture>
+            <picture class="mobile-hero-backdrop" aria-hidden="true">
+                @if($hackHeroMobile)<source srcset="{{ $hackHeroMobile }}" media="(max-width: 767px)">@endif
+                <img src="{{ $hackHeroDesktop ?: $hackHeroMobile }}" alt="" loading="lazy">
+            </picture>
+            <picture class="hack-hero-main">
                 @if($hackHeroMobile)<source srcset="{{ $hackHeroMobile }}" media="(max-width: 767px)">@endif
                 <img src="{{ $hackHeroDesktop ?: $hackHeroMobile }}" alt="Wall and tile hacking project" fetchpriority="high">
             </picture>

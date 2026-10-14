@@ -21,6 +21,10 @@
         <div class="carousel-inner">
             @forelse($heroPhotos->take($carouselOn ? 10 : 1) as $photo)
                 <div class="carousel-item @if($loop->first) active @endif">
+                    <picture class="hp-hero-backdrop" aria-hidden="true">
+                        @if($mobilePhoto && $loop->first)<source media="(max-width: 767px)" srcset="{{ $mobilePhoto }}">@endif
+                        <img src="{{ $photo->getUrl() }}" alt="" loading="lazy">
+                    </picture>
                     <picture>
                         @if($mobilePhoto && $loop->first)<source media="(max-width: 767px)" srcset="{{ $mobilePhoto }}">@endif
                         <img src="{{ $photo->getUrl() }}" alt="{{ $photo->name ?: 'Painting project' }}" style="object-position:{{ $heroFocus }}" @if(!$loop->first) loading="lazy" @else fetchpriority="high" @endif>
@@ -28,7 +32,7 @@
                 </div>
             @empty
                 @if($fallbackPhoto)
-                    <div class="carousel-item active"><img src="{{ $fallbackPhoto }}" alt="Painting project" fetchpriority="high"></div>
+                    <div class="carousel-item active"><img class="hp-hero-backdrop" src="{{ $fallbackPhoto }}" alt="" aria-hidden="true" loading="lazy"><img src="{{ $fallbackPhoto }}" alt="Painting project" fetchpriority="high"></div>
                 @else
                     <div class="carousel-item active hp-hero-empty"><div class="hp-hero-missing"><i class="bi bi-images"></i><span>Upload a Home hero image in CMS Pages</span></div></div>
                 @endif

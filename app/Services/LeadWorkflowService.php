@@ -34,6 +34,32 @@ class LeadWorkflowService
     }
 
     /**
+     * Public enquiry numbers can be international (+country code / 00 prefix)
+     * or local. Do not guess a country code for local numbers.
+     * Keep normalizePhone() strict for existing Admin and E.164 workflows.
+     */
+    public function normalizePublicEnquiryPhone(string $value): string
+    {
+        $phone = preg_replace('/[\s().-]+/u', '', trim($value));
+        $phone = $phone ?? '';
+
+        if (str_starts_with($phone, '00')) {
+            $phone = '+' . substr($phone, 2);
+        }
+
+        // 6–15 digits accommodates most local/international formats, but
+        // rejects arbitrary text, misplaced + signs and non-phone strings.
+        if (! preg_match('/^(?:\+[1-9][0-9]{5,14}|[0-9]{6,15})$/D', $phone)
+            || ! preg_match('/[1-9]/', $phone)) {
+            throw ValidationException::withMessages([
+                'phone' => 'Enter a valid phone number from any country (e.g. +6591234567 or 01712345678).',
+            ]);
+        }
+
+        return $phone;
+    }
+
+    /**
      * @param array<string, mixed> $answers keyed by LeadFormField.field_key
      */
     public function snapshotDynamicAnswers(Lead $lead, array $answers): void

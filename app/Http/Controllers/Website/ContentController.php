@@ -33,6 +33,9 @@ class ContentController extends Controller
         if ($slug === 'hacking') {
             return $this->hackingPage($page, $viewData);
         }
+        if ($slug === 'false-ceiling') {
+            return $this->falseCeilingPage($page, $viewData);
+        }
 
         $viewData['articles'] = $slug === 'blog'
             ? Post::query()->published()->ordered()->limit(24)->get()
@@ -203,6 +206,102 @@ class ContentController extends Controller
         $viewData['home'] = $page;
 
         return view('website.pages.hacking', $viewData);
+    }
+
+    /**
+     * False Ceiling has its own CMS media and pricing, while the existing
+     * Home carousels, contacts, navbar, footer and booking form are reused.
+     * Read only published content; never display reference/draft price rows.
+     */
+    private function falseCeilingPage(Page $page, array $viewData): View
+    {
+        $sections = $page->sections()->currentlyVisible()
+            ->whereHas('sectionDefinition', fn ($query) => $query->active())
+            ->with(['sectionDefinition', 'mediaItems.media'])->ordered()->get();
+
+        $service = Service::query()->published()->where('slug', 'false-ceiling')->first();
+        $serviceId = $service?->id;
+        $pageMorph = $page->getMorphClass();
+        $serviceMorph = (new Service())->getMorphClass();
+
+        // A Global package can belong here ONLY when its name explicitly
+        // references this trade; exclude unrelated painting packages.
+        $viewData['ceilingPackages'] = PricingPackage::query()->active()
+            ->where('name', 'not like', '[Draft]%')
+            ->where('name', 'not like', 'Reference ·%')
+            ->where(function ($query) use ($serviceId) {
+                if ($serviceId !== null) {
+                    $query->where('service_id', $serviceId);
+                }
+                $query->orWhere(function ($global) {
+                    $global->whereNull('service_id')
+                        ->where(function ($names) {
+                            $names->where('name', 'like', '%false ceiling%')
+                                ->orWhere('name', 'like', '%partition wall%');
+                        });
+                });
+            })
+            ->where(function ($query) {
+                $query->whereNull('location_id')
+                    ->orWhereHas('location', fn ($location) => $location->published());
+            })
+            ->with(['items' => fn ($query) => $query->active()->ordered()])
+            ->orderByDesc('is_featured')->ordered()->limit(16)->get();
+
+        $viewData['galleries'] = Gallery::query()->where('is_active', true)
+            ->where(function ($query) use ($page, $pageMorph, $serviceId, $serviceMorph) {
+                $query->where(function ($free) {
+                    $free->whereNull('attachable_type')
+                        ->where(function ($q) {
+                            $q->where('name', 'like', '%ceiling%')
+                                ->orWhere('name', 'like', '%partition%');
+                        });
+                })->orWhere(fn ($q) => $q->where('attachable_type', $pageMorph)->where('attachable_id', $page->id));
+                if ($serviceId !== null) {
+                    $query->orWhere(fn ($q) => $q->where('attachable_type', $serviceMorph)->where('attachable_id', $serviceId));
+                }
+            })
+            ->with(['items' => fn ($q) => $q->where('is_active', true)->with('media')->orderBy('sort_order')])
+            ->orderBy('id')->limit(20)->get();
+
+        $ceilingVideos = Video::query()->active()
+            ->where(function ($query) use ($page, $pageMorph, $serviceId, $serviceMorph) {
+                $query->where(function ($free) {
+                    $free->whereNull('attachable_type')
+                        ->where(function ($q) {
+                            $q->where('title', 'like', '%ceiling%')->orWhere('title', 'like', '%partition%');
+                        });
+                })->orWhere(fn ($q) => $q->where('attachable_type', $pageMorph)->where('attachable_id', $page->id));
+                if ($serviceId !== null) {
+                    $query->orWhere(fn ($q) => $q->where('attachable_type', $serviceMorph)->where('attachable_id', $serviceId));
+                }
+            })->ordered()->limit(20)->get()
+            ->filter(fn (Video $video) => $video->has_playable_source
+                && ($video->resolved_source_type === 'upload'
+                    || in_array(strtolower((string) parse_url((string) $video->playback_url, PHP_URL_HOST)),
+                        ['www.youtube.com', 'www.youtube-nocookie.com', 'youtube-nocookie.com', 'player.vimeo.com'], true)))
+            ->values();
+
+        // HomeData::load() already provides the SAME published and playable videos
+        // that appear on Home. Do not erase those shared videos with an empty
+        // ceiling-specific query (which requires 'ceiling'/'partition' in title).
+        // Prefer videos assigned to this page/service when any exist; otherwise
+        // retain HomeData's preloaded video list for the shared video carousel.
+        if ($ceilingVideos->isNotEmpty()) {
+            $viewData['videos'] = $ceilingVideos;
+        }
+
+        $pageFaqs = $page->faq_section_enabled ? $page->faqs()->active()->get() : collect();
+        $serviceFaqs = $service && $page->faq_section_enabled ? $service->faqs()->active()->get() : collect();
+        $viewData['faqs'] = $pageFaqs->isNotEmpty() ? $pageFaqs : $serviceFaqs;
+        $viewData['ceilingSections'] = $sections;
+        $viewData['ceilingService'] = $service;
+        if ($service && ! collect($viewData['services'] ?? [])->contains('id', $service->id)) {
+            $viewData['services'] = collect($viewData['services'] ?? [])->push($service);
+        }
+        $viewData['home'] = $page;
+
+        return view('website.pages.false-ceiling', $viewData);
     }
 
     public function service(string $slug, HomeData $data): View
