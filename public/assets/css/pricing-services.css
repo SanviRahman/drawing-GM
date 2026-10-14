@@ -1,0 +1,45 @@
+/* Pricing & Services directory. Uses shared Rubik/Bootstrap/Home UI tokens. */
+.ps-page{overflow:clip}
+.ps-page .hp-calculator-section{background:var(--hp-mint);padding-top:2.5rem}
+.ps-pricing-top{padding:clamp(3.25rem,6vw,5.1rem) 0 1.8rem;background:var(--hp-mint);text-align:center}
+.ps-pricing-top h1,.ps-directory-hero h1{font-size:clamp(2.2rem,4.2vw,3.75rem);font-weight:700;letter-spacing:-.04em;line-height:1.15;margin:0 0 .95rem;color:var(--hp-navy)}
+.ps-pricing-top p,.ps-directory-hero p{max-width:760px;margin:0 auto;color:var(--hp-muted);font-size:clamp(1rem,1.4vw,1.13rem);line-height:1.75}
+.ps-pricing-top .hp-eyebrow{margin-bottom:1rem}
+.ps-page .hp-calculator-panel{margin-inline:auto}
+.ps-packages{background:#fff}
+.ps-package-card{border:1px solid var(--hp-line);border-radius:18px;padding:clamp(1.3rem,2.2vw,1.85rem);background:#fff;box-shadow:0 9px 25px rgba(7,41,47,.04);display:flex;flex-direction:column;gap:10px;transition:transform .4s cubic-bezier(.2,.7,.2,1),box-shadow .4s ease}
+.ps-package-card:hover{transform:translateY(-6px);box-shadow:0 19px 42px rgba(7,41,47,.1)}
+.ps-package-category,.ps-service-kicker{font-size:.74rem;font-weight:600;color:var(--hp-green);letter-spacing:.075em;text-transform:uppercase}
+.ps-package-badge{border-radius:50px;padding:5px 10px;background:#def6ed;color:#086851;font-size:.7rem;font-weight:600}
+.ps-package-card h3{font-size:1.32rem;font-weight:600;line-height:1.35;margin:5px 0 0}
+.ps-package-card p{font-size:.94rem;color:var(--hp-muted);min-height:1.5em;margin:0 0 8px}
+.ps-package-items{margin:0 0 14px}
+.ps-package-items li{display:flex;justify-content:space-between;gap:16px;align-items:baseline;border-top:1px solid var(--hp-line);padding:12px 0;font-size:.88rem}
+.ps-package-items li span{flex:1}
+.ps-package-items li strong{font-size:.87rem;font-weight:600;color:var(--hp-green-d);text-align:right;max-width:55%}
+.ps-directory-hero{background:linear-gradient(120deg,#f0f7f3 0%,#fcfdfb 100%);padding:clamp(4.5rem,8vw,7.1rem) 0}
+.ps-directory-hero .container{max-width:1100px}
+.ps-directory-hero p{margin:0 0 24px;max-width:720px}
+.ps-directory{background:#fff}
+.ps-service-card{display:flex;flex-direction:column;background:#fff;border:1px solid var(--hp-line);border-radius:16px;overflow:hidden;box-shadow:var(--hp-shadow);transition:transform .4s cubic-bezier(.2,.7,.2,1),box-shadow .4s ease}
+.ps-service-card:hover{transform:translateY(-6px);box-shadow:0 20px 36px rgba(6,42,45,.12)}
+.ps-service-photo{display:block;position:relative;aspect-ratio:1.62;overflow:hidden;background:linear-gradient(130deg,#eaf2ef,#c8e2d8)}
+.ps-service-photo img{width:100%;height:100%;object-fit:cover;transition:transform .65s ease}
+.ps-service-card:hover .ps-service-photo img{transform:scale(1.055)}
+.ps-service-no-photo{height:100%;display:grid;place-items:center;color:#609989;font-size:3rem}
+.ps-service-image-arrow{position:absolute;right:18px;bottom:18px;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#fff;color:var(--hp-green-d);box-shadow:0 6px 18px rgba(0,0,0,.07)}
+.ps-service-copy{display:flex;flex-direction:column;flex:1;gap:10px;padding:24px 25px 26px}
+.ps-service-copy h3{font-size:1.4rem;font-weight:600;margin:0}
+.ps-service-copy h3 a{color:var(--hp-navy)}
+.ps-service-copy h3 a:hover{color:var(--hp-green)}
+.ps-service-copy p{color:var(--hp-muted);font-size:.94rem;line-height:1.72;flex:1;margin:0 0 10px}
+.ps-service-actions{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;border-top:1px solid var(--hp-line);padding-top:16px}
+.ps-text-link{color:var(--hp-green-d);font-size:.9rem;font-weight:600}
+.ps-text-link:hover{color:var(--hp-green)}
+.ps-directory-cta{background:var(--hp-mint)}
+.ps-directory-cta h2{font-size:clamp(1.8rem,3vw,2.6rem);font-weight:600;margin-bottom:12px}
+.ps-directory-cta p{color:var(--hp-muted);margin-bottom:22px}
+@media(max-width:767.98px){.ps-pricing-top{padding:3rem 0 1rem}.ps-page .hp-calculator-section{padding-top:2rem}.ps-directory-hero{padding:4rem 0}.ps-package-card h3{font-size:1.2rem}.ps-service-photo{aspect-ratio:1.5}.ps-service-copy{padding:21px}.ps-package-items li{font-size:.84rem}}
+@media(prefers-reduced-motion:reduce){.ps-package-card,.ps-service-card,.ps-service-photo img{transition:none}.ps-package-card:hover,.ps-service-card:hover{transform:none}}
+
+.ps-pricing-page .ps-calculator-h1{font-size:clamp(2rem,2.9vw,2.85rem);line-height:1.2;font-weight:600;margin:0 0 12px;letter-spacing:-.035em;color:var(--hp-navy)}

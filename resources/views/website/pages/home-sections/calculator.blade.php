@@ -3,7 +3,11 @@
         <div class="hp-calculator-panel">
             <div class="hp-section-heading text-center">
                 <span class="hp-eyebrow hp-calc-eyebrow">Transparent Pricing Calculator</span>
-                <h2 id="hpCalcHeading">{{ $calculatorSection?->heading ?: 'Instant Singapore Painting Cost Calculator' }}</h2>
+                @if(!empty($calculatorAsPageHeading))
+                    <h1 id="hpCalcHeading" class="ps-calculator-h1">{{ $calculatorSection?->heading ?: 'Explore painting price options' }}</h1>
+                @else
+                    <h2 id="hpCalcHeading">{{ $calculatorSection?->heading ?: 'Instant Singapore Painting Cost Calculator' }}</h2>
+                @endif
                 <p>{{ $calculatorSection?->subheading ?: 'Choose an active package, paint grade and optional services. Only admin-approved prices are displayed.' }}</p>
             </div>
             @if($packages->isNotEmpty())

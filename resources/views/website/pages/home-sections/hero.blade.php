@@ -20,14 +20,14 @@
     <div id="hpHeroCarousel" class="carousel slide hp-hero-carousel" data-bs-ride="{{ $carouselOn ? 'carousel' : 'false' }}">
         <div class="carousel-inner">
             @forelse($heroPhotos->take($carouselOn ? 10 : 1) as $photo)
-                <div class="carousel-item @if($loop->first) active @endif">
+                <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
                     <picture class="hp-hero-backdrop" aria-hidden="true">
                         @if($mobilePhoto && $loop->first)<source media="(max-width: 767px)" srcset="{{ $mobilePhoto }}">@endif
                         <img src="{{ $photo->getUrl() }}" alt="" loading="lazy">
                     </picture>
                     <picture>
                         @if($mobilePhoto && $loop->first)<source media="(max-width: 767px)" srcset="{{ $mobilePhoto }}">@endif
-                        <img src="{{ $photo->getUrl() }}" alt="{{ $photo->name ?: 'Painting project' }}" style="object-position:{{ $heroFocus }}" @if(!$loop->first) loading="lazy" @else fetchpriority="high" @endif>
+                        <img src="{{ $photo->getUrl() }}" alt="{{ $photo->name ?: 'Painting project' }}" style="object-position:{{ $heroFocus }}" loading="{{ $loop->first ? 'eager' : 'lazy' }}" fetchpriority="{{ $loop->first ? 'high' : 'auto' }}">
                     </picture>
                 </div>
             @empty
@@ -49,7 +49,7 @@
         @if($carouselOn)
             <div class="carousel-indicators hp-hero-indicators">
                 @foreach($heroPhotos as $photo)
-                    <button type="button" data-bs-target="#hpHeroCarousel" data-bs-slide-to="{{ $loop->index }}" aria-label="Slide {{ $loop->iteration }}" @if($loop->first) class="active" aria-current="true" @endif></button>
+                    <button type="button" data-bs-target="#hpHeroCarousel" data-bs-slide-to="{{ $loop->index }}" aria-label="Slide {{ $loop->iteration }}" class="{{ $loop->first ? 'active' : '' }}" aria-current="{{ $loop->first ? 'true' : 'false' }}"></button>
                 @endforeach
             </div>
         @endif

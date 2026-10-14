@@ -8,6 +8,7 @@ use App\Models\Gallery;
 use App\Models\Video;
 use App\Models\Post;
 use App\Models\Service;
+use App\Models\SiteSetting;
 use App\Models\PricingPackage;
 use App\Services\Website\HomeData;
 use Illuminate\Contracts\View\View;
@@ -38,8 +39,12 @@ class ContentController extends Controller
         }
 
         $viewData['articles'] = $slug === 'blog'
-            ? Post::query()->published()->ordered()->limit(24)->get()
+            ? Post::query()->published()->with('media')->ordered()->limit(24)->get()
             : collect();
+
+        if ($slug === 'blog') {
+            $viewData['blogFallbackImage'] = $this->blogFallbackImage($page);
+        }
 
         return view('website.pages.content', $viewData);
     }
@@ -306,7 +311,7 @@ class ContentController extends Controller
 
     public function service(string $slug, HomeData $data): View
     {
-        $service = Service::query()->published()->where('slug', $slug)->firstOrFail();
+        $service = Service::query()->published()->with('media')->where('slug', $slug)->firstOrFail();
         $viewData = $data->load();
         $viewData['contentPage'] = $service;
         $viewData['faqs'] = $service->faqs()->active()->get();
@@ -317,10 +322,24 @@ class ContentController extends Controller
 
     public function article(string $slug, HomeData $data): View
     {
-        $article = Post::query()->published()->where('slug', $slug)->firstOrFail();
+        $article = Post::query()->published()->with('media')->where('slug', $slug)->firstOrFail();
         $viewData = $data->load();
         $viewData['contentPage'] = $article;
+        $viewData['blogFallbackImage'] = $this->blogFallbackImage();
 
         return view('website.pages.article', $viewData);
+    }
+
+    /** Use real CMS media, never an invented per-article cover. */
+    private function blogFallbackImage(?Page $blogPage = null): ?string
+    {
+        $blogPage ??= Page::query()->published()->where('slug', 'blog')->first();
+        $pageImage = $blogPage?->getFirstMediaUrl('hero_desktop');
+        if ($pageImage) return $pageImage;
+
+        $settings = SiteSetting::query()
+            ->whereHas('media', fn ($query) => $query->where('collection_name', 'default_hero'))
+            ->first();
+        return $settings?->getFirstMediaUrl('default_hero') ?: null;
     }
 }

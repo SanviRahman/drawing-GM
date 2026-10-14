@@ -2006,6 +2006,8 @@ class ProjectDefaultSeeder extends Seeder
         }
 
         $this->seedRealEditorialGuides($adminId);
+        // Expand only unchanged, seeder-authored blog content; preserve Admin edits.
+        $this->call(BlogDescriptionsSeeder::class);
         $this->seedApprovedContactChannels();
     }
 

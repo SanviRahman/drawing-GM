@@ -1183,3 +1183,11 @@ body.website-body img{max-width:100%}
   .home-page .hp-hero-carousel .carousel-inner,
   .home-page .hp-hero-carousel .hp-hero-overlay { height:350px; }
 }
+
+
+/* Dynamic navbar dropdowns: desktop and touch remain native Bootstrap controls. */
+.site-navbar .ps-nav-dropdown>.dropdown-toggle{border:0;background:transparent;cursor:pointer;font-family:inherit}
+.site-navbar .ps-nav-dropdown>.dropdown-toggle:focus-visible{outline:2px solid var(--hp-green);outline-offset:2px}
+.site-navbar .ps-services-menu{max-height:min(68vh,520px);overflow-y:auto;min-width:225px}
+.site-navbar .ps-services-menu .dropdown-item{white-space:normal;line-height:1.5}
+@media(max-width:1199.98px){.site-navbar .ps-nav-dropdown .dropdown-menu{position:static;float:none;box-shadow:none;border:0;padding-left:18px;max-height:300px;overflow-y:auto}.site-navbar .ps-nav-dropdown>.dropdown-toggle{text-align:left;width:100%}}

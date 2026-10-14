@@ -122,6 +122,8 @@ class HomeData
             'menus' => $menus,
             'sections' => $sections,
             'services' => $services,
+            // Navbar and Services directory use every published service, not just six featured cards.
+            'navServices' => Service::query()->published()->ordered()->get(),
             'packages' => $packages,
             // Every active add-on saved in Admin is available to the calculator.
             // Package mappings can still override its price fields; inactive add-ons stay hidden.

@@ -15,7 +15,20 @@
                             <article class="hp-video-card h-100">
                                 <div class="hp-video-poster">
                                     @if($video->resolved_source_type === 'upload')
-                                        <video @if($video->controls || $video->autoplay) controls @endif preload="none" @if($video->poster_url) poster="{{ $video->poster_url }}" @endif @if($video->autoplay) muted data-video-autoplay-upload @elseif($video->muted) muted @endif @if($video->loop) loop @endif playsinline title="{{ $video->title }}"><source src="{{ $video->playback_url }}"></video>
+                                        @php
+                                            // Attributes contain only known HTML boolean attribute names.
+                                            $videoBooleanAttributes = implode(' ', array_filter([
+                                                ($video->controls || $video->autoplay) ? 'controls' : null,
+                                                ($video->autoplay || $video->muted) ? 'muted' : null,
+                                                $video->autoplay ? 'data-video-autoplay-upload' : null,
+                                                $video->loop ? 'loop' : null,
+                                            ]));
+                                        @endphp
+                                        @if($video->poster_url)
+                                            <video {{ $videoBooleanAttributes }} preload="none" poster="{{ $video->poster_url }}" playsinline title="{{ $video->title }}"><source src="{{ $video->playback_url }}"></video>
+                                        @else
+                                            <video {{ $videoBooleanAttributes }} preload="none" playsinline title="{{ $video->title }}"><source src="{{ $video->playback_url }}"></video>
+                                        @endif
                                     @elseif($video->autoplay)
                                         {{-- Autoplay is initialized when this slide becomes visible; muted to satisfy browser policy. --}}
                                         <div class="hp-video-auto-host" data-video-autoplay data-video-url="{{ $video->playback_url }}" data-video-title="{{ $video->title }}">

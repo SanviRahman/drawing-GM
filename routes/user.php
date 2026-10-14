@@ -3,6 +3,7 @@
 use App\Http\Controllers\Website\HomeController;
 use App\Http\Controllers\Website\QuoteController;
 use App\Http\Controllers\Website\ContentController;
+use App\Http\Controllers\Website\PricingServicesController;
 use Illuminate\Support\Facades\Route;
 
 // Public website routes are loaded by routes/web.php within the web middleware.
@@ -13,7 +14,10 @@ Route::post('/enquiries', [QuoteController::class, 'store'])
 
 // Only public CMS destinations have this route; /admin is never captured.
 Route::get('/blog/{slug}', [ContentController::class, 'article'])->name('website.article');
-Route::get('/services/{slug}', [ContentController::class, 'service'])->name('website.service');
+// Dynamic catalog pages have their own lean controller.
+Route::get('/pricing', [PricingServicesController::class, 'pricing'])->name('website.pricing');
+Route::get('/services', [PricingServicesController::class, 'services'])->name('website.services');
+Route::get('/services/{slug}', [PricingServicesController::class, 'serviceDetail'])->name('website.service');
 Route::get('/{slug}', [ContentController::class, 'page'])
     ->where('slug', 'plastering|hacking|false-ceiling|pricing|contact|blog|cost-calculator|about|gallery|service-areas|request-quote')
     ->name('website.page');

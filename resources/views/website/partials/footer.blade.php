@@ -30,7 +30,7 @@
                     <div class="col-xl-2 col-lg-2 col-md-6 col-6 footer-column">
                         <h3 class="footer-title"><i class="bi {{ $icon }}"></i><span>{{ $title }}</span></h3>
                         <ul class="list-unstyled footer-links">
-                            @foreach($items as $item)<li><a href="{{ $item->url }}" target="{{ $item->target }}" @if($item->target === '_blank') rel="noopener noreferrer" @endif><span>{{ $item->label }}</span><i class="bi bi-chevron-right"></i></a></li>@endforeach
+                            @foreach($items as $item)<li><a href="{{ $item->url }}" target="{{ $item->target }}" rel="{{ $item->target === '_blank' ? 'noopener noreferrer' : '' }}"><span>{{ $item->label }}</span><i class="bi bi-chevron-right"></i></a></li>@endforeach
                         </ul>
                     </div>
                 @endif
