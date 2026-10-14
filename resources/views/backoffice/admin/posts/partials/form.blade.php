@@ -200,7 +200,6 @@
 }
 </style>
 
-@section('js')
-@include('backoffice.admin.posts.partials.form_js', ['isEdit' => $isEdit, 'featuredUrl' => $featuredUrl, 'existingContentMedia' => $existingContentMedia])
-@endsection
 
+{{-- AJAX modal: include form handlers in the returned HTML so picker events bind. --}}
+@include('backoffice.admin.posts.partials.form_js', ['isEdit' => $isEdit, 'featuredUrl' => $featuredUrl, 'existingContentMedia' => $existingContentMedia])

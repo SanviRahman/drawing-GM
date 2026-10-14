@@ -199,6 +199,5 @@
     </div>
 </form>
 
-@section('js')
+{{-- AJAX modal: include form handlers in the returned HTML so picker events bind. --}}
 @include('backoffice.admin.services.partials.formjs')
-@endsection
