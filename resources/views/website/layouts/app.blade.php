@@ -36,6 +36,9 @@
     @endphp
     <title>{{ ($contentPage?->title ?? $contentPage?->name ?? $home?->title ?? '') ? (($contentPage?->title ?? $contentPage?->name ?? $home?->title).' | '.$siteName) : $siteName }}</title>
     @if($home?->excerpt)<meta name="description" content="{{ \Illuminate\Support\Str::limit(trim(strip_tags($home->excerpt)), 160) }}">@endif
+    @if(!empty($favicon))
+        <link rel="icon" href="{{ $favicon }}">
+    @endif
 
     {{-- Public-safe tracking bootstrap. Raw admin JavaScript snippets are never executed. --}}
     <script>

@@ -119,6 +119,7 @@ class HomeData
             'home' => $page,
             'settings' => $settings->map(fn ($setting) => $setting->value_type === 'encrypted' ? null : $setting->resolveValue()),
             'logo' => $this->siteLogo(),
+            'favicon' => $this->siteFavicon(),
             'menus' => $menus,
             'sections' => $sections,
             'services' => $services,
@@ -141,6 +142,15 @@ class HomeData
     {
         $setting = SiteSetting::query()->public()->whereHas('media', fn ($q) => $q->where('collection_name', 'site_logo'))->first();
         return $setting?->getFirstMediaUrl('site_logo') ?: null;
+    }
+
+    private function siteFavicon(): ?string
+    {
+        $setting = SiteSetting::query()->public()
+            ->whereHas('media', fn ($q) => $q->where('collection_name', 'site_favicon'))
+            ->first();
+
+        return $setting?->getFirstMediaUrl('site_favicon') ?: null;
     }
 
     private function menuTree(Collection $items): Collection
