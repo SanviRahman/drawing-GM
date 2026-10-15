@@ -34,7 +34,7 @@
         <label class="font-weight-bold">Media Files <span class="text-danger">*</span></label>
         <input type="file" name="files[]" class="form-control-file" multiple required accept="image/jpeg,image/png,image/webp,image/gif,image/x-icon,video/mp4,video/webm,application/pdf">
         <div class="text-danger small mt-1 error-files"></div>
-        <small class="text-muted">Up to 10 files, maximum 10MB each. JPG, PNG, WEBP, GIF, ICO, MP4, WEBM, PDF.</small>
+        <small class="text-muted">Up to 10 files per upload. MP4/WEBM videos: max 100 MB each; images/PDF: max 10 MB each. Total request size must also fit server limits.</small>
     </div>
     <div class="alert alert-info small"><i class="fas fa-info-circle mr-1"></i>Files uploaded here become reusable global media and are owned by the uploading admin's <code>media_library</code> collection.</div>
     <div class="text-right"><button type="button" class="btn btn-light border mr-2" data-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary"><i class="fas fa-cloud-upload-alt mr-1"></i>Upload</button></div>

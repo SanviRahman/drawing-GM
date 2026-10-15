@@ -53,7 +53,7 @@
       const safe = clean(value);
       if (safe !== undefined) mapped[target] = safe;
     });
-    return { ...safeEventData(eventData), ...mapped };
+    return safeEventData({ ...safeEventData(eventData), ...mapped });
   };
 
   const providerEnabled = (provider) => providers.some((item) => item?.provider === provider);
@@ -67,6 +67,12 @@
         view_pricing: 'ViewPricing',
         contact: 'Contact',
         click_whatsapp: 'ClickWhatsApp',
+        click_email: 'ClickEmail',
+        click_cta: 'ClickCTA',
+        quote_form_start: 'QuoteFormStart',
+        quote_form_attempt: 'QuoteFormAttempt',
+        video_play: 'VideoPlay',
+        video_complete: 'VideoComplete',
         click_call: 'ClickCall',
         submit_quote: 'SubmitQuote',
         lead: 'Lead',
@@ -78,8 +84,14 @@
         view_pricing: 'view_pricing',
         contact: 'contact',
         click_whatsapp: 'click_whatsapp',
+        click_email: 'click_email',
+        click_cta: 'click_cta',
+        quote_form_start: 'quote_form_start',
+        quote_form_attempt: 'quote_form_attempt',
+        video_play: 'video_start',
+        video_complete: 'video_complete',
         click_call: 'click_call',
-        submit_quote: 'generate_lead',
+        submit_quote: 'submit_quote',
         lead: 'generate_lead',
         scroll_depth: 'scroll',
       },
@@ -209,44 +221,80 @@
     }
   }
 
-  // Contact / WhatsApp / phone click events. Never send the raw phone number.
+  // Engagement events: use delegated handlers (widgets/sections can be inserted later).
+  // Link destinations, names, phone numbers and typed form values are never sent.
   document.addEventListener('click', (event) => {
     const link = event.target.closest('a[href]');
     if (!link) return;
-    const href = String(link.getAttribute('href') || '');
-    const label = String(link.getAttribute('aria-label') || link.textContent || '').trim().slice(0, 160);
+    const href = String(link.getAttribute('href') || '').trim();
+    const channelId = link.dataset.contactId || undefined;
+    const scope = link.dataset.contactScope || undefined;
+    let isWhatsApp = /^whatsapp:\/\//i.test(href);
+    try {
+      const target = new URL(href, window.location.href);
+      isWhatsApp = isWhatsApp || (target.protocol === 'https:' &&
+        ['wa.me', 'api.whatsapp.com', 'web.whatsapp.com'].includes(target.hostname.toLowerCase()));
+    } catch (_) { /* Invalid URLs are not tracked. */ }
 
-    if (/https?:\/\/(wa\.me|api\.whatsapp\.com)\//i.test(href)) {
-      window.trackEvent('click_whatsapp', {
-        channel_type: 'whatsapp',
-        contact_id: link.dataset.contactId || undefined,
-        contact_label: link.dataset.contactLabel || label || undefined,
-        scope: link.dataset.contactScope || undefined,
-      });
-      window.trackEvent('contact', { channel_type: 'whatsapp', contact_label: link.dataset.contactLabel || label || undefined });
+    if (isWhatsApp) {
+      window.trackEvent('click_whatsapp', { channel_type: 'whatsapp', contact_id: channelId, scope });
+      window.trackEvent('contact', { channel_type: 'whatsapp', scope });
       return;
     }
-
     if (/^tel:/i.test(href)) {
-      window.trackEvent('click_call', {
-        channel_type: 'phone',
-        contact_id: link.dataset.contactId || undefined,
-        contact_label: link.dataset.contactLabel || label || undefined,
-      });
-      window.trackEvent('contact', { channel_type: 'phone', contact_label: link.dataset.contactLabel || label || undefined });
+      window.trackEvent('click_call', { channel_type: 'phone', contact_id: channelId, scope });
+      window.trackEvent('contact', { channel_type: 'phone', scope });
       return;
     }
-
-    if (href.includes('#quote-form')) {
-      window.trackEvent('contact', { channel_type: 'quote_form', contact_label: label || 'Quote form' });
+    if (/^mailto:/i.test(href)) {
+      window.trackEvent('click_email', { channel_type: 'email', scope });
+      window.trackEvent('contact', { channel_type: 'email', scope });
+      return;
+    }
+    if (href.includes('#quote-form') || link.matches('[data-tracking-cta]')) {
+      window.trackEvent('click_cta', { action_type: href.includes('#quote-form') ? 'quote_form' : 'cta', scope });
+      if (href.includes('#quote-form')) window.trackEvent('contact', { channel_type: 'quote_form' });
     }
   }, { passive: true });
+
+  // Form engagement is NOT a successful conversion. Lead / SubmitQuote fire only after
+  // the server has saved an enquiry and rendered its one-time success flash message.
+  document.addEventListener('focusin', (event) => {
+    const form = event.target.closest('form.hp-quote-form');
+    if (!form || form.dataset.trackingStarted === '1') return;
+    form.dataset.trackingStarted = '1';
+    window.trackEvent('quote_form_start', { form_type: 'quote' });
+  });
+  document.addEventListener('submit', (event) => {
+    const form = event.target.closest('form.hp-quote-form');
+    if (!form || form.dataset.trackingAttempted === '1') return;
+    form.dataset.trackingAttempted = '1';
+    window.trackEvent('quote_form_attempt', { form_type: 'quote' });
+  });
+
+  // Track real play/ended events for HTML5 videos; no video URLs or personal data.
+  document.addEventListener('play', (event) => {
+    const video = event.target;
+    if (video.tagName !== 'VIDEO') return;
+    if (video.dataset.trackingPlayed === '1') return;
+    video.dataset.trackingPlayed = '1';
+    window.trackEvent('video_play', { media_type: 'video' });
+  }, true);
+  document.addEventListener('ended', (event) => {
+    if (event.target.tagName !== 'VIDEO') return;
+    window.trackEvent('video_complete', { media_type: 'video' });
+  }, true);
+  // An autoplay video may already be playing before deferred tracking.js executes.
+  document.querySelectorAll('video').forEach((video) => {
+    if (video.paused || video.ended || video.dataset.trackingPlayed === '1') return;
+    video.dataset.trackingPlayed = '1';
+    window.trackEvent('video_play', { media_type: 'video' });
+  });
 
   // Successful quote redirect: emit SubmitQuote + Lead only after persistence succeeded.
   const leadSuccess = document.querySelector('[data-tracking-lead-success]');
   if (leadSuccess) {
     const payload = {
-      lead_reference: leadSuccess.dataset.leadReference || undefined,
       service_id: leadSuccess.dataset.serviceId || undefined,
       source: 'website_quote_form',
     };

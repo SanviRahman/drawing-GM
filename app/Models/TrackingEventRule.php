@@ -21,6 +21,12 @@ class TrackingEventRule extends Model
         'click_call' => 'Click Call',
         'submit_quote' => 'Submit Quote',
         'lead' => 'Lead',
+        'click_email' => 'Click Email',
+        'click_cta' => 'Click CTA',
+        'quote_form_start' => 'Quote Form Start',
+        'quote_form_attempt' => 'Quote Form Submit Attempt',
+        'video_play' => 'Video Play',
+        'video_complete' => 'Video Complete',
         'scroll_depth' => 'Scroll Depth',
     ];
 

@@ -78,10 +78,20 @@ class MediaController extends Controller
             'files.*' => [
                 'required',
                 'file',
-                'max:10240',
+                'max:102400',
                 'mimes:jpg,jpeg,png,webp,gif,ico,mp4,webm,pdf',
             ],
         ]);
+
+        // Images and documents stay capped at 10 MB; MP4/WEBM video can use 100 MB.
+        foreach ($validated['files'] as $index => $file) {
+            if (! in_array($file->getMimeType(), ['video/mp4', 'video/webm'], true)
+                && $file->getSize() > 10 * 1024 * 1024) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'files.'.$index => 'Images and documents must be 10 MB or smaller.',
+                ]);
+            }
+        }
 
         $uploaded = $this->mediaService->upload(auth('admin')->user(), $validated['files']);
 

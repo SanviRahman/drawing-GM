@@ -50,7 +50,7 @@ return [
      * The maximum file size of an item in bytes.
      * Adding a larger file will result in an exception.
      */
-    'max_file_size' => 1024 * 1024 * 10, // 10MB
+    'max_file_size' => 1024 * 1024 * 100, // 100 MB ceiling; per-module validation still caps images/docs at 10 MB
 
     /*
      * Uploads whose file name contains any of these extensions will be rejected.
