@@ -40,8 +40,8 @@ return [
 
         'public'  => [
             'driver'     => 'local',
-            'root'       => storage_path('app/public'),
-            'url'        => rtrim(env('APP_URL', 'http://localhost'), '/') . '/storage',
+            'root'       => env('PUBLIC_MEDIA_ROOT') ?: storage_path('app/public'),
+            'url'        => rtrim(env('PUBLIC_MEDIA_URL') ?: (rtrim(env('APP_URL', 'http://localhost'), '/') . '/storage'), '/'),
             'visibility' => 'public',
             'throw'      => false,
             'report'     => false,
@@ -81,8 +81,13 @@ return [
     |
     */
 
-    'links'   => [
-        public_path('storage') => storage_path('app/public'),
+    // In shared hosting, the Apache document root can differ from Laravel's
+    // public_path(). Point the symlink at the *actual* web document root.
+    'public_media_link' => env('PUBLIC_MEDIA_LINK') ?: public_path('storage'),
+
+    'links' => [
+        (env('PUBLIC_MEDIA_LINK') ?: public_path('storage')) =>
+            (env('PUBLIC_MEDIA_ROOT') ?: storage_path('app/public')),
     ],
 
 ];

@@ -13,6 +13,28 @@
         <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
     </div>
     @endif
+    @if(session('media_storage_report'))
+    <div class="card border-info shadow-sm mb-4">
+        <div class="card-header bg-light font-weight-bold">
+            <i class="fas fa-stethoscope text-info mr-2"></i>Media Storage Doctor - Diagnostic Report
+        </div>
+        <div class="card-body">
+            <pre class="mb-0 p-3 bg-light border rounded" style="white-space:pre-wrap; overflow-wrap:anywhere; max-height:400px; overflow-y:auto;">{{ session('media_storage_report') }}</pre>
+            <small class="text-muted d-block mt-2">Private to admins with the system_tools_manage permission. A passing check does not guarantee all historic media files exist or that the webserver serves the public URL.</small>
+        </div>
+    </div>
+    @endif
+    @if(session('media_storage_repair_report'))
+    <div class="card border-warning shadow-sm mb-4">
+        <div class="card-header bg-light font-weight-bold">
+            <i class="fas fa-tools text-warning mr-2"></i>Media Webroot Repair — Result
+        </div>
+        <div class="card-body">
+            <pre class="mb-0 p-3 bg-light border rounded" style="white-space:pre-wrap; overflow-wrap:anywhere; max-height:450px; overflow-y:auto;">{{ session('media_storage_repair_report') }}</pre>
+            <small class="text-muted d-block mt-2">Visible to authorized administrators only. No files are deleted automatically.</small>
+        </div>
+    </div>
+    @endif
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body py-3">
             <div class="d-flex align-items-center justify-content-between flex-wrap">
@@ -106,6 +128,57 @@
                     </button>
                     @endif
                 </div>
+            </div>
+            <hr>
+            <h6 class="font-weight-bold mb-2"><i class="fas fa-link text-warning mr-2"></i>Storage Link Repair (No Terminal)</h6>
+            <div class="alert alert-warning">
+                <strong>Before you start:</strong> Back up your website and public media in cPanel File Manager.
+                Set <code>PUBLIC_MEDIA_ROOT</code> to Laravel <code>website/storage/app/public</code>,
+                <code>PUBLIC_MEDIA_LINK</code> to your live webroot <code>storage</code>, then click <strong>Clear Config</strong> above.
+                Do not remove your existing <code>storage</code> folder yourself.
+            </div>
+            <div class="row">
+                <div class="col-lg-6 col-md-6 mb-3">
+                    <form method="POST" action="{{ route('command.media-storage-inspect') }}">
+                        @csrf
+                        <button type="submit" class="command-card btn btn-outline-primary btn-block">
+                            <i class="fas fa-search fa-2x mb-2"></i>
+                            <span class="d-block font-weight-bold">1. Inspect Storage</span>
+                            <small class="d-block mt-1">Read-only: inspect files, paths and conflicts</small>
+                        </button>
+                    </form>
+                </div>
+                <div class="col-lg-6 col-md-6 mb-3">
+                    <form method="POST" action="{{ route('command.media-storage-stage') }}"
+                        onsubmit="return confirm('Stage public media in safe batches? Existing files will never be overwritten.');">
+                        @csrf
+                        <button type="submit" class="command-card btn btn-outline-info btn-block">
+                            <i class="fas fa-copy fa-2x mb-2"></i>
+                            <span class="d-block font-weight-bold">2. Stage Existing Public Media</span>
+                            <small class="d-block mt-1">Copy verified media; repeat until complete</small>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="border rounded p-3 mt-1">
+                <h6 class="font-weight-bold text-danger"><i class="fas fa-exclamation-triangle mr-1"></i>3. Activate Storage Link — only after Inspect &amp; Stage</h6>
+                <p class="small text-muted">This moves the old real folder to a private backup OUTSIDE the public webroot, then runs Laravel <code>storage:link</code>. If host symlinks are disabled, automatic rollback is attempted. Never run before verifying the report.</p>
+                <form method="POST" action="{{ route('command.media-storage-activate') }}"
+                      onsubmit="return confirm('Final confirmation: Activate storage symlink and move the existing public folder to private backup?');">
+                    @csrf
+                    <div class="form-group form-check">
+                        <input class="form-check-input" type="checkbox" name="acknowledge" value="1" id="media-repair-ack" required>
+                        <label class="form-check-label" for="media-repair-ack">I have backed up my media and verified the Inspect/Stage reports.</label>
+                    </div>
+                    <div class="form-group">
+                        <label for="media-repair-confirm">Type <strong>LINK STORAGE</strong> to confirm:</label>
+                        <input id="media-repair-confirm" type="text" name="confirmation" class="form-control"
+                               placeholder="LINK STORAGE" autocomplete="off" required maxlength="32">
+                    </div>
+                    <button type="submit" class="btn btn-outline-danger">
+                        <i class="fas fa-link mr-1"></i> Activate Storage Link &amp; Keep Private Backup
+                    </button>
+                </form>
             </div>
             @if(! $hasMediaStorageDoctor)
             <div class="alert alert-light border mb-0 mt-2">

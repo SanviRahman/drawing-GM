@@ -1,6 +1,7 @@
 <?php
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
+use App\Services\MediaStorageWebrootRepair;
 $redirectWithToast = function (string $type, string $message) {
     $returnTo = trim((string) request()->input('return_to', request()->query('return_to', '')));
     $fallbackUrl = route('command.index');
@@ -124,18 +125,64 @@ Route::prefix('command')
                 if (! array_key_exists('media:storage-doctor', $artisanCommands)) {
                     return $redirectWithToast('error', 'Media Storage Doctor command is not installed in this project.');
                 }
-                Artisan::call('media:storage-doctor', ['--limit' => 20]);
+                $exitCode = Artisan::call('media:storage-doctor', ['--limit' => 20]);
                 $output = trim(Artisan::output());
-                $storageReady = str_contains($output, 'Single public media root is ready.');
-                if ($storageReady) {
-                    return $redirectWithToast('success', 'Media storage check passed. Admin and public images use one physical folder.');
+                // Show details only inside this authenticated, permission-protected admin page.
+                // Never leak the report into the public-facing website or into the query string.
+                $report = mb_substr($output, 0, 12000);
+                if ($exitCode === 0 && str_contains($output, 'Single public media root is ready.')) {
+                    return $redirectWithToast('success', 'Media storage check passed. Review the diagnostic report for warnings.')
+                        ->with('media_storage_report', $report);
                 }
-                return $redirectWithToast('error', 'Media storage needs attention.');
+                return $redirectWithToast('error', 'Media storage needs attention. See the report below for the exact failure.')
+                    ->with('media_storage_report', $report);
             } catch (\Throwable $exception) {
                 report($exception);
                 return $redirectWithToast('error', 'Media storage check failed: '.$exception->getMessage());
             }
         })->name('media-storage-doctor');
+        // No-terminal, fixed-path media repair (no arbitrary shell / artisan input).
+        // Protected by the parent auth:admin and can:system_tools_manage middleware.
+        Route::post('/media-storage-inspect', function (MediaStorageWebrootRepair $repair) use ($redirectWithToast) {
+            try {
+                $report = $repair->inspect();
+                return $redirectWithToast('success', 'Media storage inspection completed.')
+                    ->with('media_storage_repair_report', $report);
+            } catch (\Throwable $exception) {
+                report($exception);
+                return $redirectWithToast('error', 'Inspection blocked; see the report below.')
+                    ->with('media_storage_repair_report', $exception->getMessage());
+            }
+        })->middleware('throttle:10,1')->name('media-storage-inspect');
+
+        Route::post('/media-storage-stage', function (MediaStorageWebrootRepair $repair) use ($redirectWithToast) {
+            try {
+                $report = $repair->stage();
+                return $redirectWithToast('success', 'Media staging completed; see details below.')
+                    ->with('media_storage_repair_report', $report);
+            } catch (\Throwable $exception) {
+                report($exception);
+                return $redirectWithToast('error', 'Media staging stopped safely. See the report below.')
+                    ->with('media_storage_repair_report', $exception->getMessage());
+            }
+        })->middleware('throttle:10,1')->name('media-storage-stage');
+
+        Route::post('/media-storage-activate', function (MediaStorageWebrootRepair $repair) use ($redirectWithToast) {
+            if (! request()->boolean('acknowledge') ||
+                ! hash_equals('LINK STORAGE', trim((string) request()->input('confirmation', '')))) {
+                return $redirectWithToast('error', 'Tick the confirmation and type LINK STORAGE to activate.');
+            }
+            try {
+                $report = $repair->activate();
+                return $redirectWithToast('success', 'Media link activation completed. Run Media Storage Doctor next.')
+                    ->with('media_storage_repair_report', $report);
+            } catch (\Throwable $exception) {
+                report($exception);
+                return $redirectWithToast('error', 'Media link activation was blocked or failed; see report.')
+                    ->with('media_storage_repair_report', $exception->getMessage());
+            }
+        })->middleware('throttle:5,1')->name('media-storage-activate');
+
         Route::post('/migrate-fresh', function () use ($redirectWithToast) {
             if (! app()->environment('local')) {
                 return $redirectWithToast('error', 'Fresh migrate is allowed only in local environment.');
